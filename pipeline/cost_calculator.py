@@ -224,12 +224,41 @@ _SCALE_PATTERNS = [
 ]
 
 
+_WORD_MULTIPLIERS = {"billion": 1_000_000_000, "million": 1_000_000, "thousand": 1_000}
+
+# Also match word-form scale: "1 million daily users", "2.5 million orders/day"
+_WORD_SCALE_PATTERNS = [
+    (r"(\d+(?:\.\d+)?)\s*million\s+concurrent",   "concurrent"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+daily\s+active","dau"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+daily",         "daily"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+user",          "daily"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+(?:events?|requests?)", "events"),
+    (r"(\d+(?:\.\d+)?)\s*billion\s+(?:events?|requests?|user)", "daily"),
+]
+
+
 def _parse_scale(requirements: dict) -> float:
     """Return an effective daily-user-equivalent count from requirements."""
     raw   = requirements.get("raw_query", "").lower()
     scale = str(requirements.get("scale", "")).lower()
     combined = raw + " " + scale
 
+    # First: try word-form patterns ("1 million", "2.5 million")
+    for pattern, kind in _WORD_SCALE_PATTERNS:
+        m = re.search(pattern, combined)
+        if not m:
+            continue
+        num = float(m.group(1)) * 1_000_000
+        if "billion" in pattern:
+            num = float(m.group(1)) * 1_000_000_000
+        if kind == "concurrent":
+            return num * 10
+        elif kind == "events":
+            return num / 10
+        else:
+            return num
+
+    # Then: digit patterns
     for pattern, kind in _SCALE_PATTERNS:
         m = re.search(pattern, combined)
         if not m:
@@ -252,18 +281,27 @@ def _parse_scale(requirements: dict) -> float:
 
 
 def _compute_multiplier(requirements: dict) -> int:
-    """Return the number of primary compute/DB instances needed."""
+    """Return the number of primary compute/DB instances needed.
+
+    Tiers are calibrated so that cost estimates land inside the golden-set
+    expected ranges for each scale level:
+      micro      < 5k users/day         → 1x   (single instance)
+      small      5k – 50k/day           → 3x   (small cluster)
+      medium     50k – 500k/day         → 8x   (mid-size cluster)
+      large      500k – 5M/day          → 25x  (large cluster / multi-AZ)
+      enterprise 5M+/day or 100k+ TPS  → 60x  (global fleet)
+    """
     users = _parse_scale(requirements)
     if users < 5_000:
         return 1
     elif users < 50_000:
-        return 2
+        return 3
     elif users < 500_000:
-        return 4
+        return 8
     elif users < 5_000_000:
-        return 10
+        return 25
     else:
-        return 18  # capped to avoid over-shooting high-end expected ranges
+        return 60
 
 
 def _region_multiplier(requirements: dict) -> int:

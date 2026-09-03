@@ -292,6 +292,179 @@ def _build_compute_rules(requirements: dict) -> str:
     return "\n".join(f"  {r}" for r in rules)
 
 
+def _build_service_hints(requirements: dict) -> str:
+    """Build workload-type and cloud-specific service inclusion hints.
+
+    Unlike compute rules (which *eliminate* bad options), these are positive
+    hints that surface commonly-overlooked services the LLM should include.
+    Each hint maps a (cloud, workload type) pair → specific services that
+    evaluation data shows are systematically missing.
+    """
+    cloud    = requirements.get("cloud_provider", "aws").lower()
+    raw      = requirements.get("raw_query", "").lower()
+    wtype    = str(requirements.get("workload_type", "")).lower()
+    constr   = " ".join(requirements.get("constraints", [])).lower()
+    combined = raw + " " + wtype + " " + constr
+    budget   = requirements.get("budget_cap_usd")
+
+    hints = []
+
+    # ── Budget / minimal-architecture hint ───────────────────────────────────
+    # Low-budget workloads should use only managed services, not containers/K8s.
+    if budget and budget < 100:
+        hints.append(
+            f"BUDGET CONSTRAINT: ~${int(budget)}/month — prioritize fully managed "
+            "serverless services (Functions, managed DB, CDN). Do NOT include "
+            "Kubernetes clusters, container orchestration, or multiple load balancers "
+            "unless strictly required. For purely static sites, object storage + CDN alone is sufficient."
+        )
+
+    # ── Azure hints ───────────────────────────────────────────────────────────
+    if cloud == "azure":
+        # Security / identity — Entra ID and Defender are nearly always needed
+        security_triggers = ["security", "zero-trust", "identity", "auth",
+                             "hipaa", "pci", "gdpr", "soc2", "compliance",
+                             "zero trust", "enterprise"]
+        if any(kw in combined for kw in security_triggers):
+            hints.append(
+                "INCLUDE Microsoft Entra ID in the 'security' layer "
+                "(identity and access management, SSO, MFA)."
+            )
+            hints.append(
+                "INCLUDE Microsoft Defender for Cloud in the 'security' layer "
+                "(threat protection, compliance posture, vulnerability assessment)."
+            )
+
+        # ML / AI
+        llm_triggers = ["llm", "openai", "chatbot", "language model", "gpt", "generative ai"]
+        ml_triggers  = ["machine learning", "ml pipeline", "training", "inference",
+                        "demand forecast", "recommendation", "model"]
+        if any(kw in combined for kw in llm_triggers):
+            hints.append(
+                "INCLUDE Azure OpenAI Service in the 'compute' layer "
+                "for LLM inference (GPT-4, embeddings, fine-tuning)."
+            )
+        if any(kw in combined for kw in ml_triggers):
+            hints.append(
+                "INCLUDE Azure Machine Learning in the 'compute' layer "
+                "for model training, experiment tracking, and MLOps."
+            )
+
+        # Web / frontend — CDN is almost always appropriate
+        web_triggers = ["website", "web app", "e-commerce", "frontend",
+                        "static", "marketing site", "cms", "corporate site"]
+        if any(kw in combined for kw in web_triggers):
+            hints.append(
+                "INCLUDE Azure CDN (or Azure Front Door for global routing) in the 'edge' layer "
+                "for content delivery, caching, and latency reduction."
+            )
+
+        # Scale / containers
+        scale_triggers = ["concurrent", "high traffic", "kubernetes", "k8s",
+                          "microservice", "500k", "million user", "leaderboard",
+                          "gaming", "real-time gaming"]
+        if any(kw in combined for kw in scale_triggers):
+            hints.append(
+                "INCLUDE AKS (Azure Kubernetes Service) in the 'compute' layer "
+                "for container orchestration at high scale."
+            )
+            hints.append(
+                "INCLUDE Azure Cache for Redis in the 'database' layer "
+                "for session caching, leaderboards, and low-latency reads."
+            )
+
+        # Data engineering / streaming
+        data_triggers = ["data pipeline", "etl", "analytics", "data warehouse",
+                         "data lake", "clickstream", "iot", "telemetry",
+                         "streaming", "ingestion", "event-driven data"]
+        if any(kw in combined for kw in data_triggers):
+            hints.append(
+                "INCLUDE Azure Event Hubs in the 'messaging' layer "
+                "for high-throughput real-time data ingestion."
+            )
+            hints.append(
+                "INCLUDE Azure Data Lake Storage Gen2 (ADLS Gen2) in the 'database' layer "
+                "for scalable data lake storage."
+            )
+            hints.append(
+                "INCLUDE Azure Data Factory in the 'compute' layer "
+                "for ETL/ELT pipeline orchestration."
+            )
+
+        # API gateway — often forgotten but expected in API-heavy architectures
+        api_triggers = ["api backend", "mobile api", "api gateway", "rest api",
+                        "microservice", "developer portal", "rate limit"]
+        if any(kw in combined for kw in api_triggers):
+            hints.append(
+                "INCLUDE Azure API Management in the 'networking' layer "
+                "for API gateway, rate limiting, authentication, and developer portal."
+            )
+
+    # ── GCP hints ─────────────────────────────────────────────────────────────
+    elif cloud == "gcp":
+        # Secret Manager — almost always needed for serious workloads
+        secret_triggers = ["security", "compliance", "hipaa", "pci", "gdpr",
+                           "soc2", "secret", "credential", "key management",
+                           "zero-trust", "zero trust", "enterprise", "certificate"]
+        if any(kw in combined for kw in secret_triggers):
+            hints.append(
+                "INCLUDE Google Secret Manager in the 'security' layer "
+                "for storing API keys, passwords, and certificates."
+            )
+
+        # Cloud Armor — WAF/DDoS for compliance and security workloads
+        armor_triggers = ["hipaa", "pci", "gdpr", "compliance", "zero-trust",
+                          "zero trust", "ddos", "waf", "security"]
+        if any(kw in combined for kw in armor_triggers):
+            hints.append(
+                "INCLUDE Cloud Armor in the 'security' layer "
+                "for WAF rules and DDoS protection."
+            )
+
+        # ML / AI
+        ml_triggers = ["ml", "machine learning", "llm", "chatbot", "ai",
+                       "training", "inference", "model", "vertex",
+                       "demand forecast", "recommendation"]
+        if any(kw in combined for kw in ml_triggers):
+            hints.append(
+                "INCLUDE Vertex AI in the 'compute' layer "
+                "for ML model training, deployment, and managed inference endpoints."
+            )
+
+        # Scale / containers
+        scale_triggers = ["concurrent", "high traffic", "kubernetes", "k8s",
+                          "microservice", "500k", "million user", "leaderboard",
+                          "gaming", "real-time gaming", "video stream"]
+        if any(kw in combined for kw in scale_triggers):
+            hints.append(
+                "INCLUDE GKE (Google Kubernetes Engine) in the 'compute' layer "
+                "for container orchestration at high scale."
+            )
+            hints.append(
+                "INCLUDE Memorystore for Redis in the 'database' layer "
+                "for low-latency caching, sessions, and leaderboards."
+            )
+
+        # Data / streaming
+        data_triggers = ["data pipeline", "etl", "analytics", "data warehouse",
+                         "clickstream", "iot", "telemetry", "streaming",
+                         "ingestion", "real-time data", "batch processing"]
+        if any(kw in combined for kw in data_triggers):
+            hints.append(
+                "INCLUDE Cloud Storage in the 'storage' or 'database' layer "
+                "for data lake storage, raw data ingestion, and ML training data."
+            )
+            hints.append(
+                "INCLUDE Dataflow in the 'compute' or 'messaging' layer "
+                "for managed Apache Beam streaming and batch data pipelines."
+            )
+
+    if not hints:
+        return ""
+
+    return "\n".join(f"  {h}" for h in hints)
+
+
 def _cloud_display_name(requirements: dict) -> str:
     cloud = requirements.get("cloud_provider", "aws").lower()
     return {"aws": "AWS", "azure": "Azure", "gcp": "GCP"}.get(cloud, "AWS")
@@ -324,7 +497,12 @@ def generate_architecture(requirements: dict, arch_context: str, tradeoff_contex
 
     # Build constraint-aware rules so the model doesn't pick compute options
     # that violate hard engineering limits (not style preferences — hard limits).
-    compute_rules = _build_compute_rules(requirements)
+    compute_rules  = _build_compute_rules(requirements)
+    _hints_raw     = _build_service_hints(requirements)
+    service_hints_block = (
+        "SERVICE INCLUSION HINTS - strongly prefer including these specific services:\n"
+        + _hints_raw + "\n"
+    ) if _hints_raw else ""
 
     cloud        = _cloud_display_name(requirements)
     net_anchor   = _networking_anchor(requirements)
@@ -347,8 +525,7 @@ ARCHITECTURE INVARIANT — always required regardless of workload:
 
 COMPUTE SELECTION RULES — apply these before choosing any compute service:
 {compute_rules}
-
-Use the context below from AWS documentation and architecture guides to inform your recommendation.
+{service_hints_block}Use the context below from AWS documentation and architecture guides to inform your recommendation.
 
 CONTEXT:
 {arch_context}
