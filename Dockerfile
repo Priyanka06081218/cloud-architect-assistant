@@ -24,12 +24,9 @@ COPY app/main.py          ./app/main.py
 COPY app/metrics_pusher.py ./app/metrics_pusher.py
 RUN touch ./app/__init__.py
 
-# Copy the ChromaDB vector store (pre-built during data processing)
-COPY data/chromadb/   ./data/chromadb/
-
-# Patch chromadb config_json_str — 0.5.15 crashes on empty '{}' due to missing _type key.
-COPY scripts/patch_chromadb.py ./scripts/patch_chromadb.py
-RUN python3 scripts/patch_chromadb.py
+# ChromaDB is persisted on Railway's volume or rebuilt at startup from env.
+# The data/chromadb/ directory is excluded from git (too large for GitHub).
+# No COPY needed here — ChromaDB initialises from an empty directory on first run.
 
 # Non-root user for security
 RUN useradd -m appuser && chown -R appuser /app
