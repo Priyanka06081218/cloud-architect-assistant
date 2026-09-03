@@ -38,44 +38,51 @@ log = logging.getLogger(__name__)
 
 #  App setup 
 
-app = FastAPI(
-    title="Cloud Architecture Assistant",
-    description="AI-powered AWS architecture recommendations with cost estimation",
-    version="1.0.0",
-)
 from prometheus_client import (
-    Counter, Histogram, REGISTRY,
+    Counter, Histogram, CollectorRegistry,
     generate_latest, CONTENT_TYPE_LATEST,
 )
 from fastapi.responses import Response
 
-# ── Custom business metrics ───────────────────────────────────────────────────
+# ── Custom metrics registry ───────────────────────────────────────────────────
+# Use a dedicated registry to avoid interference from any installed middleware.
+METRICS_REGISTRY = CollectorRegistry(auto_describe=True)
+
 pipeline_requests_total = Counter(
     "cloud_architect_requests_total",
     "Total /analyze requests",
     ["cloud_provider", "cached"],
+    registry=METRICS_REGISTRY,
 )
 pipeline_duration_seconds = Histogram(
     "cloud_architect_pipeline_duration_seconds",
     "Full pipeline wall-clock time (seconds)",
     ["cloud_provider"],
     buckets=[5, 10, 20, 30, 60, 90, 120, 180],
+    registry=METRICS_REGISTRY,
 )
 cost_estimate_dollars = Histogram(
     "cloud_architect_cost_estimate_dollars",
     "Monthly cost estimate returned (USD)",
     ["cloud_provider"],
     buckets=[10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000],
+    registry=METRICS_REGISTRY,
 )
-cache_hits_total   = Counter("cloud_architect_cache_hits_total",   "Semantic cache hits")
-cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic cache misses")
+cache_hits_total   = Counter("cloud_architect_cache_hits_total",   "Semantic cache hits",  registry=METRICS_REGISTRY)
+cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic cache misses", registry=METRICS_REGISTRY)
 # ─────────────────────────────────────────────────────────────────────────────
+
+app = FastAPI(
+    title="Cloud Architecture Assistant",
+    description="AI-powered AWS architecture recommendations with cost estimation",
+    version="1.0.0",
+)
 
 
 @app.get("/metrics", include_in_schema=False)
 def metrics():
-    """Prometheus metrics endpoint — scraped by the background push thread."""
-    return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
+    """Prometheus metrics endpoint."""
+    return Response(generate_latest(METRICS_REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
 # Allow the React frontend to call this API
 # In production, replace "*" with your actual frontend domain
@@ -155,7 +162,7 @@ def _push_metrics_loop():
     while True:
         try:
             push_metrics(
-                REGISTRY.collect(),
+                METRICS_REGISTRY.collect(),
                 url=GRAFANA_REMOTE_WRITE_URL,
                 username=GRAFANA_REMOTE_WRITE_USER,
                 token=GRAFANA_REMOTE_WRITE_TOKEN,
