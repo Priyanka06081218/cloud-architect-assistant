@@ -350,13 +350,21 @@ def _build_service_hints(requirements: dict) -> str:
                 "for model training, experiment tracking, and MLOps."
             )
 
-        # Web / frontend — CDN is almost always appropriate
+        # Web / frontend — CDN and App Service
         web_triggers = ["website", "web app", "e-commerce", "frontend",
                         "static", "marketing site", "cms", "corporate site"]
         if any(kw in combined for kw in web_triggers):
             hints.append(
                 "INCLUDE Azure CDN (or Azure Front Door for global routing) in the 'edge' layer "
                 "for content delivery, caching, and latency reduction."
+            )
+        # Non-static web: App Service is the standard PaaS compute
+        non_static_web = ["web app", "e-commerce", "cms", "corporate site", "backend",
+                          "relational database", "20,000 daily", "10,000 daily"]
+        if any(kw in combined for kw in non_static_web) and "static" not in combined:
+            hints.append(
+                "INCLUDE Azure App Service (Web Apps) in the 'compute' layer "
+                "as the managed PaaS hosting platform for the web application."
             )
 
         # Scale / containers
@@ -391,9 +399,23 @@ def _build_service_hints(requirements: dict) -> str:
                 "for ETL/ELT pipeline orchestration."
             )
 
+        # Blob Storage — Azure's S3 equivalent, needed in almost every data/ML/scale workload
+        blob_triggers = ["ml", "machine learning", "training", "inference", "model",
+                         "data pipeline", "etl", "analytics", "data warehouse", "data lake",
+                         "clickstream", "iot", "telemetry", "streaming", "ingestion",
+                         "scale", "concurrent", "video", "media", "blob", "object storage",
+                         "artifact", "backup", "log"]
+        if any(kw in combined for kw in blob_triggers):
+            hints.append(
+                "INCLUDE Azure Blob Storage in the 'database' or 'storage' layer "
+                "for object storage (model artifacts, raw data, backups, logs, media files)."
+            )
+
         # API gateway — often forgotten but expected in API-heavy architectures
         api_triggers = ["api backend", "mobile api", "api gateway", "rest api",
-                        "microservice", "developer portal", "rate limit"]
+                        "microservice", "developer portal", "rate limit",
+                        "llm", "chatbot", "payment", "fintech", "hipaa", "pci", "compliance",
+                        "customer support", "saas"]
         if any(kw in combined for kw in api_triggers):
             hints.append(
                 "INCLUDE Azure API Management in the 'networking' layer "
@@ -402,23 +424,39 @@ def _build_service_hints(requirements: dict) -> str:
 
     # ── GCP hints ─────────────────────────────────────────────────────────────
     elif cloud == "gcp":
-        # Secret Manager — almost always needed for serious workloads
-        secret_triggers = ["security", "compliance", "hipaa", "pci", "gdpr",
-                           "soc2", "secret", "credential", "key management",
-                           "zero-trust", "zero trust", "enterprise", "certificate"]
+        # Secret Manager — MANDATORY for any compliance/security/enterprise workload.
+        # Use strong language because the LLM tends to omit it despite softer hints.
+        secret_triggers = ["security", "compliance", "hipaa", "pci", "pci-dss",
+                           "gdpr", "soc2", "secret", "credential", "key management",
+                           "zero-trust", "zero trust", "enterprise", "certificate",
+                           "payment", "fintech", "healthcare", "patient"]
         if any(kw in combined for kw in secret_triggers):
             hints.append(
-                "INCLUDE Google Secret Manager in the 'security' layer "
-                "for storing API keys, passwords, and certificates."
+                "REQUIRED: Google Secret Manager MUST appear in the 'security' layer. "
+                "It is GCP's standard service for storing API keys, database passwords, "
+                "TLS certificates, and compliance-required secrets. Do NOT omit it."
             )
 
         # Cloud Armor — WAF/DDoS for compliance and security workloads
         armor_triggers = ["hipaa", "pci", "gdpr", "compliance", "zero-trust",
-                          "zero trust", "ddos", "waf", "security"]
+                          "zero trust", "ddos", "waf", "security", "payment"]
         if any(kw in combined for kw in armor_triggers):
             hints.append(
                 "INCLUDE Cloud Armor in the 'security' layer "
                 "for WAF rules and DDoS protection."
+            )
+
+        # Web workloads — Cloud Run is the preferred modern compute; Cloud SQL for relational DB
+        web_triggers = ["website", "web app", "e-commerce", "frontend", "cms",
+                        "corporate site", "marketing site", "store"]
+        if any(kw in combined for kw in web_triggers):
+            hints.append(
+                "INCLUDE Cloud Run in the 'compute' layer as the primary managed "
+                "container platform for the web application (preferred over App Engine)."
+            )
+            hints.append(
+                "INCLUDE Cloud SQL (PostgreSQL or MySQL) in the 'database' layer "
+                "for the relational database backend."
             )
 
         # ML / AI
@@ -429,6 +467,19 @@ def _build_service_hints(requirements: dict) -> str:
             hints.append(
                 "INCLUDE Vertex AI in the 'compute' layer "
                 "for ML model training, deployment, and managed inference endpoints."
+            )
+            hints.append(
+                "INCLUDE Cloud Storage in the 'database' layer "
+                "for storing training datasets, model artifacts, and pipeline outputs."
+            )
+
+        # Serverless / event-driven — Firestore for NoSQL state
+        serverless_triggers = ["serverless", "event-driven", "order processing",
+                               "event processing", "functions", "pub/sub consumer"]
+        if any(kw in combined for kw in serverless_triggers):
+            hints.append(
+                "INCLUDE Firestore in the 'database' layer "
+                "for serverless NoSQL document storage (order state, event metadata)."
             )
 
         # Scale / containers
@@ -445,10 +496,11 @@ def _build_service_hints(requirements: dict) -> str:
                 "for low-latency caching, sessions, and leaderboards."
             )
 
-        # Data / streaming
+        # Data / streaming / IoT
         data_triggers = ["data pipeline", "etl", "analytics", "data warehouse",
                          "clickstream", "iot", "telemetry", "streaming",
-                         "ingestion", "real-time data", "batch processing"]
+                         "ingestion", "real-time data", "batch processing",
+                         "connected device", "sensor"]
         if any(kw in combined for kw in data_triggers):
             hints.append(
                 "INCLUDE Cloud Storage in the 'storage' or 'database' layer "
