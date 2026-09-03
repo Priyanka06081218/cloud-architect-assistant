@@ -43,8 +43,11 @@ app = FastAPI(
     description="AI-powered AWS architecture recommendations with cost estimation",
     version="1.0.0",
 )
-from prometheus_fastapi_instrumentator import Instrumentator
-from prometheus_client import Counter, Histogram, Gauge
+from prometheus_client import (
+    Counter, Histogram, REGISTRY,
+    generate_latest, CONTENT_TYPE_LATEST,
+)
+from fastapi.responses import Response
 
 # ── Custom business metrics ───────────────────────────────────────────────────
 pipeline_requests_total = Counter(
@@ -68,7 +71,11 @@ cache_hits_total   = Counter("cloud_architect_cache_hits_total",   "Semantic cac
 cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic cache misses")
 # ─────────────────────────────────────────────────────────────────────────────
 
-Instrumentator().instrument(app).expose(app)
+
+@app.get("/metrics", include_in_schema=False)
+def metrics():
+    """Prometheus metrics endpoint — scraped by the background push thread."""
+    return Response(generate_latest(REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
 # Allow the React frontend to call this API
 # In production, replace "*" with your actual frontend domain
@@ -141,7 +148,6 @@ def _push_metrics_loop():
     """Background thread: push Prometheus metrics to Grafana Cloud every 15s."""
     if not GRAFANA_REMOTE_WRITE_URL:
         return
-    from prometheus_client import REGISTRY
     from app.metrics_pusher import push_metrics
     import time as _time
 
