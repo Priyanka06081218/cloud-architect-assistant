@@ -129,7 +129,9 @@ class AzureProvider(CloudProvider):
         "event hubs":                    "event_hubs",
         # Storage
         "azure blob storage":            "blob_storage",
+        "azure blob":                    "blob_storage",
         "blob storage":                  "blob_storage",
+        "azure storage":                 "blob_storage",
         "storage account":               "blob_storage",
         "azure managed disks":           "managed_disk",
         "managed disks":                 "managed_disk",

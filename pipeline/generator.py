@@ -362,22 +362,45 @@ def _build_service_hints(requirements: dict) -> str:
                 "for model training, experiment tracking, and MLOps."
             )
 
-        # Web / frontend — CDN and App Service
+        # Web / frontend — static vs dynamic
         web_triggers = ["website", "web app", "e-commerce", "frontend",
                         "static", "marketing site", "cms", "corporate site"]
+        static_triggers_az = ["static", "no backend", "static site", "static website",
+                               "static marketing", "html only", "jamstack"]
+        is_static_az = any(kw in combined for kw in static_triggers_az)
+
         if any(kw in combined for kw in web_triggers):
-            hints.append(
-                "INCLUDE Azure CDN in the 'edge' layer for content delivery and caching. "
-                "Use Azure Front Door ONLY if the query explicitly requires global routing "
-                "or multi-region load balancing — do not use Front Door as a CDN substitute."
-            )
+            if is_static_az:
+                hints.append(
+                    "STATIC SITE ARCHITECTURE: Use Azure Blob Storage (static website hosting) "
+                    "+ Azure CDN ONLY. DO NOT include Azure App Service, AKS, VMs, or multiple "
+                    "load balancers — they are unnecessary for a static site and far exceed the budget. "
+                    "Azure Blob Storage + Azure CDN costs under $30/month for small traffic."
+                )
+            else:
+                hints.append(
+                    "INCLUDE Azure CDN in the 'edge' layer for content delivery and caching. "
+                    "Use Azure Front Door ONLY if the query explicitly requires global routing "
+                    "or multi-region load balancing — do not use Front Door as a CDN substitute."
+                )
+
         # Non-static web: App Service is the standard PaaS compute
         non_static_web = ["web app", "e-commerce", "cms", "corporate site", "backend",
                           "relational database", "20,000 daily", "10,000 daily"]
-        if any(kw in combined for kw in non_static_web) and "static" not in combined:
+        if any(kw in combined for kw in non_static_web) and not is_static_az:
             hints.append(
                 "INCLUDE Azure App Service (Web Apps) in the 'compute' layer "
                 "as the managed PaaS hosting platform for the web application."
+            )
+
+        # Serverless / API backends — Azure Functions for event-driven / low-cost compute
+        serverless_triggers = ["serverless", "event-driven", "api backend", "mobile api",
+                               "webhook", "minimum cost", "low cost", "cost-effective",
+                               "pay-per-use", "azure functions"]
+        if any(kw in combined for kw in serverless_triggers):
+            hints.append(
+                "INCLUDE Azure Functions in the 'compute' layer for serverless event-driven "
+                "processing, API handlers, and background tasks (pay-per-execution, no idle cost)."
             )
 
         # Scale / containers
@@ -410,6 +433,15 @@ def _build_service_hints(requirements: dict) -> str:
             hints.append(
                 "INCLUDE Azure Data Factory in the 'compute' layer "
                 "for ETL/ELT pipeline orchestration."
+            )
+
+        # IoT / telemetry — Cosmos DB for device state and time-series
+        iot_triggers = ["iot", "telemetry", "connected device", "sensor", "smart city",
+                        "device data", "real-time iot"]
+        if any(kw in combined for kw in iot_triggers):
+            hints.append(
+                "INCLUDE Azure Cosmos DB in the 'database' layer for IoT device state, "
+                "metadata, and low-latency reads (multi-region NoSQL, ideal for device registries)."
             )
 
         # Blob Storage — Azure's S3 equivalent, needed in almost every data/ML/scale workload
