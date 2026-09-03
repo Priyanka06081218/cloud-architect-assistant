@@ -68,6 +68,9 @@ class AzureProvider(CloudProvider):
         # ML
         "azure_ml":             {"monthly": 150.00,  "unit": "estimated (compute cluster)", "scalable": True},
         "azure_ml_training":    {"monthly": 80.00,   "unit": "estimated (GPU job)", "scalable": False},
+        # AI / OpenAI
+        "azure_openai":         {"monthly": 1200.00, "unit": "estimated (GPT-4, moderate usage)", "scalable": False},
+        "azure_openai_gpt4":    {"monthly": 2000.00, "unit": "estimated (GPT-4, 10k queries/day)", "scalable": False},
         # Media
         "azure_media_services": {"monthly": 400.00,  "unit": "estimated (encoding + streaming units)", "scalable": True},
     }
@@ -158,9 +161,14 @@ class AzureProvider(CloudProvider):
         "azure monitor":                 "azure_monitor",
         "azure application insights":    "app_insights",
         "application insights":          "app_insights",
-        # ML
+        # ML / AI
         "azure machine learning":        "azure_ml",
         "azure ml":                      "azure_ml",
+        "azure openai service":          "azure_openai_gpt4",
+        "azure openai":                  "azure_openai_gpt4",
+        "openai service":                "azure_openai_gpt4",
+        "azure cognitive services":      "azure_openai",
+        "cognitive services":            "azure_openai",
         # Media
         "azure media services":          "azure_media_services",
         "media services":                "azure_media_services",

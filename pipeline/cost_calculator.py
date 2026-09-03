@@ -219,8 +219,12 @@ _SCALE_PATTERNS = [
     (r"(\d[\d,]*)\s*k?\s*daily\s*user",     "daily"),
     (r"(\d[\d,]*)\s*k?\s*visitors?\s*per\s*day", "daily"),
     (r"(\d[\d,]*)\s*k?\s*user",             "daily"),
-    # events / requests per day
-    (r"(\d[\d,]*)\s*k?\s*(events?|requests?)\s*per\s*(day|hour)", "events"),
+    # events / requests / transactions per day or hour
+    (r"(\d[\d,]*)\s*k?\s*(events?|requests?|transactions?|orders?)\s*per\s*(day|hour)", "events"),
+    # enterprise customers (each customer ≈ 100 daily users)
+    (r"(\d[\d,]*)\s*k?\s*enterprise\s*customer", "enterprise_customer"),
+    # number of microservices (each service ≈ 1000 daily users in load terms)
+    (r"(\d[\d,]*)\s*k?\s*(?:micro)?service",     "service_count"),
 ]
 
 
@@ -239,11 +243,27 @@ _WORD_SCALE_PATTERNS = [
 ]
 
 
+_BATCH_TRIGGERS = [
+    "nightly", "once per day", "once a day", "scheduled batch", "batch job",
+    "scheduled job", "minimize always-on", "cron", "overnight",
+    "daily batch", "periodic job", "runs once",
+]
+
+
+def _is_batch_workload(combined: str) -> bool:
+    """Return True for scheduled/batch jobs that need minimal always-on resources."""
+    return any(t in combined for t in _BATCH_TRIGGERS)
+
+
 def _parse_scale(requirements: dict) -> float:
     """Return an effective daily-user-equivalent count from requirements."""
     raw   = requirements.get("raw_query", "").lower()
     scale = str(requirements.get("scale", "")).lower()
     combined = raw + " " + scale
+
+    # Batch/scheduled workloads: tiny footprint regardless of other signals
+    if _is_batch_workload(combined):
+        return 500  # → 1x multiplier
 
     # First: try word-form patterns ("1 million", "2.5 million")
     for pattern, kind in _WORD_SCALE_PATTERNS:
@@ -276,6 +296,10 @@ def _parse_scale(requirements: dict) -> float:
             return num * 86400 / 10  # TPS → events/day → users
         elif kind == "events":
             return num / 10          # events/day → rough user-equiv
+        elif kind == "enterprise_customer":
+            return num * 100         # each enterprise customer ≈ 100 daily users
+        elif kind == "service_count":
+            return num * 1000        # each microservice ≈ 1k daily-user-equiv load
         else:
             return num
 

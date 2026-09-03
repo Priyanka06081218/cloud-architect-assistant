@@ -479,6 +479,17 @@ def _build_service_hints(requirements: dict) -> str:
                 "for API gateway, rate limiting, authentication, and developer portal."
             )
 
+        # LLM / AI chatbot — Azure OpenAI Service
+        llm_triggers = ["llm", "chatbot", "gpt", "gpt-4", "openai", "language model",
+                        "ai assistant", "conversational ai", "customer support chatbot",
+                        "ai-powered", "natural language"]
+        if any(kw in combined for kw in llm_triggers):
+            hints.append(
+                "INCLUDE Azure OpenAI Service in the 'compute' layer as the primary LLM inference "
+                "endpoint. Azure OpenAI Service provides GPT-4 and other models via a managed API. "
+                "This is the highest-cost component for LLM-powered applications."
+            )
+
     # ── GCP hints ─────────────────────────────────────────────────────────────
     elif cloud == "gcp":
         # Secret Manager — MANDATORY for any compliance/security/enterprise workload.
