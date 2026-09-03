@@ -44,6 +44,30 @@ app = FastAPI(
     version="1.0.0",
 )
 from prometheus_fastapi_instrumentator import Instrumentator
+from prometheus_client import Counter, Histogram, Gauge
+
+# ── Custom business metrics ───────────────────────────────────────────────────
+pipeline_requests_total = Counter(
+    "cloud_architect_requests_total",
+    "Total /analyze requests",
+    ["cloud_provider", "cached"],
+)
+pipeline_duration_seconds = Histogram(
+    "cloud_architect_pipeline_duration_seconds",
+    "Full pipeline wall-clock time (seconds)",
+    ["cloud_provider"],
+    buckets=[5, 10, 20, 30, 60, 90, 120, 180],
+)
+cost_estimate_dollars = Histogram(
+    "cloud_architect_cost_estimate_dollars",
+    "Monthly cost estimate returned (USD)",
+    ["cloud_provider"],
+    buckets=[10, 50, 100, 250, 500, 1000, 2500, 5000, 10000, 25000],
+)
+cache_hits_total   = Counter("cloud_architect_cache_hits_total",   "Semantic cache hits")
+cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic cache misses")
+# ─────────────────────────────────────────────────────────────────────────────
+
 Instrumentator().instrument(app).expose(app)
 
 # Allow the React frontend to call this API
@@ -307,10 +331,14 @@ def analyze(request: AnalyzeRequest):
     cached = cache_get(query)
     if cached:
         log.info(f"Semantic cache hit for: {query[:60]}...")
+        cloud = cached.get("cloud_provider", "aws").lower()
+        cache_hits_total.inc()
+        pipeline_requests_total.labels(cloud_provider=cloud, cached="true").inc()
         return {**cached, "cached": True, "elapsed_seconds": 0}
 
     # Run the full pipeline
     log.info(f"Running pipeline for: {query[:60]}...")
+    cache_misses_total.inc()
     start = time.time()
 
     try:
@@ -321,6 +349,14 @@ def analyze(request: AnalyzeRequest):
 
     elapsed = round(time.time() - start, 2)
     log.info(f"Pipeline completed in {elapsed}s")
+
+    # Record business metrics
+    cloud = response.get("cloud_provider", "aws").lower()
+    pipeline_requests_total.labels(cloud_provider=cloud, cached="false").inc()
+    pipeline_duration_seconds.labels(cloud_provider=cloud).observe(elapsed)
+    cost = response.get("cost_estimate", {}).get("total_monthly_usd", 0) or 0
+    if cost > 0:
+        cost_estimate_dollars.labels(cloud_provider=cloud).observe(cost)
 
     # Store in semantic cache
     cache_set(query, response)
