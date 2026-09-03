@@ -1,0 +1,76 @@
+# docker-compose.yml
+# Runs the full stack locally: backend + frontend + Redis cache.
+#
+# Usage:
+#   docker-compose up --build          # first run
+#   docker-compose up                  # subsequent runs
+#   docker-compose down                # stop everything
+#
+# Access:
+#   Frontend:  http://localhost:3000
+#   Backend:   http://localhost:8000
+#   API docs:  http://localhost:8000/docs
+
+version: "3.9"
+
+services:
+
+  #  FastAPI backend 
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile.backend
+    container_name: cloud-architect-backend
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # Override cache to use Redis instead of in-memory dict
+      REDIS_URL: redis://redis:6379/0
+    volumes:
+      # Mount the ChromaDB store so it persists across rebuilds
+      - ./data/chroma:/app/data/chroma:ro
+    depends_on:
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  #  Next.js frontend 
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+      args:
+        NEXT_PUBLIC_API_URL: http://localhost:8000
+    container_name: cloud-architect-frontend
+    ports:
+      - "3000:3000"
+    depends_on:
+      backend:
+        condition: service_healthy
+    restart: unless-stopped
+
+  #  Redis (replaces in-memory cache in production) 
+  redis:
+    image: redis:7-alpine
+    container_name: cloud-architect-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  redis_data:

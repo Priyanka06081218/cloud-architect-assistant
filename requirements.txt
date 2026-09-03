@@ -1,0 +1,33 @@
+# Core API
+fastapi==0.115.0
+langfuse>=2.24.0,<3.0.0
+uvicorn[standard]==0.30.6
+pydantic==2.9.0
+python-dotenv==1.0.1
+prometheus-fastapi-instrumentator==7.0.0
+
+# RAG pipeline
+openai>=1.57.0
+chromadb==0.5.23
+sentence-transformers==3.1.1
+upstash-vector==0.6.0
+python-snappy==0.7.3
+
+# Data collection
+requests==2.32.3
+beautifulsoup4==4.12.3
+pymupdf==1.24.10
+
+# Drift detection + continuous governance
+boto3==1.35.0
+apscheduler==3.10.4
+
+# Fine-tuning (GPU machine only — uncomment when training)
+# torch>=2.0.0
+# transformers>=4.44.0
+# peft>=0.12.0
+# trl>=0.11.0
+# bitsandbytes>=0.43.0
+# accelerate>=0.34.0
+# datasets>=3.0.0
+feedparser==6.0.11

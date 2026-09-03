@@ -1,0 +1,40 @@
+# Dockerfile.backend
+# Builds the FastAPI RAG pipeline backend.
+#
+# Build: docker build -f Dockerfile.backend -t cloud-architect-backend .
+# Run:   docker run -p 8000:8000 --env-file .env cloud-architect-backend
+
+FROM python:3.11-slim
+
+# System dependencies needed by sentence-transformers and chromadb
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    build-essential \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Install Python dependencies first (cached layer if requirements unchanged)
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY config.py        ./config.py
+COPY pipeline/        ./pipeline/
+COPY app/main.py      ./app/main.py
+RUN touch ./app/__init__.py
+
+# Copy the ChromaDB vector store (pre-built during data processing)
+COPY data/chromadb/   ./data/chromadb/
+
+# Non-root user for security
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
+
+EXPOSE 8000
+
+# Health check for Kubernetes liveness probe
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2"]

@@ -1,0 +1,96 @@
+# infra/k8s/service.yaml
+# Services and Ingress for backend + frontend.
+
+---
+#  Backend Service 
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend
+spec:
+  selector:
+    app: backend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 8000
+  type: ClusterIP
+
+---
+#  Frontend Service 
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+spec:
+  selector:
+    app: frontend
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 3000
+  type: ClusterIP
+
+---
+#  Ingress (AWS Load Balancer Controller) 
+# Routes /analyze, /health, /docs → backend; everything else → frontend
+#
+# Prerequisites: install AWS Load Balancer Controller via Helm
+#   helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+#     -n kube-system --set clusterName=cloud-architect
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cloud-architect-ingress
+  annotations:
+    kubernetes.io/ingress.class: alb
+    alb.ingress.kubernetes.io/scheme: internet-facing
+    alb.ingress.kubernetes.io/target-type: ip
+    alb.ingress.kubernetes.io/healthcheck-path: /health
+    # Add HTTPS: uncomment and fill in your ACM certificate ARN
+    # alb.ingress.kubernetes.io/certificate-arn: arn:aws:acm:us-east-1:ACCOUNT:certificate/ID
+    # alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
+spec:
+  rules:
+    - http:
+        paths:
+          - path: /analyze
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /health
+            pathType: Exact
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /docs
+            pathType: Prefix
+            backend:
+              service:
+                name: backend
+                port:
+                  number: 80
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend
+                port:
+                  number: 80
+
+---
+#  Secret (populated by CI/CD from SSM Parameter Store) 
+# Never commit real values. CI/CD creates this before deploying:
+#   kubectl create secret generic backend-secrets \
+#     --from-literal=openai-api-key=$(aws ssm get-parameter --name /cloud-architect/openai-key --with-decryption --query Parameter.Value --output text) \
+#     --from-literal=redis-url=rediss://REDIS_ENDPOINT:6379
+apiVersion: v1
+kind: Secret
+metadata:
+  name: backend-secrets
+type: Opaque

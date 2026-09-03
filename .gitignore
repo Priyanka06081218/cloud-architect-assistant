@@ -1,0 +1,20 @@
+.env
+
+venv/
+__pycache__/
+
+*.pyc
+
+data/raw/
+data/bronze/
+data/silver/
+data/gold/
+
+node_modules/
+.vercel
+.env*
+
+# Evaluation outputs (LLM-generated, expensive to re-run — don't commit)
+evaluation/results/pipeline_outputs*.json
+evaluation/results/eval_report_*.json
+data/chromadb/

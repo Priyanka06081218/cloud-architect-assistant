@@ -1,0 +1,127 @@
+# infra/k8s/deployment.yaml
+# Kubernetes deployments for backend and frontend.
+# Apply: kubectl apply -f infra/k8s/
+
+---
+#  Backend Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: backend
+  labels:
+    app: backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: backend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0     # zero-downtime deploys
+  template:
+    metadata:
+      labels:
+        app: backend
+    spec:
+      serviceAccountName: backend   # links to IAM role via IRSA
+      containers:
+        - name: backend
+          image: YOUR_ECR_URL/cloud-architect/backend:latest  # replaced by CI/CD
+          ports:
+            - containerPort: 8000
+          env:
+            - name: OPENAI_API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: openai-api-key
+            - name: REDIS_URL
+              valueFrom:
+                secretKeyRef:
+                  name: backend-secrets
+                  key: redis-url
+          resources:
+            requests:
+              cpu: "500m"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "3Gi"
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60   # sentence-transformers takes time to load
+            periodSeconds: 30
+            failureThreshold: 3
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 60
+            periodSeconds: 10
+
+---
+#  Frontend Deployment 
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: frontend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: frontend
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: YOUR_ECR_URL/cloud-architect/frontend:latest  # replaced by CI/CD
+          ports:
+            - containerPort: 3000
+          resources:
+            requests:
+              cpu: "100m"
+              memory: "256Mi"
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+          livenessProbe:
+            httpGet:
+              path: /
+              port: 3000
+            initialDelaySeconds: 15
+            periodSeconds: 30
+
+---
+#  Horizontal Pod Autoscaler 
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: backend-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: backend
+  minReplicas: 2
+  maxReplicas: 8
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 70

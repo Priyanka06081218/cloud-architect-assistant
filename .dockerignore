@@ -1,0 +1,39 @@
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+*.egg-info/
+
+# Virtual environments
+venv/
+.venv/
+env/
+
+# Raw collected data (too large for Docker image — mount as volume or load from S3)
+data/raw/
+data/finetune/
+
+# Trained models (large — store in S3/ECR or mount separately)
+models/
+
+# Node modules (rebuilt inside container)
+app/frontend/node_modules/
+app/frontend/.next/
+
+# Git
+.git/
+.gitignore
+
+# Secrets
+.env
+*.pem
+*.key
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# macOS
+.DS_Store
