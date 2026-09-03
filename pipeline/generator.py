@@ -267,12 +267,20 @@ def _build_compute_rules(requirements: dict) -> str:
                 "REQUIRED for multi-region: include Cloud Load Balancing (global) with Cloud CDN, "
                 "Cloud Spanner or Firestore for globally distributed data."
             )
+        iot_triggers = ["iot", "connected device", "smart city", "sensor data",
+                        "device telemetry", "iot platform", "million device"]
+        if any(t in combined for t in iot_triggers):
+            rules.append(
+                "REQUIRED for IoT: include Pub/Sub (device ingestion), Dataflow (managed Apache Beam "
+                "stream processing for real-time anomaly detection and transformation), and Bigtable "
+                "(time-series storage for device metrics). This is the standard GCP IoT reference architecture."
+            )
         compliance_map = {
-            "hipaa":   "Cloud KMS, Cloud Audit Logs, Security Command Center, VPC Network",
-            "pci":     "Cloud KMS, Cloud Armor (WAF), Cloud Audit Logs, Security Command Center, VPC Network",
-            "pci-dss": "Cloud KMS, Cloud Armor (WAF), Cloud Audit Logs, Security Command Center, VPC Network",
-            "soc2":    "Cloud Audit Logs, Security Command Center, VPC Network, Cloud Asset Inventory",
-            "gdpr":    "Cloud KMS, Cloud Audit Logs, VPC Network, EU region deployments",
+            "hipaa":   "Cloud KMS, Secret Manager, Cloud Audit Logs, Security Command Center, VPC Network",
+            "pci":     "Cloud KMS, Secret Manager, Cloud Armor (WAF), Cloud Audit Logs, Security Command Center, VPC Network",
+            "pci-dss": "Cloud KMS, Secret Manager, Cloud Armor (WAF), Cloud Audit Logs, Security Command Center, VPC Network",
+            "soc2":    "Secret Manager, Cloud Audit Logs, Security Command Center, VPC Network, Cloud Asset Inventory",
+            "gdpr":    "Cloud KMS, Secret Manager, Cloud Audit Logs, VPC Network, EU region deployments",
         }
 
     # Compliance rules (shared logic, cloud-specific services injected above)
@@ -321,7 +329,7 @@ def _build_service_hints(requirements: dict) -> str:
 
     # ── Azure hints ───────────────────────────────────────────────────────────
     if cloud == "azure":
-        # Security / identity — Entra ID and Defender are nearly always needed
+        # Security / identity — Entra ID, Key Vault, and Defender are nearly always needed
         security_triggers = ["security", "zero-trust", "identity", "auth",
                              "hipaa", "pci", "gdpr", "soc2", "compliance",
                              "zero trust", "enterprise"]
@@ -329,6 +337,10 @@ def _build_service_hints(requirements: dict) -> str:
             hints.append(
                 "INCLUDE Microsoft Entra ID in the 'security' layer "
                 "(identity and access management, SSO, MFA)."
+            )
+            hints.append(
+                "INCLUDE Azure Key Vault in the 'security' layer "
+                "(secrets, certificates, encryption key management)."
             )
             hints.append(
                 "INCLUDE Microsoft Defender for Cloud in the 'security' layer "
@@ -355,8 +367,9 @@ def _build_service_hints(requirements: dict) -> str:
                         "static", "marketing site", "cms", "corporate site"]
         if any(kw in combined for kw in web_triggers):
             hints.append(
-                "INCLUDE Azure CDN (or Azure Front Door for global routing) in the 'edge' layer "
-                "for content delivery, caching, and latency reduction."
+                "INCLUDE Azure CDN in the 'edge' layer for content delivery and caching. "
+                "Use Azure Front Door ONLY if the query explicitly requires global routing "
+                "or multi-region load balancing — do not use Front Door as a CDN substitute."
             )
         # Non-static web: App Service is the standard PaaS compute
         non_static_web = ["web app", "e-commerce", "cms", "corporate site", "backend",
@@ -408,7 +421,19 @@ def _build_service_hints(requirements: dict) -> str:
         if any(kw in combined for kw in blob_triggers):
             hints.append(
                 "INCLUDE Azure Blob Storage in the 'database' or 'storage' layer "
-                "for object storage (model artifacts, raw data, backups, logs, media files)."
+                "for object storage (model artifacts, raw data, backups, logs, media files). "
+                "Use 'Azure Blob Storage' by name — NOT 'Azure Data Lake Storage Gen2' unless "
+                "the workload explicitly requires hierarchical namespace (ADLS Gen2)."
+            )
+
+        # Video/media streaming — additional hard requirement for blob + media services
+        streaming_triggers = ["video streaming", "streaming platform", "media platform",
+                              "video platform", "hd content", "hd video", "live stream"]
+        if any(kw in combined for kw in streaming_triggers):
+            hints.append(
+                "REQUIRED for video streaming: Azure Blob Storage MUST appear in the 'storage' layer "
+                "as the primary object store for video files. Azure Media Services should appear in "
+                "the 'compute' layer for video encoding and adaptive bitrate delivery."
             )
 
         # API gateway — often forgotten but expected in API-heavy architectures
@@ -446,18 +471,30 @@ def _build_service_hints(requirements: dict) -> str:
                 "for WAF rules and DDoS protection."
             )
 
-        # Web workloads — Cloud Run is the preferred modern compute; Cloud SQL for relational DB
+        # Web workloads — static vs dynamic handled separately
         web_triggers = ["website", "web app", "e-commerce", "frontend", "cms",
                         "corporate site", "marketing site", "store"]
+        static_triggers = ["static", "no backend", "static site", "static website",
+                           "static marketing", "no database", "html only", "jamstack"]
+        is_static_site = any(kw in combined for kw in static_triggers)
+
         if any(kw in combined for kw in web_triggers):
-            hints.append(
-                "INCLUDE Cloud Run in the 'compute' layer as the primary managed "
-                "container platform for the web application (preferred over App Engine)."
-            )
-            hints.append(
-                "INCLUDE Cloud SQL (PostgreSQL or MySQL) in the 'database' layer "
-                "for the relational database backend."
-            )
+            if is_static_site:
+                hints.append(
+                    "STATIC SITE ARCHITECTURE: Use Cloud Storage (GCS bucket with website hosting) "
+                    "+ Cloud CDN ONLY. DO NOT include Cloud Run, Cloud SQL, App Engine, or GKE — "
+                    "they are unnecessary for a static site and will exceed the budget. "
+                    "Cloud Storage + Cloud CDN costs under $10/month and handles millions of requests."
+                )
+            else:
+                hints.append(
+                    "INCLUDE Cloud Run in the 'compute' layer as the primary managed "
+                    "container platform for the web application (preferred over App Engine)."
+                )
+                hints.append(
+                    "INCLUDE Cloud SQL (PostgreSQL or MySQL) in the 'database' layer "
+                    "for the relational database backend."
+                )
 
         # ML / AI
         ml_triggers = ["ml", "machine learning", "llm", "chatbot", "ai",

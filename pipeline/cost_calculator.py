@@ -228,12 +228,14 @@ _WORD_MULTIPLIERS = {"billion": 1_000_000_000, "million": 1_000_000, "thousand":
 
 # Also match word-form scale: "1 million daily users", "2.5 million orders/day"
 _WORD_SCALE_PATTERNS = [
-    (r"(\d+(?:\.\d+)?)\s*million\s+concurrent",   "concurrent"),
-    (r"(\d+(?:\.\d+)?)\s*million\s+daily\s+active","dau"),
-    (r"(\d+(?:\.\d+)?)\s*million\s+daily",         "daily"),
-    (r"(\d+(?:\.\d+)?)\s*million\s+user",          "daily"),
-    (r"(\d+(?:\.\d+)?)\s*million\s+(?:events?|requests?)", "events"),
-    (r"(\d+(?:\.\d+)?)\s*billion\s+(?:events?|requests?|user)", "daily"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+concurrent",                           "concurrent"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+daily\s+active",                       "dau"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+daily",                                 "daily"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+user",                                  "daily"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+connected\s+(?:device|sensor)",        "dau"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+(?:device|sensor|endpoint)",           "dau"),
+    (r"(\d+(?:\.\d+)?)\s*million\s+(?:events?|requests?)",                "events"),
+    (r"(\d+(?:\.\d+)?)\s*billion\s+(?:events?|requests?|user|device)",    "daily"),
 ]
 
 

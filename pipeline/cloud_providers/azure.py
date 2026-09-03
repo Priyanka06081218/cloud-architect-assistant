@@ -68,6 +68,8 @@ class AzureProvider(CloudProvider):
         # ML
         "azure_ml":             {"monthly": 150.00,  "unit": "estimated (compute cluster)", "scalable": True},
         "azure_ml_training":    {"monthly": 80.00,   "unit": "estimated (GPU job)", "scalable": False},
+        # Media
+        "azure_media_services": {"monthly": 400.00,  "unit": "estimated (encoding + streaming units)", "scalable": True},
     }
 
     service_name_map = {
@@ -157,4 +159,7 @@ class AzureProvider(CloudProvider):
         # ML
         "azure machine learning":        "azure_ml",
         "azure ml":                      "azure_ml",
+        # Media
+        "azure media services":          "azure_media_services",
+        "media services":                "azure_media_services",
     }
