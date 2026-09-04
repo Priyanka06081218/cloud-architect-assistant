@@ -383,65 +383,48 @@ def _resolve_key(service_name: str, provider=None) -> str | None:
     return SERVICE_NAME_MAP.get(normalized)
 
 
-def estimate_cost(architecture: dict, requirements: dict | None = None, provider=None) -> dict:
-    """Estimate monthly AWS cost from an architecture recommendation.
+def _compute_breakdown(
+    architecture: dict,
+    provider,
+    compute_mult: int,
+    region_mult: int,
+) -> tuple[list[dict], float]:
+    """Core pricing loop — returns (breakdown, total).
 
-    Args:
-        architecture:  the architecture dict from generator.py
-                       (contains "layers" with lists of service names)
-        requirements:  structured requirements from extractor.py (optional).
-                       When provided, scale-aware multipliers are applied to
-                       compute and database services so the estimate reflects
-                       the actual number of instances needed.
-
-    Returns dict with line-item breakdown, total, and optimization tip.
+    Extracted so estimate_cost() can call it three times with different
+    multipliers to generate Cost-Optimized, Balanced, and HA scenarios.
     """
-    req = requirements or {}
-
-    # Resolve provider: explicit arg > requirements field > default (AWS)
-    if provider is None:
-        from pipeline.cloud_providers import get_provider
-        provider = get_provider(req.get("cloud_provider", "aws"))
-
     pricing_table = provider.pricing
 
-    compute_mult = _compute_multiplier(req)
-    region_mult  = _region_multiplier(req)
-
-    # Flatten all service names from all layers.
     raw_services: list[str] = []
     for layer_services in architecture.get("layers", {}).values():
         for svc in layer_services:
             raw_services.extend(p.strip() for p in svc.split(","))
 
     breakdown: list[dict] = []
-    total                  = 0.0
-    seen_keys: set[str]    = set()
+    total: float = 0.0
+    seen_keys: set[str] = set()
 
     for service_name in raw_services:
         key = _resolve_key(service_name, provider)
         if not key or key in seen_keys:
             continue
-
         pricing = pricing_table.get(key)
         if not pricing:
             continue
-
         seen_keys.add(key)
 
-        # Apply scale multiplier to services that grow with load.
-        # Global services (Shield Advanced, Route 53) are never multiplied.
-        multiplier = 1
         if pricing.get("global"):
-            multiplier = 1  # flat global subscription
+            multiplier = 1
         elif pricing.get("scalable"):
             multiplier = compute_mult * region_mult
         elif region_mult > 1:
-            # Fixed-cost services still get provisioned per region
             multiplier = region_mult
+        else:
+            multiplier = 1
 
         monthly = pricing["monthly"] * multiplier
-        total  += monthly
+        total += monthly
         breakdown.append({
             "service":     service_name,
             "monthly_usd": round(monthly, 2),
@@ -449,10 +432,9 @@ def estimate_cost(architecture: dict, requirements: dict | None = None, provider
             "count":       multiplier if multiplier > 1 else None,
         })
 
-    # Always add estimated data transfer cost (scales with regions)
     dt_entry = pricing_table.get("data_transfer", {"monthly": 9.00, "unit": "per 100GB egress"})
-    dt_cost  = dt_entry["monthly"] * region_mult
-    total   += dt_cost
+    dt_cost = dt_entry["monthly"] * region_mult
+    total += dt_cost
     breakdown.append({
         "service":     "Data Transfer (egress)",
         "monthly_usd": round(dt_cost, 2),
@@ -460,13 +442,75 @@ def estimate_cost(architecture: dict, requirements: dict | None = None, provider
         "count":       None,
     })
 
+    return breakdown, round(total, 2)
+
+
+def estimate_cost(architecture: dict, requirements: dict | None = None, provider=None) -> dict:
+    """Estimate monthly cloud cost from an architecture recommendation.
+
+    Returns the balanced estimate plus two alternative scenarios
+    (Cost-Optimized and High Availability) and a min/max range.
+    """
+    req = requirements or {}
+
+    if provider is None:
+        from pipeline.cloud_providers import get_provider
+        provider = get_provider(req.get("cloud_provider", "aws"))
+
+    compute_mult = _compute_multiplier(req)
+    region_mult  = _region_multiplier(req)
+
+    # ── Balanced (current recommendation) ────────────────────────────────────
+    bd_breakdown, bd_total = _compute_breakdown(architecture, provider, compute_mult, region_mult)
+
+    # ── Cost-Optimized: half the compute, always single-region ───────────────
+    co_mult = max(1, compute_mult // 2)
+    co_breakdown, co_total = _compute_breakdown(architecture, provider, co_mult, 1)
+
+    # ── High Availability: same compute but forced multi-region (region_mult≥2)
+    ha_region = max(2, region_mult)
+    ha_breakdown, ha_total = _compute_breakdown(architecture, provider, compute_mult, ha_region)
+
+    scenarios = [
+        {
+            "id":               "cost_optimized",
+            "label":            "Cost-Optimized",
+            "description":      "Right-sized single-region deployment. Ideal for dev/staging or non-critical workloads.",
+            "recommended":      False,
+            "total_monthly_usd":  co_total,
+            "spike_estimate_usd": round(co_total * 1.35, 2),
+            "monthly_breakdown":  co_breakdown,
+        },
+        {
+            "id":               "balanced",
+            "label":            "Balanced",
+            "description":      "Production-ready with sensible defaults. Best fit for this workload.",
+            "recommended":      True,
+            "total_monthly_usd":  bd_total,
+            "spike_estimate_usd": round(bd_total * 1.35, 2),
+            "monthly_breakdown":  bd_breakdown,
+        },
+        {
+            "id":               "high_availability",
+            "label":            "High Availability",
+            "description":      "Active-active multi-region with full redundancy. Maximum resilience.",
+            "recommended":      False,
+            "total_monthly_usd":  ha_total,
+            "spike_estimate_usd": round(ha_total * 1.35, 2),
+            "monthly_breakdown":  ha_breakdown,
+        },
+    ]
+
     return {
-        "monthly_breakdown":  breakdown,
-        "total_monthly_usd":  round(total, 2),
-        "spike_estimate_usd": round(total * 1.35, 2),
+        "monthly_breakdown":  bd_breakdown,
+        "total_monthly_usd":  bd_total,
+        "min_monthly_usd":    co_total,
+        "max_monthly_usd":    ha_total,
+        "spike_estimate_usd": round(bd_total * 1.35, 2),
         "scale_tier":         f"{compute_mult}x compute, {region_mult}x region",
         "cloud_provider":     provider.provider_id,
         "optimization":       provider.optimization_tip,
+        "scenarios":          scenarios,
     }
 
 

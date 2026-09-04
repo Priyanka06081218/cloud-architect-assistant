@@ -31,11 +31,28 @@ export interface AnalyzeResponse {
       service: string;
       monthly_usd: number;
       unit: string;
+      count?: number | null;
     }>;
     total_monthly_usd: number;
+    min_monthly_usd: number;
+    max_monthly_usd: number;
     spike_estimate_usd: number;
     cloud_provider?: string;
     optimization: string;
+    scenarios: Array<{
+      id: string;
+      label: string;
+      description: string;
+      recommended: boolean;
+      total_monthly_usd: number;
+      spike_estimate_usd: number;
+      monthly_breakdown: Array<{
+        service: string;
+        monthly_usd: number;
+        unit: string;
+        count?: number | null;
+      }>;
+    }>;
   };
   constraint_violations?: Array<{
     constraint_type: string;
