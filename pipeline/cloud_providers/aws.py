@@ -90,6 +90,7 @@ class AWSProvider(CloudProvider):
         # API
         "api gateway":                   "api_gateway",
         "aws api gateway":               "api_gateway",
+        "amazon api gateway":            "api_gateway",
         # Compute
         "lambda":                        "lambda",
         "aws lambda":                    "lambda",

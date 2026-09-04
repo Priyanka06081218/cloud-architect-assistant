@@ -249,6 +249,20 @@ _BATCH_TRIGGERS = [
     "daily batch", "periodic job", "runs once",
 ]
 
+# Gaming/leaderboard workloads: in-memory stores (Redis) handle extreme concurrency
+# with very few nodes — 100k concurrent players ≠ 100k concurrent web-app users.
+_GAMING_TRIGGERS = [
+    "gaming", "game server", "leaderboard", "player ranking",
+    "multiplayer", "game engine", "game platform",
+]
+
+# HFT workloads: specialized hardware (FPGA, co-lo), not commodity fleets.
+# 50k TPS trading ≠ 50k TPS general web traffic in instance count.
+_HFT_TRIGGERS = [
+    "high-frequency", "hft", "algorithmic trad", "trading platform",
+    "financial trading", "market maker", "order book", "low-latency trad",
+]
+
 
 def _is_batch_workload(combined: str) -> bool:
     """Return True for scheduled/batch jobs that need minimal always-on resources."""
@@ -265,6 +279,9 @@ def _parse_scale(requirements: dict) -> float:
     if _is_batch_workload(combined):
         return 500  # → 1x multiplier
 
+    is_gaming = any(t in combined for t in _GAMING_TRIGGERS)
+    is_hft    = any(t in combined for t in _HFT_TRIGGERS)
+
     # First: try word-form patterns ("1 million", "2.5 million")
     for pattern, kind in _WORD_SCALE_PATTERNS:
         m = re.search(pattern, combined)
@@ -274,9 +291,10 @@ def _parse_scale(requirements: dict) -> float:
         if "billion" in pattern:
             num = float(m.group(1)) * 1_000_000_000
         if kind == "concurrent":
-            return num * 10
+            # Gaming: Redis/in-memory handles extreme concurrency with few nodes
+            return num * (0.3 if is_gaming else 10)
         elif kind == "events":
-            return num / 10
+            return num / 100   # events ≠ users; very conservative conversion
         else:
             return num
 
@@ -291,11 +309,13 @@ def _parse_scale(requirements: dict) -> float:
 
         # Normalize to daily-user-equivalent
         if kind == "concurrent":
-            return num * 10          # 1 concurrent ≈ 10 daily users
+            # Gaming leaderboards: in-memory stores handle 100k concurrent with 2-3 nodes
+            return num * (0.3 if is_gaming else 10)
         elif kind == "tps":
-            return num * 86400 / 10  # TPS → events/day → users
+            # HFT: specialized hardware, not commodity fleets; cap scale factor
+            return num * (10 if is_hft else 86400 / 10)
         elif kind == "events":
-            return num / 10          # events/day → rough user-equiv
+            return num / 100   # events/day → conservative user-equiv (events ≠ sessions)
         elif kind == "enterprise_customer":
             return num * 100         # each enterprise customer ≈ 100 daily users
         elif kind == "service_count":
