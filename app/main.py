@@ -192,25 +192,39 @@ async def shutdown():
 
 class AnalyzeRequest(BaseModel):
     query: str
+    cloud_provider: str | None = None   # 'aws', 'azure', or 'gcp'; auto-detected if omitted
 
     class Config:
         json_schema_extra = {
             "example": {
-                "query": "Design an AWS architecture for an e-commerce app expecting 100k concurrent users during Black Friday."
+                "query": "Design an AWS architecture for an e-commerce app expecting 100k concurrent users during Black Friday.",
+                "cloud_provider": "aws",
             }
         }
 
 
 class DriftRequest(BaseModel):
     architecture: dict           # the 'architecture' key from /analyze response
-    aws_access_key_id: str
-    aws_secret_access_key: str
+    cloud_provider: str = "aws"  # "aws" | "azure" | "gcp"
     region: str = "us-east-1"
+    # AWS credentials
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    # Azure credentials
+    subscription_id: str = ""
+    tenant_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    resource_group: str = ""
+    # GCP credentials
+    project_id: str = ""
+    service_account_json: str = ""  # full service account JSON as a string
 
     class Config:
         json_schema_extra = {
             "example": {
                 "architecture": {"layers": {"compute": ["Amazon ECS"], "database": ["Amazon RDS"]}},
+                "cloud_provider": "aws",
                 "aws_access_key_id": "AKIA...",
                 "aws_secret_access_key": "...",
                 "region": "us-east-1",
@@ -274,7 +288,7 @@ def root():
     return {
         "name":        "Cloud Architecture Assistant",
         "version":     "1.0.0",
-        "description": "AI-powered AWS architecture recommendations with cost estimation",
+        "description": "AI-powered multi-cloud architecture recommendations with cost estimation (AWS, Azure, GCP)",
         "endpoints": {
             "POST /analyze":        "Generate architecture recommendation for a given scenario",
             "POST /analyze/debate": "Multi-agent debate: Cost vs Reliability vs Security agents",
@@ -394,7 +408,8 @@ def analyze_debate(request: AnalyzeRequest):
     if len(query) < 10:
         raise HTTPException(status_code=400, detail="Query too short. Describe your architecture scenario.")
 
-    cache_key = f"debate:{query}"
+    cloud_provider = (request.cloud_provider or "").lower().strip() or None
+    cache_key = f"debate:{cloud_provider or 'auto'}:{query}"
 
     # Check cache
     if _redis_client:
@@ -413,7 +428,7 @@ def analyze_debate(request: AnalyzeRequest):
     start = time.time()
 
     try:
-        result = run_debate(query)
+        result = run_debate(query, cloud_provider=cloud_provider)
     except Exception as e:
         log.error(f"Debate failed: {e}")
         raise HTTPException(status_code=500, detail=f"Debate error: {str(e)}")
@@ -435,31 +450,45 @@ def analyze_debate(request: AnalyzeRequest):
 
 @app.post("/drift")
 def drift(request: DriftRequest):
-    """Architecture drift detection — scans a real AWS account and compares what's
-    deployed against the recommended architecture from /analyze.
+    """Architecture drift detection — scans a real cloud account (AWS, Azure, or GCP)
+    and compares what's deployed against the recommended architecture from /analyze.
 
     Returns:
-    - snapshot: what was found in the AWS account (per service)
+    - snapshot: what was found in the account (per service)
     - findings: list of drift items (missing services, misconfigurations)
     - score: overall health score 0–100 with grade (A–F) and severity counts
 
-    Credentials are used only for the boto3 scan (read-only) and never stored.
+    Credentials are used only for the scan (read-only) and never stored.
     """
-    if not request.aws_access_key_id or not request.aws_secret_access_key:
-        raise HTTPException(status_code=400, detail="AWS credentials are required.")
+    cloud = (request.cloud_provider or "aws").lower()
 
     if not request.architecture:
         raise HTTPException(status_code=400, detail="Architecture dict is required.")
 
-    log.info(f"Running drift scan in {request.region}...")
+    if cloud == "aws" and (not request.aws_access_key_id or not request.aws_secret_access_key):
+        raise HTTPException(status_code=400, detail="AWS credentials (aws_access_key_id and aws_secret_access_key) are required.")
+    if cloud == "azure" and (not request.subscription_id or not request.tenant_id or not request.client_id or not request.client_secret):
+        raise HTTPException(status_code=400, detail="Azure credentials (subscription_id, tenant_id, client_id, client_secret) are required.")
+    if cloud == "gcp" and (not request.project_id or not request.service_account_json):
+        raise HTTPException(status_code=400, detail="GCP credentials (project_id and service_account_json) are required.")
+
+    log.info(f"Running {cloud.upper()} drift scan in {request.region}...")
     start = time.time()
 
     try:
         report = scan_and_compare(
             recommended=request.architecture,
+            cloud_provider=cloud,
             aws_access_key_id=request.aws_access_key_id,
             aws_secret_access_key=request.aws_secret_access_key,
             region=request.region,
+            subscription_id=request.subscription_id,
+            tenant_id=request.tenant_id,
+            client_id=request.client_id,
+            client_secret=request.client_secret,
+            resource_group=request.resource_group,
+            project_id=request.project_id,
+            service_account_json=request.service_account_json,
         )
     except Exception as e:
         log.error(f"Drift scan failed: {e}")

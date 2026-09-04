@@ -1,6 +1,6 @@
 # Cloud Architecture Assistant
 
-An AI-powered tool that takes a plain-English description of a system and returns a production-ready cloud architecture — including which services to use, why, how much it costs, the Terraform code to build it, and a diagram to visualize it. Supports AWS, Azure, and GCP.
+An AI-powered tool that takes a plain-English description of a system and returns a production-ready cloud architecture -- including which services to use, why, how much it costs, the Terraform code to build it, and a diagram to visualize it. Supports AWS, Azure, and GCP.
 
 **Live app:** https://cloud-architect-assistant.vercel.app  
 **Live API:** https://cloud-assistant-architect-production.up.railway.app  
@@ -11,9 +11,9 @@ An AI-powered tool that takes a plain-English description of a system and return
 
 ## What it does
 
-Cloud providers each have 200+ services. Choosing the right combination for a given workload is hard. Most engineers default to what they already know — over-engineering with EC2 when Lambda would be cheaper, or under-engineering with single-AZ RDS when the system needs high availability.
+Cloud providers each have 200+ services. Choosing the right combination for a given workload is hard. Most engineers default to what they already know -- over-engineering with EC2 when Lambda would be cheaper, or under-engineering with single-AZ RDS when the system needs high availability.
 
-This project fixes that. Describe your system in a sentence or two, pick a cloud provider, and get back a complete technical recommendation with reasoning, cost breakdown, and working Terraform — in under three minutes for a new query, under two seconds for a repeated one.
+This project fixes that. Describe your system in a sentence or two, pick a cloud provider, and get back a complete technical recommendation with reasoning, cost breakdown, and working Terraform -- in under three minutes for a new query, under two seconds for a repeated one.
 
 ---
 
@@ -21,7 +21,7 @@ This project fixes that. Describe your system in a sentence or two, pick a cloud
 
 ![Architecture recommendation, cost estimate, Terraform, and diagram](docs/demo.gif)
 
-![Architecture drift detection — scanning a real AWS account](docs/demo-drift.gif)
+![Architecture drift detection -- scanning a real AWS account](docs/demo-drift.gif)
 
 ---
 
@@ -29,9 +29,9 @@ This project fixes that. Describe your system in a sentence or two, pick a cloud
 
 When you send a query like *"Design an Azure architecture for a HIPAA-compliant patient data platform with 50,000 daily users"*, the system returns six things:
 
-**Architecture recommendation.** A layered breakdown of which cloud services to use — edge, networking, compute, database, messaging, security, and monitoring. Works across AWS, Azure, and GCP. Every architecture is guaranteed to include a VPC or Virtual Network — enforced programmatically after the LLM call.
+**Architecture recommendation.** A layered breakdown of which cloud services to use -- edge, networking, compute, database, messaging, security, and monitoring. Works across AWS, Azure, and GCP. Every architecture is guaranteed to include a VPC or Virtual Network -- enforced programmatically after the LLM call.
 
-**Trade-off analysis.** For each major decision, the system explains what it chose and why — for example, why it picked Azure Container Apps over AKS for a given workload, or Cloud Run over GKE on GCP.
+**Trade-off analysis.** For each major decision, the system explains what it chose and why -- for example, why it picked Azure Container Apps over AKS for a given workload, or Cloud Run over GKE on GCP.
 
 **Cost estimate.** A monthly breakdown per service, with scale-aware pricing. The cost model knows that a system handling 5,000 users per day needs one instance, while a system handling 5,000,000 users per day needs 25x as many. It accounts for multi-region deployments, workload type (gaming, HFT, batch), and provider-specific pricing.
 
@@ -39,7 +39,7 @@ When you send a query like *"Design an Azure architecture for a HIPAA-compliant 
 
 **Architecture diagram.** A Mermaid flowchart showing the data flow between services.
 
-**Multi-agent debate.** An alternative endpoint that runs three specialized agents in parallel — one optimizing for cost, one for reliability, one for security — and then a Moderator agent that synthesizes a final recommendation. Trade-offs are made explicit rather than hidden inside a single model call.
+**Multi-agent debate.** An alternative endpoint that runs three specialized agents in parallel -- one optimizing for cost, one for reliability, one for security -- and then a Moderator agent that synthesizes a final recommendation. Trade-offs are made explicit rather than hidden inside a single model call.
 
 ---
 
@@ -49,18 +49,18 @@ When you send a query like *"Design an Azure architecture for a HIPAA-compliant 
 
 The core is a retrieval-augmented generation (RAG) pipeline. Instead of asking an LLM to generate architectures purely from memory, the pipeline first searches a vector database for relevant context, then passes that context to the LLM.
 
-**Data sources — AWS:**
+**Data sources -- AWS:**
 - 572 documentation pages across 16 service categories
 - 10 whitepapers including the Well-Architected Framework
 - 1,226 Stack Overflow Q&A pairs
 - 36 GitHub repositories with production Terraform configs
 
-**Data sources — Azure:**
+**Data sources -- Azure:**
 - 93 documentation pages (AKS, Container Apps, Cosmos DB, Service Bus, Azure Functions, and more)
 - 20 Stack Overflow Q&A collections across 20 Azure service tags
 - 30 Azure blog and architecture posts
 
-**Data sources — GCP:**
+**Data sources -- GCP:**
 - 61 documentation pages (GKE, Cloud Run, BigQuery, Pub/Sub, Spanner, Vertex AI, and more)
 - 20 Stack Overflow Q&A collections across 20 GCP service tags
 - 64 GCP blog and architecture posts
@@ -72,17 +72,17 @@ All data is chunked, embedded with `all-MiniLM-L6-v2` (384-dimensional sentence 
 1. The user's query and selected cloud provider go to a requirement extractor (GPT-4o-mini), which pulls out scale, workload type, constraints, and region requirements.
 2. The extractor's output is used to query the cloud-specific ChromaDB collections in parallel.
 3. The architecture generator calls GPT-4o-mini with the query and retrieved context, enforcing a strict JSON schema with named layers plus a security layer.
-4. The cost calculator estimates monthly spend using cloud-specific pricing tables — no LLM involved.
+4. The cost calculator estimates monthly spend using cloud-specific pricing tables -- no LLM involved.
 5. The Terraform generator makes a second LLM call with retrieved Terraform examples as context.
 6. The diagram generator produces a Mermaid flowchart from the architecture layers.
 
 ### Semantic cache
 
-Every response is stored in Upstash Vector. Before running the full pipeline, the system checks whether a semantically similar query has been answered before (cosine similarity ≥ 0.92). Cache hits return in under 2 seconds instead of running the full pipeline.
+Every response is stored in Upstash Vector. Before running the full pipeline, the system checks whether a semantically similar query has been answered before (cosine similarity >= 0.92). Cache hits return in under 2 seconds instead of running the full pipeline.
 
 ### Observability
 
-A background thread pushes Prometheus metrics to Grafana Cloud every 15 seconds via remote_write — request counts by cloud provider, pipeline latency histograms, cache hit/miss rates, and cost estimate distributions.
+A background thread pushes Prometheus metrics to Grafana Cloud every 15 seconds via remote_write -- request counts by cloud provider, pipeline latency histograms, cache hit/miss rates, and cost estimate distributions.
 
 Every LLM call is wrapped with Langfuse tracing, capturing the exact prompt, response, token counts, model, and latency per step.
 
@@ -90,9 +90,9 @@ Every LLM call is wrapped with Langfuse tracing, capturing the exact prompt, res
 
 The cost model applies two multipliers to scale-aware pricing:
 
-**Compute multiplier** — based on daily user equivalent extracted from the query: under 5k = 1x, 5k-50k = 3x, 50k-500k = 8x, 500k-5M = 25x, 5M+ = 60x. Special cases: gaming/leaderboard workloads cap the concurrent-user factor because Redis handles extreme concurrency with few nodes; HFT workloads cap the TPS factor because they use specialized hardware rather than commodity fleets; batch workloads default to 1x.
+**Compute multiplier** -- based on daily user equivalent extracted from the query: under 5k = 1x, 5k-50k = 3x, 50k-500k = 8x, 500k-5M = 25x, 5M+ = 60x. Special cases: gaming/leaderboard workloads cap the concurrent-user factor because Redis handles extreme concurrency with few nodes; HFT workloads cap the TPS factor because they use specialized hardware rather than commodity fleets; batch workloads default to 1x.
 
-**Region multiplier** — services replicated across regions are doubled in cost for multi-region deployments.
+**Region multiplier** -- services replicated across regions are doubled in cost for multi-region deployments.
 
 ### Evaluation
 
@@ -112,10 +112,10 @@ Current AWS score: **20/20 (100%)**, average score 0.815, cost pass rate 70%.
 | Semantic cache | Upstash Vector (384-dim, cosine similarity, threshold 0.92) |
 | LLM | GPT-4o-mini + Fine-tuned LLaMA 3.1 8B (via vLLM on Modal) |
 | LLM observability | Langfuse (trace per request, @observe decorator) |
-| Metrics | Prometheus remote_write → Grafana Cloud (15s push interval) |
+| Metrics | Prometheus remote_write -> Grafana Cloud (15s push interval) |
 | Deployment | Railway (Docker, always-on) + Vercel (frontend) |
 | Fine-tuning | QLoRA on LLaMA 3.1 8B via HuggingFace PEFT |
-| Drift detection | boto3 (read-only AWS scanner) |
+| Drift detection | boto3 / azure-sdk / google-cloud (read-only multi-cloud scanner) |
 | Cloud providers | AWS, Azure, GCP (provider abstraction layer) |
 
 ---
@@ -127,10 +127,10 @@ Benchmarked with Locust against the live Railway deployment at 20 concurrent use
 | Scenario | p50 | p95 |
 |----------|-----|-----|
 | Cold query (cache miss, full pipeline) | ~110s | ~155s |
-| Warm query (cache hit, cosine ≥ 0.92) | <2s | <3s |
+| Warm query (cache hit, cosine >= 0.92) | <2s | <3s |
 | GET /health | 45ms | 90ms |
 
-Cold queries are slow because the pipeline makes two LLM calls plus three ChromaDB vector searches. The semantic cache absorbs most repeat traffic — cache hit rate settles around 71% after a warmup period, meaning the typical user sees a sub-2s response.
+Cold queries are slow because the pipeline makes two LLM calls plus three ChromaDB vector searches. The semantic cache absorbs most repeat traffic -- cache hit rate settles around 71% after a warmup period, meaning the typical user sees a sub-2s response.
 
 ---
 
@@ -166,7 +166,9 @@ The app works with just `OPENAI_API_KEY`. Each optional variable unlocks a featu
 | `GRAFANA_REMOTE_WRITE_URL/USER/TOKEN` | Metrics push to Grafana Cloud |
 | `LANGFUSE_PUBLIC_KEY` + `LANGFUSE_SECRET_KEY` + `LANGFUSE_HOST` | LLM tracing (silently disabled without this) |
 | `VLLM_BASE_URL` + `FINETUNE_MODEL` | Fine-tuned LLaMA instead of GPT-4o-mini |
-| `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` | Drift detection against a real AWS account |
+| `AWS_ACCESS_KEY_ID` + `AWS_SECRET_ACCESS_KEY` | AWS drift detection (read-only) |
+| `AZURE_SUBSCRIPTION_ID` + `AZURE_TENANT_ID` + `AZURE_CLIENT_ID` + `AZURE_CLIENT_SECRET` | Azure drift detection (read-only) |
+| `GCP_PROJECT_ID` + `GCP_SERVICE_ACCOUNT_JSON` | GCP drift detection (read-only) |
 
 ---
 
@@ -193,7 +195,7 @@ Same input, runs three specialized agents (cost / reliability / security) in par
 
 ### POST /drift
 
-Takes the `architecture` object from `/analyze` plus read-only AWS credentials, scans the actual AWS account, and returns drift findings with severity scores and fix instructions.
+Takes the `architecture` object from `/analyze`, a `cloud_provider` field (`aws`, `azure`, or `gcp`), and the matching read-only credentials. Scans the actual cloud account and returns drift findings with severity scores and fix instructions.
 
 ### GET /health
 
@@ -206,7 +208,7 @@ Returns `{"status": "healthy", "cache_size": N, "cache_backend": "redis" | "memo
 ```
 cloud-architect-assistant/
   app/
-    main.py                    # FastAPI app — endpoints, metrics, caching, CORS
+    main.py                    # FastAPI app -- endpoints, metrics, caching, CORS
     metrics_pusher.py          # Prometheus remote_write (pure Python + snappy)
     frontend/                  # Next.js frontend (deployed to Vercel)
   pipeline/
@@ -218,7 +220,7 @@ cloud-architect-assistant/
     diagram.py                 # Mermaid diagram generation
     cache.py                   # Upstash Vector semantic cache
     agents.py                  # Multi-agent debate system
-    drift_detector.py          # AWS account scanner + drift comparison
+    drift_detector.py          # Multi-cloud account scanner + drift comparison (AWS/Azure/GCP)
     cloud_providers/           # Provider abstraction (aws.py, azure.py, gcp.py)
   collectors/
     collect_aws_docs.py        # AWS documentation scraper
@@ -247,7 +249,7 @@ cloud-architect-assistant/
   training/
     generate_synthetic.py      # Synthetic training pair generation
     finetune.py                # QLoRA fine-tuning for LLaMA 3.1 8B
-  startup.py                   # Railway startup — builds Azure/GCP ChromaDB on first boot
+  startup.py                   # Railway startup -- builds Azure/GCP ChromaDB on first boot
   locustfile.py                # Load test
   Dockerfile
   .env.example
@@ -271,11 +273,15 @@ python -m training.finetune merge
 
 ## Drift detection
 
-After getting an architecture recommendation, you can connect a real AWS account to check whether what's actually deployed matches the recommendation. The drift detector scans 15 service categories using read-only boto3 credentials, then compares findings to the recommendation.
+After getting an architecture recommendation, you can connect your cloud account to check whether what's actually deployed matches the recommendation. The drift detector uses read-only credentials to scan your account, then compares what it finds against the recommended architecture.
 
-Each gap is flagged with severity (critical / high / medium / low) and a specific fix instruction. The summary is a score from 0 to 100 and a letter grade A–F.
+Each gap is flagged with severity (critical / high / medium / low) and a specific fix instruction. The summary is a score from 0 to 100 and a letter grade A-F.
 
-Services scanned: EC2, ECS, Lambda, RDS, DynamoDB, ElastiCache, ALB, CloudFront, API Gateway, SQS, S3, CloudWatch, CloudTrail, GuardDuty, WAF.
+AWS services scanned: EC2, ECS, Lambda, RDS, DynamoDB, ElastiCache, ALB, CloudFront, API Gateway, SQS, S3, CloudWatch, CloudTrail, GuardDuty, WAF.
+
+Azure services scanned: Virtual Machines, AKS, Container Apps, Azure Functions, Azure SQL, Cosmos DB, Service Bus, Application Gateway, Azure Monitor, Key Vault.
+
+GCP services scanned: GCE instances, GKE clusters, Cloud Run, Cloud Functions, Cloud SQL, Bigtable, Pub/Sub, Cloud Load Balancing, Cloud Monitoring, Cloud KMS.
 
 ---
 

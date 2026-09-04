@@ -43,7 +43,7 @@ def generate_mermaid(architecture: dict) -> str:
     def display_label(name):
         s = name.split(",")[0].strip()
         s = re.sub(r"\s*\(.*?\)", "", s).strip()
-        for prefix in ("Amazon ", "AWS "):
+        for prefix in ("Amazon ", "AWS ", "Azure ", "Google ", "GCP "):
             if s.startswith(prefix):
                 return s[len(prefix):]
         return s
