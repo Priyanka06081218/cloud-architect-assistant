@@ -367,7 +367,7 @@ def analyze(request: AnalyzeRequest):
     cloud = response.get("cloud_provider", "aws").lower()
     pipeline_requests_total.labels(cloud_provider=cloud, cached="false").inc()
     pipeline_duration_seconds.labels(cloud_provider=cloud).observe(elapsed)
-    cost = response.get("cost_estimate", {}).get("total_monthly_usd", 0) or 0
+    cost = response.get("cost", {}).get("total_monthly_usd", 0) or 0
     if cost > 0:
         cost_estimate_dollars.labels(cloud_provider=cloud).observe(cost)
 
