@@ -5,7 +5,6 @@ __pycache__/
 
 *.pyc
 
-data/raw/
 data/bronze/
 data/silver/
 data/gold/
@@ -18,3 +17,5 @@ node_modules/
 evaluation/results/pipeline_outputs*.json
 evaluation/results/eval_report_*.json
 data/chromadb/
+data/raw/aws/
+data/raw/whitepapers/

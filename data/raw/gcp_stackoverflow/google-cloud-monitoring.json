@@ -1,0 +1,256 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 61756090,
+    "title": "How can I see request count (not rate) for a Google Cloud Run application?",
+    "question_text": "I deployed a Google Cloud Run service running in a docker container. Out of the box, it looks like I get insight into some metrics on the Metrics tab of the service page such as Request count, Request latencies and more. Although it sounds like request count would answer my question, what I am really looking for is insight into adoption so that I can answer \"How many visits to my application were there in the past week\" or something like that. Is there a way to get insight like that out of the box?\nCurrently, the Request count metric reports responses/second, so I can see blips that look like \"0.05/s\", which can give me some insight but it's hard to aggregate. \nI've tried using the Monitoring > Metrics explorer as well, but I'm not seeing any data for the metrics I select. I'm considering hooking into Google Analytics from within my application if that seems like the suggested solution. Thank you!\n",
+    "question_score": 25,
+    "answer_text": "I've realized it's quite difficult to have Metrics Explorer give you a straight answer on \"how many requests I received this month\". However, it's possible:\nGo to Metrics Explorer as you said, choose resource type \"Cloud Run Revision\" (cloud_run_revision)  and you'll see \"Request Count\" (run.googleapis.com/request_count) metric:\n\nDescription: Number of requests reaching the revision. Excludes requests that are not reaching your container instances (e.g. unauthorized requests or when maximum number of instances is reached).\nResource type: cloud_run_revision\nUnit: number     Kind: Delta     Value type: Int64\n\nThen, choose Aggregator: None, and click Show Advanced Options. In the form, choose Aligner: sum (instead of default \"Rate\" default). You now should be able to see total request count per minute:\n\nNow if you change \"Alignment Period\" to \"10 minutes\", you'll see one data point for every 10m (sadly, there seems to be a bug that says X req/s, but that's more like X reqs/10m in this case):\n\nIf you collect enough data, you can change \"Alignment Period\" to \"Custom\" and set 30 days, then update your timeframe on the top to 1 year and see monthly request count.\nThis does not show sums of all Alignment Periods (I think that part is up to you to do manually, maybe possible via the API), but it lets you see requests per month. For example, here's a service I've been running for some months and I set alignment period to 7 days, viewing past 6 weeks, so I get 6 data points on weekly request count. Hope this helps.\n\n",
+    "answer_id": 61757062,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-run",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 63915463,
+    "title": "What is the difference among Cloud Logging vs Cloud Monitoring vs Stackdriver?",
+    "question_text": "I am exploring logging, monitoring and alerting options on Google Cloud. Where I found Cloud Logging, Monitoring and Stackdriver as few options.\nTheoretically, these services looks similar.\nCan anyone explain what is the actual difference between these services?\nThank you.\n",
+    "question_score": 20,
+    "answer_text": "Let's start with some the history events:\n\nStackdriver the company was created in 2012 by founders Dan Belcher\nand Izzy Azeri. The company's goal was to provide consistent\nmonitoring across cloud computing's multiple service layers, using a\nsingle SaaS solution.\n\nand\n\nIn May 2014, the Stackdriver company was acquired by Google. An\nexpanded version of the product (adding support for logs analysis,\nhybrid cloud support, and deep integration with Google Cloud) was\nrebranded as Google Stackdriver and was launched to general\navailability in October, 2016.\n\nIn March 2020 Google Cloud Platform (GCP) announced that it rebranded its Stackdriver monitoring and logging platform to be part of its new Google Operations platform. This rebrand included renaming Google Stackdriver Monitoring to Google Cloud Monitoring and Google Stackdriver Logs to Google Cloud Logging.\nIn a few words, Google Cloud Monitoring and Logging are successors of Google Stackdriver monitoring and logging, as a result users have more unified experience in the Google Ecosystem. To find more details you can have a look at the documentation Operations (formerly Stackdriver) and Release notes.\nTo compare Cloud Monitoring and Cloud Logging you can check documentation:\n\nCloud Monitoring collects metrics, events, and metadata from Google Cloud, Amazon Web Services (AWS), hosted uptime probes, and application instrumentation. Google Cloud's operations suite ingests that data and generates insights via dashboards, charts, and alerts.\n\nCloud Logging allows you to store, search, analyze, monitor, and alert on logging data and events from Google Cloud and Amazon Web Services.\n\n\n",
+    "answer_id": 63916807,
+    "tags": [
+      "logging",
+      "google-cloud-platform",
+      "monitoring",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 61098043,
+    "title": "GKE - HPA using custom metrics - unable to fetch metrics",
+    "question_text": "I have custom metrics exported to Google Cloud Monitoring and i want to scale my deployment according to it.\nThis is my HPA:\napiVersion: autoscaling/v2beta1\nkind: HorizontalPodAutoscaler\nmetadata:\n  name: <DEPLOYMENT>-hpa\n  namespace: production\nspec:\n  scaleTargetRef:\n    apiVersion: apps/v1\n    kind: Deployment\n    name: <DEPLOYMENT>\n  minReplicas: 5\n  maxReplicas: 100\n  metrics:\n  - type: External\n    external:\n      metricName: \"custom.googleapis.com|rabbit_mq|test|messages_count\"\n      metricSelector:\n        matchLabels:\n          metric.labels.name: production\n      targetValue: 1\n\nWhen describing the hpa i see:\n Warning  FailedComputeMetricsReplicas  4m23s (x12 over 7m23s)  horizontal-pod-autoscaler  Invalid metrics (1 invalid out of 1), last error was: failed to get externa\nl metric custom.googleapis.com|rabbit_mq|test|messages_count: unable to get external metric production/custom.googleapis.com|rabbit_mq|test|messages_count/&LabelSelect\nor{MatchLabels:map[string]string{metric.labels.name: production,},MatchExpressions:[],}: unable to fetch metrics from external metrics API: the server is currently una\nble to handle the request (get custom.googleapis.com|rabbit_mq|test|messages_count.external.metrics.k8s.io)\n  Warning  FailedGetExternalMetric       2m23s (x20 over 7m23s)  horizontal-pod-autoscaler  unable to get external metric production/custom.googleapis.com|rabbit_mq|te\nst|messages_count/&LabelSelector{MatchLabels:map[string]string{metric.labels.name: production,},MatchExpressions:[],}: unable to fetch metrics from external metrics AP\nI: the server is currently unable to handle the request (get custom.googleapis.com|rabbit_mq|test|messages_count.external.metrics.k8s.io)\n\nAnd:\nMetrics:                                                                 ( current / target )\n  \"custom.googleapis.com|rabbit_mq|test|messages_count\" (target value):  <unknown> / 1\n\nKubernetes is unable to get the metric.\nI validated that the metric is available and updated through the Monitoring dashboard.\nCluster nodes has Full Control for Stackdriver Monitoring:\n\nKubernetes version is 1.15.\nWhat may be causing that?\nEdit 1\nDiscovered that stackdriver-metadata-agent-cluster-level deployment is CrashLoopBack.\nkubectl -n=kube-system logs stackdriver-metadata-agent-cluster-le\nvel-f8dcd8b45-nl8dj -c metadata-agent\n\nLogs from container:\nvel-f8dcd8b45-nl8dj  -c metadata-agent\nI0408 11:50:41.999214       1 log_spam.go:42] Command line arguments:\nI0408 11:50:41.999263       1 log_spam.go:44]  argv[0]: '/k8s_metadata'\nI0408 11:50:41.999271       1 log_spam.go:44]  argv[1]: '-logtostderr'\nI0408 11:50:41.999277       1 log_spam.go:44]  argv[2]: '-v=1'\nI0408 11:50:41.999284       1 log_spam.go:46] Process id 1\nI0408 11:50:41.999311       1 log_spam.go:50] Current working directory /\nI0408 11:50:41.999336       1 log_spam.go:52] Built on Jun 27 20:15:21 (1561666521)\n at gcm-agent-dev-releaser@ikle14.prod.google.com:/google/src/files/255462966/depot/branches/gcm_k8s_metadata_release_branch/255450506.1/OVERLAY_READONLY/google3\n as //cloud/monitoring/agents/k8s_metadata:k8s_metadata\n with gc go1.12.5 for linux/amd64\n from changelist 255462966 with baseline 255450506 in a mint client based on //depot/branches/gcm_k8s_metadata_release_branch/255450506.1/google3\nBuild label: gcm_k8s_metadata_20190627a_RC00\nBuild tool: Blaze, release blaze-2019.06.17-2 (mainline @253503028)\nBuild target: //cloud/monitoring/agents/k8s_metadata:k8s_metadata\nI0408 11:50:41.999641       1 trace.go:784] Starting tracingd dapper tracing\nI0408 11:50:41.999785       1 trace.go:898] Failed loading config; disabling tracing: open /export/hda3/trace_data/trace_config.proto: no such file or directory\nW0408 11:50:42.003682       1 client_config.go:549] Neither --kubeconfig nor --master was specified.  Using the inClusterConfig.  This might not work.\nE0408 11:50:43.999995       1 main.go:110] Will only handle some server resources due to partial failure: unable to retrieve the complete list of server APIs: custom.m\netrics.k8s.io/v1beta1: the server is currently unable to handle the request, custom.metrics.k8s.io/v1beta2: the server is currently unable to handle the request, exter\nnal.metrics.k8s.io/v1beta1: the server is currently unable to handle the request\nI0408 11:50:44.000286       1 main.go:134] Initiating watch for { v1 nodes} resources\nI0408 11:50:44.000394       1 main.go:134] Initiating watch for { v1 pods} resources\nI0408 11:50:44.097181       1 main.go:134] Initiating watch for {batch v1beta1 cronjobs} resources\nI0408 11:50:44.097488       1 main.go:134] Initiating watch for {apps v1 daemonsets} resources\nI0408 11:50:44.098123       1 main.go:134] Initiating watch for {extensions v1beta1 daemonsets} resources\nI0408 11:50:44.098427       1 main.go:134] Initiating watch for {apps v1 deployments} resources\nI0408 11:50:44.098713       1 main.go:134] Initiating watch for {extensions v1beta1 deployments} resources\nI0408 11:50:44.098919       1 main.go:134] Initiating watch for { v1 endpoints} resources\nI0408 11:50:44.099134       1 main.go:134] Initiating watch for {extensions v1beta1 ingresses} resources\nI0408 11:50:44.099207       1 main.go:134] Initiating watch for {batch v1 jobs} resources\nI0408 11:50:44.099303       1 main.go:134] Initiating watch for { v1 namespaces} resources\nI0408 11:50:44.099360       1 main.go:134] Initiating watch for {apps v1 replicasets} resources\nI0408 11:50:44.099410       1 main.go:134] Initiating watch for {extensions v1beta1 replicasets} resources\nI0408 11:50:44.099461       1 main.go:134] Initiating watch for { v1 replicationcontrollers} resources\nI0408 11:50:44.197193       1 main.go:134] Initiating watch for { v1 services} resources\nI0408 11:50:44.197348       1 main.go:134] Initiating watch for {apps v1 statefulsets} resources\nI0408 11:50:44.197363       1 main.go:142] All resources are being watched, agent has started successfully\nI0408 11:50:44.197374       1 main.go:145] No statusz port provided; not starting a server\nI0408 11:50:45.197164       1 binarylog.go:95] Starting disk-based binary logging\nI0408 11:50:45.197238       1 binarylog.go:265] rpc: flushed binary log to \"\"\n\nEdit 2\nThe issue in edit 1 was fixed using the answer in:\nhttps://stackoverflow.com/a/60549732/4869599\nBut still the hpa can't fetch the metric.\nEdit 3\nIt seems like the issue is caused by custom-metrics-stackdriver-adapter under the custom-metrics namespace which is stuck in CrashLoopBack.\nThe logs of the machine:\nE0419 13:36:48.036494       1 status.go:71] apiserver received an error that is not an metav1.Status: &errors.errorString{s:\"http2: stream closed\"}\nE0419 13:36:48.832653       1 writers.go:172] apiserver was unable to write a JSON response: http2: stream closed\nE0419 13:36:48.832692       1 status.go:71] apiserver received an error that is not an metav1.Status: &errors.errorString{s:\"http2: stream closed\"}\nE0419 13:36:49.433150       1 writers.go:172] apiserver was unable to write a JSON response: http2: stream closed\nE0419 13:36:49.433191       1 status.go:71] apiserver received an error that is not an metav1.Status: &errors.errorString{s:\"http2: stream closed\"}\nE0419 13:36:51.032656       1 writers.go:172] apiserver was unable to write a JSON response: http2: stream closed\nE0419 13:36:51.032694       1 status.go:71] apiserver received an error that is not an metav1.Status: &errors.errorString{s:\"http2: stream closed\"}\nE0419 13:36:51.235248       1 writers.go:172] apiserver was unable to write a JSON response: http2: stream closed\n\nA related issue:\nhttps://github.com/GoogleCloudPlatform/k8s-stackdriver/issues/303\n",
+    "question_score": 10,
+    "answer_text": "The problem was with the custom-metrics-stackdriver-adapter. It was crashing in the metrics-server namespace.\nUsing the resource found here:\nhttps://raw.githubusercontent.com/GoogleCloudPlatform/k8s-stackdriver/master/custom-metrics-stackdriver-adapter/deploy/production/adapter.yaml\nAnd using this image for the deployment (my version was v0.10.2):\n\ngcr.io/google-containers/custom-metrics-stackdriver-adapter:v0.10.1\n\nThis fixed the crashing pod, and now the hpa fetch the custom metric.\n",
+    "answer_id": 61316327,
+    "tags": [
+      "kubernetes",
+      "google-kubernetes-engine",
+      "google-cloud-monitoring",
+      "hpa"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 36164939,
+    "title": "Writing to custom timeseries with the Google Cloud Monitoring v3 api",
+    "question_text": "Google has warned that the v2 monitoring api is now deprecated and will be going away soon. However, migrating to v3 is proving to be a bit difficult. I'm trying to write a custom metric and am getting the following error responses:\nServices > Google Monitoring API v3 > monitoring.projects.timeSeries.create\n{\n    \"timeSeries\": [{\n        \"metric\": {\n            \"type\": \"custom.googleapis.com/test_metric\",\n            \"labels\": {\n                \"payment_type\": \"Paypal\"\n            }\n        },\n        \"resource\": {\n            \"type\": \"custom.googleapis.com/test_metric\",\n            \"labels\": {\n                \"payment_type\": \"Paypal\"\n            }\n        },\n        \"metricKind\": \"GAUGE\",\n        \"valueType\": \"INT64\",\n        \"points\": [{\n            \"interval\": {\n                \"endTime\": \"2016-03-20T15:01:23.045123456Z\",\n                \"startTime\": \"2016-03-20T15:01:23.045123456Z\"\n            },\n            \"value\": {\n                \"int64Value\": \"2\"\n            }\n        }]\n    }]\n}\n\n{\n  \"error\": {\n  \"code\": 400,\n  \"message\": \"Field timeSeries[0].resource.type had an invalid value of \\\"custom.googleapis.com/test_metric\\\": Unrecognized resource name.\",\n  \"status\": \"INVALID_ARGUMENT\"\n}\n\nThe \"resource\" field is required, and docs say it's the \"MonitoredResource\"... but I don't see any api for creating one, only for listing. Taking a wild guess and setting it to \"global\" seems to get me a bit further and gives me this different error:\n{\n \"error\": {\n  \"code\": 400,\n  \"message\": \"Field timeSeries[0].resource.labels[0] had an invalid value of \\\"payment_type\\\": Unrecognized resource label.\",\n  \"status\": \"INVALID_ARGUMENT\"\n }\n}\n\nListing the metric descriptors shows that payment_type exists:\nServices > Google Monitoring API v3 > monitoring.projects.metricDescriptors.list\n{\n \"name\": \"projects/gearlaunch-hub-sandbox/metricDescriptors/custom.googleapis.com/test_metric\",\n \"labels\": [\n  {\n   \"key\": \"payment_type\"\n  }\n ],\n \"metricKind\": \"GAUGE\",\n \"valueType\": \"INT64\",\n \"description\": \"Test\",\n \"type\": \"custom.googleapis.com/test_metric\"\n}\n\nI've read through the migration guides and related docs, but am still stymied. Anyone know what I'm missing here?\nUpdate: While it looks to be possible to get this working by removing \"resource.labels\" from the json, I'm still looking for a way to get this working via the java client api.\nUpdate 2: The accepted (self answered) question shows how to do this with the java api.\n",
+    "question_score": 8,
+    "answer_text": "Looks like the answer is to use \"resource\" of \"type\": \"global\" but leave off \"labels\":\n{\n    \"timeSeries\": [{\n        \"metric\": {\n            \"type\": \"custom.googleapis.com/test_metric\",\n            \"labels\": {\n                \"payment_type\": \"Paypal\"\n            }\n        },\n        \"resource\": {\n            \"type\": \"global\"\n        },\n        \"metricKind\": \"GAUGE\",\n        \"valueType\": \"INT64\",\n        \"points\": [{\n            \"interval\": {\n                \"endTime\": \"2016-03-23T01:01:23.045123456Z\",\n                \"startTime\": \"2016-03-23T01:01:23.045123456Z\"\n            },\n            \"value\": {\n                \"int64Value\": \"2\"\n            }\n        }]\n    }]\n}\n\nThis gives me a 200 OK response and adds the data to the time series.\nThis works from the api explorer directly. The equivalent code using java client api is:\npublic String writeCustomMetricValue(final String name, final Map<String, String> labels, final Long value) {\n    Preconditions.checkNotNull(name);\n    Preconditions.checkNotNull(labels);\n    Preconditions.checkNotNull(value);\n\n    final String now = DateTime.now().withZone(DateTimeZone.UTC).toString();\n\n    final TimeInterval interval = new TimeInterval();\n    interval.setStartTime(now);\n    interval.setEndTime(now);\n\n    final TypedValue pointValue = new TypedValue();\n    pointValue.setInt64Value(value);\n\n    final Point point = new Point();\n    point.setInterval(interval);\n    point.setValue(pointValue);\n\n    final MonitoredResource resource = new MonitoredResource();\n    resource.setType(\"global\");\n\n    final Metric metric = new Metric();\n    metric.setType(\"custom.googleapis.com/\" + name);\n\n    final TimeSeries series = new TimeSeries();\n    series.setMetric(metric);\n    series.setPoints(Arrays.asList(point));\n    series.setResource(resource);\n    series.setMetricKind(\"GAUGE\");\n\n    final List<TimeSeries> timeseries = new ArrayList<>();\n    timeseries.add(series);\n\n    final CreateTimeSeriesRequest content = new CreateTimeSeriesRequest();\n    content.setTimeSeries(timeseries);\n\n    metric.setLabels(labels);\n\n    try {\n        return service().projects().timeSeries().create(\"projects/\" + env.getProjectId().getId(), content).execute().toPrettyString();\n\n    } catch (Exception e) {\n        throw new RuntimeException(\"Name=\" + name + \", labels=\" + labels + \", value=\" + value, e);\n    }\n}\n\nUsing:\n<dependency>\n    <groupId>com.google.apis</groupId>\n    <artifactId>google-api-services-monitoring</artifactId>\n    <version>v3-rev3-1.21.0</version>\n</dependency>\n\n",
+    "answer_id": 36183297,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "stackdriver",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 49251738,
+    "title": "How can I customize the entire email notification in Stackdriver Alerting?",
+    "question_text": "Currently, the message specified in the Document field while creating alerting policy appears in the Document field of the Stackdriver alert email.\nI would like to overwrite the entire email message body with my custom content.\nHow can I overwrite the message body of Stackdriver Alert email with my custom message?\nIs there any other workaround to do this?\n",
+    "question_score": 8,
+    "answer_text": "You should be able to send the notification to a webhook, and this could directly be an HTTP-triggered Cloud Function.\nThis Cloud Function would receive all the information from the alert, and you can follow this tutorial to use SendGrid to send your alerts.\nThis is a lot more complex than just setting the email notifications, but also provides you with an amazing flexibility regarding alerts, as you'll be able to not just write the message however you want, but you could process the data in any way you want:\n\nYou have low priority alerts? Then store them and just send a digest\nonce in a while instead of spamming. \nWant to change who is sent the\nalert depending on a calendar rotation? Use the function to look up\nwho should be notified.\n\nAnd those are just some random quick ideas I got while writing this message.\nThe information provided in the POST body is this one (that's just a sample):\n{\n  \"incident\": {\n    \"incident_id\": \"f2e08c333dc64cb09f75eaab355393bz\",\n    \"resource_id\": \"i-4a266a2d\",\n    \"resource_name\": \"webserver-85\",\n    \"state\": \"open\",\n    \"started_at\": 1385085727,\n    \"ended_at\": null,\n    \"policy_name\": \"Webserver Health\",\n    \"condition_name\": \"CPU usage\",\n    \"url\": \"https://app.google.stackdriver.com/incidents/f333dc64z\",\n    \"summary\": \"CPU for webserver-85 is above the threshold of 1% with a value of 28.5%\"\n  },\n  \"version\": 1.1\n}\n\nYou can create a single webhook that handles all the alerts, or you can create a webhook on a per-policy basis to handle things separately.\n",
+    "answer_id": 49253524,
+    "tags": [
+      "google-cloud-platform",
+      "stackdriver",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 68938876,
+    "title": "Terraform Google provider, create log-based alerting policy",
+    "question_text": "I need to create a log-based alerting policy via Terraform Google cloud provider :\nhttps://cloud.google.com/logging/docs/alerting/monitoring-logs#lba\nI checked from the Terraform official documentation and i saw 'google_monitoring_alert_policy' resource : https://registry.terraform.io/providers/hashicorp/google/latest/docs/resources/monitoring_alert_policy\nI don't found with this doc how creating a log based alerting policy.\nI can create an alerting policy with type 'Metrics' but not with type 'Logs'\n\nI use the latest version of Terraform Google cloud provider : https://registry.terraform.io/providers/hashicorp/google/latest\nHow can i create a log-based alerting policy with Terraform Google provider please ?\nThanks in advance for your help.\n",
+    "question_score": 7,
+    "answer_text": "Thanks Guillaume.\nYes it's the way i solved the issue.\nNow there is no way to directly create alerting with log type, via Terraform.\nThe steps to solve this problem :\n\nCreate un log based metric with expected filter\nCreate an alerting policy with type metric based on the previous created log based metric\n\nresource \"google_logging_metric\" \"my_log_metrics\" {\n  project = var.project_id\n  name = \"my-log-metric\"\n  filter = \"...\"\n  description = \"...\"\n  metric_descriptor {\n    metric_kind = \"...\"\n    value_type = \"...\"\n  }\n}\n\nresource \"google_monitoring_alert_policy\" \"my_policy\" {\n  project = var.project_id\n  display_name = \"my-policy\"\n  combiner = \"OR\"\n  conditions {\n    display_name = \"my-policy\"\n    condition_threshold {\n      filter = \"metric.type=\\\"logging.googleapis.com/user/my-log-metric\\\" AND resource.type=\\\"cloud_composer_environment\\\"\"\n    ...\n    }\n}\n\n\n",
+    "answer_id": 69033535,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "terraform-provider-gcp",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 61852428,
+    "title": "gcp monitoring &quot;Any time series violates&quot; vs &quot;All time series violate&quot;",
+    "question_text": "\nWhat's the difference between the two options \"Any time series violates\" and \"All time series violate\"? I can imagine what would the former one do easily, but I have no idea what would the latter one do. \nAll time series? how long is its range? and why does it have a for option?\n",
+    "question_score": 7,
+    "answer_text": "\nWhat's the difference between the two options \"Any time series violates\" and \"All time series violate\"? I can imagine what would the former one do easily, but I have no idea what would the latter one do.\n\nFirst, what is \"time series violates\" - its when CURRENT VALUE of metric is outside of expected range, e.g: above the threshold specified.\nSecond, \"any/all/percent/number\" - let's say you have 5 time series, e.g.: cpu usage on 5 instances, then per dropdown options the whole alert condition will violate when:\n\n\"any time series\": any 1 of the time series is in violation\n\"all time series\": all 5 of the time series are in violation\n\"percent of time series\" (40%): 2 out of 5 of the time series are in violation, and yes, selecting 39% or 41% on small numbers will give you different results, so\n\"number of time series\" (3): 3 out of 5 of the time series are in violation\n\nThird, for aka Duration box, - it looks like \"if my time series violates FOR 5 minutes, then violate the condition\". And for some simpler alerts this can even work, but once you try to combine it with say, \"metric is absent\" or other complicated configuration, you will see that what actually happens is \"wait for 5 minutes after the problem is there, and only then trigger the violation\". \nIn practice, the use of for field is discouraged and its better to keep it on default \"Most recent value\".\nIf you do need the \"cpu usage is above 90% for 5 minutes\", then correct way of doing it is by denoizing/smoothing your data:\n\nset alignment period to 5 minutes (or whatever is the sliding window that you want)\nthen choose reasonable aligner (like, mean which will average the values)\nand then while the chart will have less datapoints, they would be less noisy and you can act upon the latest value.\n\n",
+    "answer_id": 61897946,
+    "tags": [
+      "google-cloud-platform",
+      "monitoring",
+      "stackdriver",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 71323943,
+    "title": "What are advantages of using Prometheus over Google Cloud Monitoring for SLO based monitoring?",
+    "question_text": "I am working on creating monitoring based on SLO. So far I have been using Google Cloud Monitoring solutions like Dashboards, Alerting and Uptime Checks.\nI have noticed GCP has now a Managed Service for Prometheus.\nMy question is what would be the advantage of using Prometheus(not only Google managed one)for monitoring. Is there anything that could be achieved with Prometheus that I could not achive with Google Cloud Monitoring?\n",
+    "question_score": 7,
+    "answer_text": "Managed service for prometheus is a managed and automatically scalable prometheus endpoint. You can request the metrics with PromQL language instead of MQL (Monitoring Query Language).\nWhat's the advantage? If you deploy an application instrumented with Open Telemetry (for example), you don't have to change anything. On Kubernetes (GKE), the managed collector do the job for you. Else you have to configure the collector to use Managed Service for Prometheus.\nIf you build an app from scratch, and you want it portable, Open Telemetry and Prometheus are standard tools to instrument your app.\nIf not, use Cloud Monitoring!\nImportant note\nThat feature is very new and, for now, only the metrics sinks with Managed Service for Prometheus can be query with PromQL. The other metrics must be requested by MQL. It could change in the future.\nSo, for now, if you can use built in Cloud Monitoring metrics, it's a better solution.\n",
+    "answer_id": 71329618,
+    "tags": [
+      "google-cloud-platform",
+      "prometheus",
+      "google-cloud-monitoring",
+      "monitoring-query-language"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 68064370,
+    "title": "GCP Alert Filters Don&#39;t Affect Open Incidents",
+    "question_text": "I have an alert that I have configured to send email when the sum of executions of cloud functions that have finished in status other than 'error' or 'ok' is above 0 (grouped by the function name).\nThe way I defined the alert is:\n\nAnd the secondary aggregator is delta.\nThe problem is that once the alert is open, it looks like the filters don't matter any more, and the alert stays open because it sees that the cloud function is triggered and finishes with any status (even 'ok' status keeps it open as long as its triggered enough).\nATM the only solution I can think of is to define a log based metric that will count it itself and then the alert will be based on that custom metric instead of on the built in one.\nIs there something that I'm missing?\nEdit:\nAdding another image to show what I think might be the problem:\n\nFrom the image above we see that the graph wont go down to 0 but will stay at 1, which is not the way other normal incidents work\n",
+    "question_score": 7,
+    "answer_text": "According to the official documentation:\n\n\"Monitoring automatically closes an incident when it observes that the condition is no longer met or when 7 days have passed without an observation that the condition is still being met.\"\n\nThat made me think that there are times where the condition is not relevant to make it close the incident. Which is confirmed here:\n\n\"If measurements are missing (for example, if there are no HTTP requests for a couple of minutes), the policy uses the last recorded value to evaluate conditions.\"\n\nThe lack of HTTP requests aren't a reason to close the metric as it keeps using the last recorded value (that triggered the metric).\nSo, using alerts for Http Requests is fine but you need to close them by yourself. Although I think it would be better to use a custom metric instead if you want them to be disabled automatically.\n",
+    "answer_id": 68472512,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-functions",
+      "google-cloud-logging",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 58025233,
+    "title": "How to find who deletes a table in the logs",
+    "question_text": "I have a dataset ID, tables were created. Which were deleted. I need to check who deleted them and when.\n",
+    "question_score": 6,
+    "answer_text": "You need to enable auditlogs export. \nThere are many types of deletes:  \n\ndelete from UI / API\ndelete with QUERY (overwrite as destination table)\ndelete via CREATE OR REPLACE syntax\nautodelete done via expiration\n\nCommon type of deletes are explained here: \nType 1: you issued a table deleted Query/API call etc..\nThen you can run a query like:\nSELECT * FROM `dataset.cloudaudit_googleapis_com_activity_20190919` \nwhere resource.type='bigquery_resource' \nand protopayload_auditlog.methodName='tableservice.delete'\n\nyou get back a large table which cannot be posted here as a nice image, but as simplified JSON it is here:\n[\n  {\n    \"logName\": \"projects/editedname/logs/cloudaudit.googleapis.com%2Factivity\",\n    \"resource\": {\n      \"type\": \"bigquery_resource\",\n      \"labels\": {\n        \"project_id\": \"editedname\",\n      }\n    },\n    \"protopayload_auditlog\": {\n      \"serviceName\": \"bigquery.googleapis.com\",\n      \"methodName\": \"tableservice.delete\",\n      \"resourceName\": \"projects/editedname/datasets/dataset/tables/industry2\",\n      \"authenticationInfo\": {\n        \"principalEmail\": \"something@domain.com\",\n        \"authoritySelector\": null,\n        \"serviceAccountKeyName\": null,\n        \"serviceAccountDelegationInfo\": []\n      },\n      \"authorizationInfo\": [\n        {\n          \"resource\": \"projects/editedname/datasets/dataset/tables/industry2\",\n          \"permission\": \"bigquery.tables.delete\",\n          \"granted\": \"true\",\n          \"resourceAttributes\": null\n        }\n      ],\n      \"requestMetadata\": {\n        \"callerIp\": \"1.2.3.4\",\n        \"callerSuppliedUserAgent\": \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/77.0.3865.75 Safari/537.36,gzip(gfe)\",\n        \"callerNetwork\": null,\n        \"requestAttributes\": null,\n        \"destinationAttributes\": null\n      },\n    },\n    \"timestamp\": \"2019-09-19 08:47:00.381 UTC\",\n    \"receiveTimestamp\": \"2019-09-19 08:47:00.590316 UTC\",\n    \"severity\": \"NOTICE\",\n  }\n]\n\nAs you can see you have the table that was deleted eg: industry2 in my example, also the user's or service account email address, and the date, even metadata of the caller by IP, and userAgent. \nMore about the available information here\nType 2: You issued a table override query or a CREATE OR REPLACE syntax\nFor these kind of \"deletes\" you won't find a separate deleted entry. But you can look for the \"truncated\" flag in the metadataJson\n\n",
+    "answer_id": 58026087,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-logging",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 65092493,
+    "title": "Setup alerting policy for GCP Cloud Functions based on HTTP status codes",
+    "question_text": "I want to setup Cloud Monitoring to alert me each time my Cloud Function responds with 4xx / 5xx HTTP status codes. Please let me know how to implement this from Cloud Console.\n",
+    "question_score": 6,
+    "answer_text": "You can use Cloud Logging for this.\n\nGo to the Cloud Logging page and filter your logs\nThen select the part of the logs that you want (in my screen shot is the 200 HTTP response code), and click on \"show matching entries\"\n\n\n\nNow, in the query builder, you have the matching entry that you select\n\n\nYou can change it, the value (400 instead of 200) the equality by > or <,... So, you can see in the documentation how to build a Cloud Logging filter\n\nThen go to Action and click on create metrics\n\n\n\nNow create your metric and name it.\n\n\n\nFinally, click on the 3 dots on the right and select create an alert on this metric\n\n\n\nFrom there, follow the wizard. Name your condition, define your threshold and notification channels. I think it's the easiest part (but if you need guidance, let me know)\n\n",
+    "answer_id": 65097812,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-functions",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 50610342,
+    "title": "from google.cloud import monitoring_v3 ImportError: cannot import name monitoring_v3",
+    "question_text": "I am trying to utilize the Google Cloud Platform's Stack Driver API with the following Python/Flask code below...\nview.py\nimport google.cloud\nfrom google.cloud import monitoring_v3\n# from google.cloud.monitoring_v3 import query\n\nrequirements.txt\nFlask==0.12.2\noauth2client==2.0.1\ngoogle-api-python-client==1.6.2\nfacebookads==2.11.1\nhttplib2==0.10.3\nenum==0.4.6\nrequests-toolbelt==0.8.0\ngoogle-cloud-storage==1.6.0\ngoogle-resumable-media==0.3.1\ngoogle-auth\ngoogle-cloud-monitoring==0.28.0\ngoogle-cloud\n\nFor whatever reason it can't seem to find the monitoring_v3 library as when whenever I run the code I am getting the following error...\nfrom google.cloud import monitoring_v3\nImportError: cannot import name monitoring_v3\n\nI have tried to update to google-cloud-monitoring==0.29.0 and that just churns out another non-related error.\n",
+    "question_score": 6,
+    "answer_text": "I solved it by upgrading monitoring 0.29.0 to 1.1.0\npip install --upgrade google-cloud-monitoring\n\nLatest version now available is 2.0.0\nhttps://pypi.org/project/google-cloud-monitoring/\n",
+    "answer_id": 64386484,
+    "tags": [
+      "python",
+      "flask",
+      "google-cloud-platform",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 64802167,
+    "title": "GCP Stackdriver alert on metric not absent",
+    "question_text": "there are some metrics in GCP's Stackdriver like f.e. serviceruntime.googleapis.com/quota/exceeded that appear when there is a problem and are absent (not 0) if there is no more problem.\nThe problem is I cannot set up alerting to auto-resolve, because when the problem is resolved data for this metric is absent.\nHow can I set up alerts to auto-resolve with these types of metrics?\n\n",
+    "question_score": 5,
+    "answer_text": "Unfortunately, there's no solution at the moment. Google Engineers are aware about this problem. You can join (use +1 mark), comment and follow the feature request at the Google Public Issue Tracker to be updated of any changes.\n",
+    "answer_id": 64805153,
+    "tags": [
+      "google-cloud-platform",
+      "monitoring",
+      "stackdriver",
+      "google-cloud-stackdriver",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 61789539,
+    "title": "How to check details of total denies of security rules in Google cloud?",
+    "question_text": "How to check details of total denies of Firebase security rules in Google cloud? I have added the screenshot which is shown in the Firebase console. But it shows \"\nUse advanced analysis and alerting tools in Cloud Monitoring\" But when I go to google cloud it does not have any details of that. I have also attached the screenshot of the Google cloud console which is opened when I click the cloud monitoring button in the Firebase console. \n",
+    "question_score": 5,
+    "answer_text": "There is currently nothing in the console that shows you why a request was denied by security rules.  Feel free to file a feature request with Firebase support for that.\nThe best way to develop security rules (with Firestore) is to do that with the local emulator, which will give you more details about why a request from your test code was denied.\n",
+    "answer_id": 61789849,
+    "tags": [
+      "firebase",
+      "firebase-realtime-database",
+      "google-cloud-platform",
+      "firebase-security",
+      "google-cloud-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-monitoring",
+    "question_id": 74073782,
+    "title": "Combining two metrics with different resource types into one using MQL",
+    "question_text": "How can I combine two metrics into one, when they come from two separate resources?\n\nI have a simple logs-based metrics, my-metric, defined like this:\nresource \"google_logging_metric\" \"my_metric\" {\n  name = \"my-metric\"\n\n  filter = <<-EOT\n             logName=\"projects/my-project/logs/my-app\"\n             labels.name=\"my.event\"\n           EOT\n\n  label_extractors = {\n    \"event_type\" = \"EXTRACT(labels.event_type)\"\n  }\n\n  metric_descriptor {\n    value_type  = \"INT64\"\n    metric_kind = \"DELTA\"\n\n    labels {\n      key        = \"event_type\"\n      value_type = \"STRING\"\n    }\n  }\n}\n\nI recently moved my app to Google Cloud Run (GCR) which has its own logs, so I updated the metric's filter like this:\n(\n  logName=\"projects/my-project/logs/my_app\"\n  OR\n  logName=\"projects/my-project/logs/run.googleapis.com%2Fstdout\"\n)\nlabels.name=\"my.event\"\n\nWhat I didn't expect is that the metric becomes attached to a different resource, so logically I have two metrics. In MQL:\n\ngce_instance::logging.googleapis.com/user/my-metric\nglobal::logging.googleapis.com/user/my-metric\n\nI want to keep my existing alerting policies that are based on this metric, so I'm wondering if there's a way to either combine the metrics from the global and GCE instance resources into one metric (I would group by event_type and add them up, for example).\n\nTrial and error\nI have tried to just get them merged into one graph in the metrics explorer.\n1. Denial\nI have almost exclusively used a single log and the global resource before, so my intuition was to simply do this:\nfetch global::logging.googleapis.com/user/my-metric\n\nThis would only get me half of the values though. I realized I'd get the other half like this:\nfetch gce_instance::logging.googleapis.com/user/my-metric\n\n2. Anger\nOk, let's just combine them. I know enough MQL to be a danger to myself and others (or so I thought).\n{\n    fetch global::logging.googleapis.com/user/my-metric\n    ;\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n}\n| outer_join 0\n| add\n\nThat only shows the global resource. It happens to be the first, so my intuition is to swap them around, sometimes that gives more information (I find the MQL reference very abstract, and I have mostly learned by copy-pasting examples and trial-and-error). Putting the gce_instance first throws two errors instead:\n\nLine 8: Input table 1 does not have time series identifier column 'resource.instance_id' that is present in table 0. Table 0 must be a subset of the time series identifier columns of table 1.\nLine 8: Input table 1 does not have time series identifier column 'resource.zone' that is present in table 0. Table 0 must be a subset of the time series identifier columns of table 1.\n\nI don't really need instance_id or zone, so perhaps I can just remove them?\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| outer_join 0\n| add\n\nAnd now it's only the gce_instance resource. For reference, here's what it looks like:\nOnly the global resource:\n\nOnly the gce_instance resource:\n\nWhat I would like (kind of):\n\n3. Bargaining\njoin\nI'm sure MQL is beautiful once you fully grasp it, but to me it's still a black box. Here's a few other attempts. I basically went through the MQL reference, trying every keyword I could find:\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| join\n\n\nNo data is available for the selected time frame\n\nDon't know what that means. Next!\njoin and group_by\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| group_by [metric.event_type], max(val())\n| join\n\n\nNo data is available for the selected time frame\n\nUseles... NEXT!\nunion_group_by\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| union_group_by [metric.event_type]\n\n\nChart definition invalid. INVALID_ARGUMENT: Request contains an invalid argument.\n\nThat's very helpful, thanks. NEXT!\nouter_join or_else\nThe outer_join in my first attempt at least seemed to give two tables with values. Maybe I just need to combine them?\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| outer_join 0\n| or_else\n\nVery interesting. I now get a bunch of different time series, grouped by event_type. They are all flatlining at 0 though. Changing to outer_join 123? Yes, they are now all constantly 123 instead.\nThe outer_join docs have this to say:\n\nOne or both of the left_default_value and right_default_value arguments must be given. Each corresponds to one input table (the first, \"left\", table or the second \"right\" table) and, when given for a table, that table will have rows created if it does not have some row that matches a row in the other table. Each argument specifies the value columns of the created row. If a default argument is given for a table, then the time series identifier columns in that table must be a subset of the time series of those of the other table and it can only have Delta time-series kind if the other table has Delta time-series kind.\n\nI found this part vaguely interesting:\n\nthe time series identifier columns in that table must be a subset of the time series of those of the other table\n\nNot sure what my time series identifier columns are. Perhaps they're just bad, but I'm not about to give up. What if they're not a subset? Perhaps I need to align, not aggregate? Did I mention that I don't know what I'm doing?\nAligning\n\nAligning functions are use [not my typo] by the align table operation to produce an aligned table, one whose time series have points with timestamps at regular intervals.\n\nI guess I need to invoke the align table operation with one of the aligning functions? Regular intervals sounds cool.\nThe aggregation docs has a section about aligners as well\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    | map drop [resource.zone, resource.instance_id]\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| align interpolate(10m)\n# | group_by [metric.event_type], sum(val())\n| outer_join 0\n| add\n\n\nInterpolation doesn't give me the missing data. This one gives me the global resource, but with a bit of interpolation where it doesn't have any data. This feels like a dead end as well.\nI threw in a group_by as well just in case, no change.\n4. Depression\nI'm starting to get slightly frustrated now, I have data in two tables, but no matter what I do I can only see the data in one of them. I've combined time series in various ways with MQL before and once it works I can usually explain why. It gets tricker when it doesn't work.\nPerhaps we can get back to first principles somehow? I know group_by [] clears the labels, maybe that would simplify things?\n{\n    fetch gce_instance::logging.googleapis.com/user/my-metric\n    ;\n    fetch global::logging.googleapis.com/user/my-metric\n}\n| group_by []\n\n\nLine 1: Expect query to have 1 result but had 2.\n\nOuch. Adding a | union at the end?\n\nLine 7: Input table 0 has legacy target schema 'cloud.CloudTask' which is different from input table 1's legacy target schema 'cloud.Global'. The inputs to the 'union' table operation are required to have the same column names, column types, and target schemas.\n\nThat's a new one! \"Target schema\" huh? Perhaps that's been the issue all along?\nLet's consult the trusty reference! Schema... schema? No mentions about schemas.\nThe examples perhaps? No, but it says \"before you begin\". I've read it before, but perhaps I missed something?\n\nSome familiarity with Cloud Monitoring concepts including metric types, monitored-resource types, and time series is helpful. For an introduction to these concepts, see Metrics, time series, and resources.\n\nBut no, the \"Metrics, time series, and resources\" page doesn't mention legacy target schemas either, or even schemas in general. Neither does the Components of the metric model or the Notes on terminology pages.\nAm I at another dead end? A quick Google search seems to indicate that it is.\nOther attempts\n\nBreaking the tables into different values using value[foo: val()] etc.\nMapping column names and recombining them in various ways.\nAdding values using add and or_else etc.\n\n5. Acceptance\nI have tried everything I can think of and read through most of the documentation a few times.\nWriting this question, I found [an exciting answer](https://stackoverflow.com/a/67098846/98057] and tried with my metrics:\n{\n    fetch gce_instance\n    | metric 'logging.googleapis.com/user/my-metric'\n    | group_by [], sum(val())\n    | align rate(1m)\n    | every 1m\n    ;\n    fetch global\n    | metric 'logging.googleapis.com/user/my-metric'\n    | group_by [], sum(val())\n    | align rate(1m)\n    | every 1m\n}\n| join\n| add\n\n\nNo data is available for the selected time frame\n\nI have of course verified that at least one of the \"subqueries\" returns some data, in this case it's this one:\nfetch gce_instance\n| metric 'logging.googleapis.com/user/my-metric'\n| group_by [], sum(val())\n| align rate(1m)\n| every 1m\n\nHow can I combine these two metrics from two separate resource types into one using MQL?\n",
+    "question_score": 5,
+    "answer_text": "Here's the solution from GCP's support:\n{\n    fetch gce_instance\n    | metric 'logging.googleapis.com/user/my-metric'\n    | group_by [], sum(val())\n    | align rate(1m)\n    | every 1m\n    ;\n    fetch global\n    | metric 'logging.googleapis.com/user/my-metric'\n    | group_by [], sum(val())\n    | align rate(1m)\n    | every 1m\n}\n| outer_join 0,0\n| add\n\nI tried both outer_join(0,0) (syntax error) and outer_join 0, but outer_join 0,0 did what it's supposed to - adding a default value to both tables. Obvious, once you see it.\n",
+    "answer_id": 74110379,
+    "tags": [
+      "google-cloud-platform",
+      "time-series",
+      "metrics",
+      "google-cloud-monitoring",
+      "monitoring-query-language"
+    ]
+  }
+]

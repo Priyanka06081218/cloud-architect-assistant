@@ -1,0 +1,559 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 15265072,
+    "title": "Azure Active Directory as Domain Controller for Azure Virtual Machines",
+    "question_text": "Azure Active Directory is \"as a service\" offering from Azure. I have seen documentations and content from Microsoft stating that can be used for SSO and other Web application for unified auth. \nWill it be possible to make use of Azure Active Directory as replacement of Windows Server AD in Azure virtual machines in Virtual Networks? I see that the Windows Server Active Directory Installation on Azure VM involves execution from powershell and stuff?\n",
+    "question_score": 31,
+    "answer_text": "NO! Windows Azure Active Directory is NOT a Domain Controller. You can NOT join computers to Windows Azure AD. You can use it to sync on-premises AD with Windows Azure AD to easily enable Web SSO (Single Sign On). You can use to build enterprise grade web applications.\nYou can read more about Windows Azure Active Directory here.\n",
+    "answer_id": 15265699,
+    "tags": [
+      "azure",
+      "active-directory",
+      "azure-virtual-machine",
+      "azure-virtual-network",
+      "azure-active-directory"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 43889875,
+    "title": "Site-to-site VPN vs point-to-site VPN",
+    "question_text": "I have a scenario where I have a Windows VM in windows Azure that needs to connect to an external customer network (and connect to a database that is not in Azure). \nThis traffic is uni-directional in that it is only my VM that needs to connect to the customer's databases and not the other way around. Site to site is managed on Azure, which I cannot really test locally. \nConceptually, connecting to the customer's network via a point-to-site VPN seems more suitable (by creating the VPN connection in Windows itself via the network config). \nThe customer prefers site-to-site even though they don't need to connect to my VM. Am I missing something?\n",
+    "question_score": 30,
+    "answer_text": "In point-to-site, you have to connect to the network you want to access manually. Usually, if you log-off or restart the workstation it loses connection, and you have to reconnect every time. It's common to use this type of VPN when we are working remotely, and we need to access our company assets. The channel is bi-directional, but it's 1-to-many. \nSite-to-site is used when you want to connect two networks and keep the communication up all the time. It's also bi-directional, but it's many-to-many and stays up no matter if your server/workstation is running or not because the connection is established through a network gateway and not from the computer operating system. \nIn Azure, the Virtual Network Gateway is the platform providing both functionalities. You can configure site-to-site to connect to your customer network. If this network is not running in Azure, they usually have an appliance to establish dedicated tunnels. As long as it supports IPsec IKE, you are good to go. \nIf you are using the VM in Azure as a workstation, then point-to-site may be enough, but if your application needs to get data from the customer database automatically with or without someone logged in the VM, then site-to-site is a better approach. \nA better explanation can be found here\n",
+    "answer_id": 43890607,
+    "tags": [
+      "windows",
+      "azure",
+      "security",
+      "vpn",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 50483132,
+    "title": "How to secure access from App Service To Azure Sql Database using virtual network?",
+    "question_text": "Scenario\nI want to use virtual network in order to limit access to Azure Database only from my App Service, so that I can turn of \"Allow access to App Services\" in firewall settings\n\nWhat I have done:\n\nI went to App Service -> Networking -> VNET Integration -> Setup -> Create New Virtual Network\nI've created new VNET with default settings.\nWhen VNET was created I went to App Service -> Networking -> VNET Integration and ensured that the VNET is connected\nI went to SQL Firewall settigs -> Virtual Network -> Add existing Virtual Newtork and selected my VNET. I've left default subnet and address space: \"default / 10.0.0.0/24\" and I've left IgnoreMissingServiceEndpoint flag unchecked.\n\nI can now see Microsoft.Sql service endpoint in my VNET:\n\nQuestion\nHowever, I'm still getting \n\nSqlException: Cannot open server 'my-sqlserver' requested by the\n  login. Client with IP address '52.233..' is not allowed to\n  access the server.:\n\nWhat am I missing?\n",
+    "question_score": 19,
+    "answer_text": "Unfortunately, you cannot achieve this scenario for now.\nWhy:\n\nWhen you use VNET Integration with your Web App, your web App can communicate with the VNET like Web App <---> VNET.\nWhen you use SQL firewall to allow traffic from a specific VNet, so the traffic from the VNET address space can communicate with your SQL like VNet <---> SQL server.\nWhen all configurations are setup, your scenario should be Web App <---> VNET <---> SQL server. The important thing is that the traffic from Web App cannot go trough the VNET to the SQL server, because the web App is not within the VNET, it's out side the VNET! So,When you use Web App try to access the SQL server, the traffic is not from the VNET.\n\nSolution:\nThe solution is that put your Web App into the VNet. So, you can use Azure ASE to achieve this.\nReference:\n\nVNet Integration gives your web app access to resources in your\n  virtual network but does not grant private access to your web app from\n  the virtual network. Private site access refers to making your app\n  only accessible from a private network such as from within an Azure\n  virtual network. Private site access is only available with an ASE\n  configured with an Internal Load Balancer (ILB). For details on using\n  an ILB ASE, start with the article here: Creating and using an ILB\n  ASE.\n\nSimilar case:App Service VNet Integration with Azure Storage Service Endpoint\n",
+    "answer_id": 50483574,
+    "tags": [
+      "azure",
+      "azure-sql-database",
+      "azure-web-app-service",
+      "firewall",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 73769449,
+    "title": "Azure - difference between service endpoint and private endpoint in simple terms",
+    "question_text": "I am not able to understand the difference between service endpoints and private endpoints clearly.\nNeed help preferably with an example.\n",
+    "question_score": 18,
+    "answer_text": "You might have seen this in the Private Link FAQ:\n\n\nPrivate Endpoints grant network access to specific resources behind a given service providing granular segmentation. Traffic can reach the service resource from on premises without using public endpoints.\nA Service Endpoint remains a publicly routable IP address. A Private Endpoint is a private IP in the address space of the virtual network where the private endpoint is configured.\n\n\nFor simplicity, let's take the view of a VM in a VNET connecting to a storage account in the same subscription and same Azure region. There are three ways to connect.\n\n\nDefault\nBy default all traffic goes against the public endpoint of the storage account. Source IP of the traffic is the Public IP of the VM.\n\nService Endpoints\nTraffic is still directed against the public endpoint of the storage account but the source IP has changed to the private IP of the VM. In fact, the traffic is also using the VNET and Subnet as source in the network dataframe.\n\nPrivate Endpoints\nThe PaaS service now gets a virtual network interface inside the subnet and traffic from the VM to the storage account is now directed against the private IP address.\n\n\nBy far the best collection of useful information around Private Link that I have seen on the web is in this repository: https://github.com/dmauser/PrivateLink\nYou can also find some examples here: https://jeffbrown.tech/azure-private-service-endpoint/\n",
+    "answer_id": 73769731,
+    "tags": [
+      "azure",
+      "endpoint",
+      "azure-virtual-network",
+      "paas",
+      "azure-private-link"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 13995734,
+    "title": "Azure VMs Virtual Network inter-communication",
+    "question_text": "I'm new to Azure (strike 1) and totally suck at networking (strike 2).\nNevertheless, I've got two VMs up and running in the same virtual network; one will act as a web server and the other will act as a SQL database server.\nWhile I can see that their internal IP addresses are both in the same network I'm unable to verify that the machines can communicate with each other and am sort of confused regarding the appropriate place to address this.  \nMicrosoft's own documentation says \n\nAll virtual machines that you create in Windows Azure can\n  automatically communicate using a private network channel with other\n  virtual machines in the same cloud service or virtual network.\n  However, you need to add an endpoint to a machine for other resources\n  on the Internet or other virtual networks to communicate with it. You\n  can associate specific ports and a protocol to endpoints. Resources\n  can connect to an endpoint by using a protocol of TCP or UDP. The TCP\n  protocol includes HTTP and HTTPS communication.\n\nSo why can't the machines at least ping each other via internal IPs?  Is it Windows Firewall getting in the way? I'm starting to wonder if I've chose the wrong approach for a simple web server/database server setup.  Please forgive my ignorance.  Any help would be greatly appreciated.\n",
+    "question_score": 15,
+    "answer_text": "If both the machines are in the same Virtual Network, then just turn off Windows Firewall and they will be able to ping each other. Other way is to just allow all incoming ICMP traffic in Windows Firewall with Advanced Settings.\nHowever there is a trick. Both the machines will see each other by IP Addresses, but there will be no name resolution in so defined Virtual Network. Meaning that you won't be able to ping by name, but only by direct IP address. So, if want your Website (on VM1) to connect to SQL Server (on VM2), you have to address it by full IP Address, not machine name.\nThe only way to make name resolution within a Virtual Network is to use a dedicated DNS server, which you maintain and configure on-premises.\nThis article describes in details name resolution scenarios in Windows Azure. Your particular case is this:\n\nName resolution between virtual machines and role instances located in\n  the same virtual network, but different cloud services\n\nYou could potentially achieve name resolution, if you put your VMs is same cloud service. Thus you will not even require dedicated virtual network.\n",
+    "answer_id": 13996356,
+    "tags": [
+      "azure",
+      "azure-virtual-machine",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 54534924,
+    "title": "ARM Template for to configure App Services with new VNet Integration feature?",
+    "question_text": "I am working on ARM Templates, I have created the template file with two or more azure app services along with app service plan and then configured with VNET Integration of each app service. \nThis is sample JSON code:\n    {\n  \"comments\": \"Web-App-01\",\n  \"name\": \"[variables('app_name_01')]\",\n  \"type\": \"Microsoft.Web/sites\",\n  \"location\": \"[variables('location')]\",\n  \"apiVersion\": \"2016-08-01\",\n  \"dependsOn\": [\n    \"[resourceId('Microsoft.Web/serverfarms', variables('asp_name_01'))]\"\n  ],\n  \"tags\": {\n    \"displayName\": \"[variables('app_name_01')]\"\n  },\n  \"properties\": {\n    \"name\": \"[variables('app_name_01')]\",\n    \"serverFarmId\": \"[resourceId('Microsoft.Web/serverfarms', variables('asp_name_01'))]\",\n    \"siteConfig\": {\n      \"alwaysOn\": true\n    }\n  },\n    \"resources\": [\n      {\n        \"type\": \"Microsoft.Web/sites/virtualNetworkConnections\",\n        \"name\": \"[concat(variables('app_name_01'), '/', variables('vnet_connection_name'),uniqueString('asdsdaxsdsd'))]\",\n        \"apiVersion\": \"2016-08-01\",\n        \"location\": \"[variables('location')]\",\n        \"properties\": {\n          \"vnetResourceId\": \"[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vm_vnet_name'), variables('web_subnet_name'))]\"\n        },\n        \"dependsOn\": [\n          \"[resourceId('Microsoft.Web/sites', variables('app_name_01'))]\",\n          \"[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vm_vnet_name'), variables('web_subnet_name'))]\"\n        ]\n      }\n    ]\n},\n{\n  \"comments\": \"Web-App-02\",\n  \"name\": \"[variables('app_name_02')]\",\n  \"type\": \"Microsoft.Web/sites\",\n  \"location\": \"[variables('location')]\",\n  \"apiVersion\": \"2016-08-01\",\n  \"dependsOn\": [\n    \"[resourceId('Microsoft.Web/serverfarms', variables('asp_name_02'))]\"\n  ],\n  \"tags\": {\n    \"displayName\": \"[variables('app_name_02')]\"\n  },\n  \"properties\": {\n    \"name\": \"[variables('app_name_02')]\",\n    \"serverFarmId\": \"[resourceId('Microsoft.Web/serverfarms', variables('asp_name_01'))]\",\n    \"siteConfig\": {\n      \"alwaysOn\": true\n    }\n  },\n    \"resources\": [\n      {\n        \"type\": \"Microsoft.Web/sites/virtualNetworkConnections\",\n        \"name\": \"[concat(variables('app_name_02'), '/', variables('vnet_connection_name'),uniqueString('asdsdaxsdsd'))]\",\n        \"apiVersion\": \"2016-08-01\",\n        \"location\": \"[variables('location')]\",\n        \"properties\": {\n          \"vnetResourceId\": \"[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vm_vnet_name'), variables('web_subnet_name'))]\"\n        },\n        \"dependsOn\": [\n          \"[resourceId('Microsoft.Web/sites', variables('app_name_02'))]\",\n          \"[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('vm_vnet_name'), variables('web_subnet_name'))]\"\n        ]\n      }\n    ]\n}\n\nThe above code works fine for few azure app services, but for the rest of the app services I am getting internal server error or Conflict or Bad Request during VNET Integration of Azure App Service.\n\nNote: When I deployed the above the JSON Code, the old VNET\n  integration is configured instead of New VNET (Preview) feature. So, I need to configure New VNET (Preview) feature for each app service.\n\nSo, can anyone suggest me how to resolve the above issue.\n",
+    "question_score": 14,
+    "answer_text": "I've found a working example for this on an Azure Docs GitHub post:\nHow do we integrate the new vnet integrartion with ARM templates?\nSeems to work a different way with the new VNet integration which uses a Microsoft.Web/sites/config sub-resource named virtualNetwork instead of the Microsoft.Web/sites/virtualNetworkConnections sub-resource    \nAs well as a few requirements that need to be set on the target subnet / vnet (described in the link). The integration piece looks something like this:\n   {\n      \"apiVersion\": \"2018-02-01\",\n      \"type\": \"Microsoft.Web/sites\",\n      \"name\": \"[parameters('appName')]\",\n      \"location\": \"[resourceGroup().location]\",\n\n...\n\n      \"resources\": [\n        {\n          \"name\": \"virtualNetwork\",\n          \"type\": \"config\",\n          \"apiVersion\": \"2018-02-01\",\n          \"location\": \"[resourceGroup().location]\",\n          \"properties\": {\n            \"subnetResourceid\": \"[parameters('subnetResourceId')]\",\n            \"swiftSupported\": true\n          },\n          \"dependsOn\": [\n            \"[resourceId('Microsoft.Web/sites', parameters('appName'))]\"\n          ]\n        }\n      ]\n   },\n\nApart from this I've not found much else documented, except for a reference to it in the azure-rest-api-specs which has the \"/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/networkConfig/virtualNetwork\" endpoint defined:\nazure-rest-api-specs / WebApps.json\nIt also seems (as the spec suggests) replacing \"type\": \"config\" with \"type\": \"networkConfig\" also works.\n",
+    "answer_id": 56135541,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-virtual-network",
+      "azure-rm-template"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 58390218,
+    "title": "Private endpoint in Azure",
+    "question_text": "I'm trying to create sql database with private endpoint (preview enabled).\nI'm getting following error:\n\n{\"code\":\"DeploymentFailed\",\"message\":\"At least one resource deployment operation failed. Please list deployment operations for details. Please see https://aka.ms/arm-debug for usage details.\",\"details\":[{\"code\":\"BadRequest\",\"message\":\"{\\r\\n \\\"error\\\": {\\r\\n \\\"code\\\": \\\"PrivateEndpointCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled\\\",\\r\\n \\\"message\\\": \\\"Private endpoint /subscriptions/1efd84d6-173f-42cc-80db-7b2c17eb0edd/resourceGroups/eu_poland_general/providers/Microsoft.Network/privateEndpoints/plink-private-endpoint cannot be created in a subnet /subscriptions/1efd84d6-173f-42cc-80db-7b2c17eb0edd/resourceGroups/eu_poland_general/providers/Microsoft.Network/virtualNetworks/plink-vnet-2/subnets/plsubnet since it has private endpoint network policies enabled.\\\",\\r\\n \\\"details\\\": []\\r\\n }\\r\\n}\"}]}\n\nit seems that the virtual network subnet that i'm trying to connect has some option enabled. I have went through all the options in portal, but can't really find anything usefull\n",
+    "question_score": 14,
+    "answer_text": "From that error message:PrivateEndpointCannotBeCreatedInSubnetThatHasNetworkPoliciesEnabled,\nYou could disable network policies for private endpoints in that subnet virtualNetworks/plink-vnet-2/subnets/plsubnet with Azure PowerShell or Azure CLI or template.\nFor example, using Azure CLI,\naz network vnet subnet update \\ \n  --name default \\ \n  --resource-group myResourceGroup \\ \n  --vnet-name myVirtualNetwork \\ \n  --disable-private-endpoint-network-policies true\n\n",
+    "answer_id": 58390427,
+    "tags": [
+      "azure",
+      "azure-virtual-network",
+      "azureportal"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 36176953,
+    "title": "Why does Azure Application Gateway require an empty subnet",
+    "question_text": "When I try to execute New-AzureRmApplicationGatewayIPConfiguration to create an application gateway, I get an exception:\nSubnet xxx cannot be used for application gateway yyy since subnet is not empty.\n\nI encountered this error when I tried to add the application gateway to the same subnet as the backend servers.\nWhy is this not an option? Does each gateway require a separate subnet? What is the recommended configuration?\nRelated questions:\n\nThe documentation says backend servers can be added when they belong to the virtual network subnet. How can a back-end server belong to the virtual network subnet of the application gateway if the application gateway must be in a separate subnet?\nHow can the application gateway be configured without requiring a public IP address on the backend servers?\n\n",
+    "question_score": 13,
+    "answer_text": "The application gateway must be in a subnet by itself as explained in the documentation, hence the reason it is not an option.  Create a smaller address space for your application gateway subnet (CIDR 'x.x.x.x/29') so you're not wasting IP addresses unnecessarily.\nIt's a good practice to strive for a multi-tier network topology using subnets.  This enables you to define routes and network security groups (ie: allow port 80 ingress, deny port 80 egress, deny RDP, etc.) to control traffic flow for the resources in the subnet. The routing and security group requirements for a gateway are generally going to be different than routing and security group requirements of other resources in the virtual network.\n",
+    "answer_id": 36179625,
+    "tags": [
+      "azure",
+      "azure-powershell",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 59081428,
+    "title": "How to reference a data source from a module to another module and pass it as a variable to root module?",
+    "question_text": "I have terraform directory structure as below:\nterraform/\nmain.tf  modules  outputs.tf  provider.tf  variables.tf\n\n./modules:\ncompute  network  resourcegroup\n\n./modules/compute:\nmain.tf  outputs.tf  variables.tf\n\n./modules/network:\nmain.tf  outputs.tf  variables.tf\n\n./modules/resourcegroup:\nmain.tf  outputs.tf  variables.tf\n\nresourcegroup module config files as below:\nPurpose: In this module, I am referencing an existing resource group which I would like to utilized to create a Virtual machine and its associated objects.\nmain.tf\ndata \"azurerm_resource_group\" \"tf-rg-external\" {\n  name = var.rg_name\n}\n\nvariables.tf\nvariable \"rg_name\" {\n  type = string\n\n}\n\nnetwork module\nPurpose: I would like to use resource group from resourcegroup module to be referenced in this module. That way, I define at one place and use it in root and other modules example, compute, app service, aks etc\nmain.tf\n# Reference existing Virtual Network\ndata \"azurerm_virtual_network\" \"tf-vn\" {\n  name                = var.vnet_name\n  resource_group_name = module.resource_groups.external_rg_name\n}\n\n# Reference existing subnet\ndata \"azurerm_subnet\" \"tf-sn\" {\n  name                 = var.subnet_name\n  virtual_network_name = data.azurerm_virtual_network.tf-vn.name\n  resource_group_name  = module.resource_groups.external_rg_name\n}\n\nvariables.tf\n# Declare env variable\nvariable \"vnet_name\" {\n  type = string\n}\n\nvariable \"subnet_name\" {\n  type = string\n}\n\ncompute module.\nPurpose: To define all attributes for compute(VM). The idea is, root module will use this module to spin up different VM roles.\nmain.tf\nmodule \"vm_iis\" {\n  source                        = \"Azure/compute/azurerm\"\n  location                      = data.resourcegroup.tf-rg-external.location\n  vnet_subnet_id                = data.network.tf-sn.id\n  admin_password                = var.admin_password\n  data_sa_type                  = var.data_sa_type\n  delete_os_disk_on_termination = var.delete_os_disk_on_termination\n  nb_instances                 = var.nb_instances\n  nb_public_ip                 = var.nb_public_ip\n  public_ip_address_allocation = var.public_ip_address_allocation\n  resource_group_name          = data.resourcegroup.tf-rg-external.name\n  .\n  .\n  .\n}\n\nvariables.tf\nvariable \"admin_password\" {\n  type = string\n}\nvariable \"admin_username\" {\n  type = string\n}\nvariable \"boot_diagnostics\" {\n  type = bool\n}\nvariable \"boot_diagnostics_sa_type\" {\n  type = string\n}...\n\nterraform root module.\nPurpose: This should utilize modules defined to create a variety of VMs of different sizes and host names\nmain.tf:\nmodule \"sql_vm\" {\n  source                        = \"./modules/compute/\"\n  #location                      = data.resourcegroup.tf-rg-external.location\n  #vnet_subnet_id                = data.network.tf-sn.id\n  public_ip_address_allocation  = var.public_ip_address_allocation\n  #resource_group_name          = data.resourcegroup.tf-rg-external.name\n  storage_account_type          = var.storage_account_type\n  vm_hostname                   = var.vm_hostname\n}\n\nvariables.tf: Declares all variables in main.tf file.\nNote: I have intentionally hard coded the variables in root module main/variable file. This is just get the communication between the modules right. Correct approach to understand and use modules.\nHowever, when I run terraform plan in the root module. I get the error below:\nError: Reference to undeclared resource\n\n  on modules/compute/main.tf line 3, in module \"vm_iis\":\n   3:   location                      = data.resourcegroup.tf-rg-external.location\n\nA data resource \"resourcegroup\" \"tf-rg-external\" has not been declared in\nsql_vm.\n\n\nError: Reference to undeclared resource\n\n  on modules/compute/main.tf line 4, in module \"vm_iis\":\n   4:   vnet_subnet_id                = data.network.tf-sn.id\n\nA data resource \"network\" \"tf-sn\" has not been declared in sql_vm.\n\n\nError: Reference to undeclared resource\n\n  on modules/compute/main.tf line 22, in module \"vm_iis\":\n  22:   resource_group_name          = data.resourcegroup.tf-rg-external.name\n\nA data resource \"resourcegroup\" \"tf-rg-external\" has not been declared in\nsql_vm.\n\nWhat is the issue and how to resolve it?\nAlso, possible to create different (roles) vms by some loop? example sql-vm, iis-vm, testvm, abcvm? What is going to change is their hostnames and vm sizes.\n==========\nPost answer changes\n==========\nI updated the values for subnet, resource group and location in\ncompute/main.tf and terraform/main.tf as like below:\nlocation                      = module.resourcegroup.tf-rg-external-location\nvnet_subnet_id                = module.network.subnet-id\nresource_group_name           = module.resourcegroup.tf-rg-external-name\n\nMy outputs.tf file in resourcegroup and network modules look like below:\noutputs.tf of network module\noutput \"subnet-id\" {\n  value = \"data.network.tf-sn.id\"\n}\n\noutputs.tf of resourcegroup module\noutput \"tf-rg-external-location\" {\n  value = data.resourcegroup.tf-rg-external.location\n}\noutput \"tf-rg-external-name\" {\n  value = data.resourcegroup.tf-rg-external.name\n}\n\nI'm unfortunately still getting errors like below\nError: Unsupported argument\n\n  on main.tf line 3, in module \"sql_vm\":\n   3:   location                      = module.resourcegroup.tf-rg-external-location\n\nAn argument named \"location\" is not expected here.\n\n\nError: Unsupported argument\n\n  on main.tf line 4, in module \"sql_vm\":\n   4:   vnet_subnet_id                = module.network.subnet-id\n\nAn argument named \"vnet_subnet_id\" is not expected here.\n\n\nError: Unsupported argument\n\n  on main.tf line 5, in module \"sql_vm\":\n   5:   resource_group_name           = module.resourcegroup.tf-rg-external-name\n\nAn argument named \"resource_group_name\" is not expected here.\n\nSo, it appears that we should not be referencing them in the root module?\nAlso, where their variables should be defined as in root modules variables.tf file as I believe you can override values for a variable of modules in the root module?\nForgive me if I am appearing as stupid. I'm trying to understand how it works in real life.\nAfter last commit and public repo, error's are as below\nError: Reference to undeclared module\n\n  on main.tf line 3, in module \"sql_vm\":\n   3:   location                      = module.resourcegroup.tf-rg-external-location\n\nNo module call named \"resourcegroup\" is declared in the root module.\n\n\nError: Reference to undeclared module\n\n  on main.tf line 4, in module \"sql_vm\":\n   4:   vnet_subnet_id                = module.network.subnet-id\n\nNo module call named \"network\" is declared in the root module.\n\n\nError: Reference to undeclared module\n\n  on main.tf line 5, in module \"sql_vm\":\n   5:   resource_group_name           = module.resourcegroup.tf-rg-external-name\n\nNo module call named \"resourcegroup\" is declared in the root module.\n\n\nError: Reference to undeclared module\n\n  on modules/compute/main.tf line 3, in module \"vm_iis\":\n   3:   location                      = module.resourcegroup.tf-rg-external-location\n\nNo module call named \"resourcegroup\" is declared in sql_vm.\n\n\nError: Reference to undeclared module\n\n  on modules/compute/main.tf line 4, in module \"vm_iis\":\n   4:   vnet_subnet_id                = module.network.subnet-id\n\nNo module call named \"network\" is declared in sql_vm.\n\n\nError: Reference to undeclared module\n\n  on modules/compute/main.tf line 5, in module \"vm_iis\":\n   5:   resource_group_name           = module.resourcegroup.tf-rg-external-name\n\nNo module call named \"resourcegroup\" is declared in sql_vm.\n\n\nError: Reference to undeclared module\n\n  on modules/network/main.tf line 5, in data \"azurerm_virtual_network\" \"tf-vn\":\n   5:   resource_group_name = module.resource_groups.external_rg_name\n\nNo module call named \"resource_groups\" is declared in test2.\n\n\nError: Reference to undeclared resource\n\n  on modules/resourcegroup/outputs.tf line 2, in output \"tf-rg-external-location\":\n   2:   value = data.resourcegroup.tf-rg-external.location\n\nA data resource \"resourcegroup\" \"tf-rg-external\" has not been declared in\ntest1.\n\n\nError: Reference to undeclared resource\n\n  on modules/resourcegroup/outputs.tf line 5, in output \"tf-rg-external-name\":\n   5:   value = data.resourcegroup.tf-rg-external.name\n\nA data resource \"resourcegroup\" \"tf-rg-external\" has not been declared in\ntest1.\n\n",
+    "question_score": 12,
+    "answer_text": "Go through the repo you are working on (https://github.com/ameyaagashe/help_me_cross/tree/d7485d2a3db339723e9c791e592b2f1dbc1f0788) . It makes sense for me now. \nThe problem is, you mix the idea on how to use public modules with your own created modules. \nIn fact, you needn't set any modules to reference other public terraform registry modules.\nMove all codes in sub-modules (module/compute, module/network, module/resourcegroup) to top folder (<repo_root>/main.tf). \nsuch as (codes are not validated, just for reference)\ndata \"azurerm_resource_group\" \"tf-rg-external\" {\n  name = var.rg_name\n}\n\ndata \"azurerm_virtual_network\" \"tf-vn\" {\n  name                = var.vnet_name\n  resource_group_name = var.rg_name\n}\n\n# Reference existing subnet\ndata \"azurerm_subnet\" \"tf-sn\" {\n  name                 = var.subnet_name\n  virtual_network_name = data.azurerm_virtual_network.tf-vn.name\n  resource_group_name  = var.rg_name\n}\n\nmodule \"sql_vm\" {\n  source                        = \"Azure/compute/azurerm\"\n  location                      = data.azurerm_resource_group.tf-rg-external.location\n  vnet_subnet_id                = data.azurerm_virtual_network.tf-vn.subnets\n  resource_group_name           = data.azurerm_resource_group.tf-rg-external.name\n  admin_password                = var.admin_password\n  admin_username                = var.admin_username\n  boot_diagnostics              = var.boot_diagnostics\n  boot_diagnostics_sa_type      = var.boot_diagnostics_sa_type\n  data_disk                     = var.data_disk\n  data_disk_size_gb             = var.data_disk_size_gb\n  data_sa_type                  = var.data_sa_type\n  delete_os_disk_on_termination = var.delete_os_disk_on_termination\n  enable_accelerated_networking = var.enable_accelerated_networking\n  # flag is_windows_image is required only when you use a custom image to spin up a VM\n  # is_windows_image\n  # flag vm_os_id is required only when you are using custom image\n  # you need to provide id of your custom image\n  # vm_os_id\n  nb_instances                 = var.nb_instances\n  nb_public_ip                 = var.nb_public_ip\n  public_ip_address_allocation = var.public_ip_address_allocation\n  storage_account_type         = var.storage_account_type\n  vm_hostname                  = var.vm_hostname\n  vm_os_offer                  = var.vm_os_offer\n  vm_os_publisher              = var.vm_os_publisher\n  # vm_os_simple is to be used is you do not wish to specify offer, publisher and sku\n  # vm_os_simple                  = UbuntuServer, WindowsServer, RHEL, openSUSE-Leap, CentOS, Debian, CoreOS and SLES\n  vm_os_sku     = var.vm_os_sku\n  vm_os_version = var.vm_os_version\n  vm_size       = var.vm_size\n}\n\n",
+    "answer_id": 59081471,
+    "tags": [
+      "terraform",
+      "azure-virtual-machine",
+      "azure-virtual-network",
+      "terraform-provider-azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 50548826,
+    "title": "How to ssh to Azure VM using private IP address from internet",
+    "question_text": "I'm new to Azure. Just deployed an Ubuntu VM but thought I'd only create a private IP address, no public IP. \nHow do I ssh from my laptop at home to the Azure VM using the 10.x.x.x IP address?  \nI've tried: \n\nUsing the Azure Cloud Shell but connection just times out\nUsing ssh on my laptop, but its looking for the VM on my LAN and times out. \n\n",
+    "question_score": 10,
+    "answer_text": "You can't SSH from your local machine to your VM with a private IP because your machine isn't in the same network as the VM. You would only be able to SSH to the VM from another VM on the same virtual network. \nIn order to SSH to your VM from outside of the vnet you will need a NIC attached with a Public IP and the default port of 22 open on your Network Security Group.\nEdit: because I couldn't find a relevant document for this I wrote a blog post. https://medium.com/@joelatwar/how-to-ssh-to-your-azure-linux-vms-with-username-and-password-from-windows-linux-or-mac-df7d07ea3be1\n",
+    "answer_id": 50548924,
+    "tags": [
+      "azure",
+      "ssh",
+      "azure-virtual-machine",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 47718205,
+    "title": "Configuring CORS in a Terraform Azure App Service Resource",
+    "question_text": "I have the following Terraform resource for configuring an Azure app service:\nresource \"azurerm_app_service\" \"app_service\" {\n  name                = \"Test-App-Service-3479112\"\n  location            = \"${azurerm_resource_group.resource_group.location}\"\n  resource_group_name = \"${azurerm_resource_group.resource_group.name}\"\n  app_service_plan_id = \"${azurerm_app_service_plan.app_service_plan.id}\"\n\n  site_config {\n    dotnet_framework_version = \"v4.0\"\n    remote_debugging_version = \"VS2012\"\n  }\n\n  app_settings {\n    \"ASPNETCORE_ENVIRONMENT\" = \"test\"\n    \"WEBSITE_NODE_DEFAULT_VERSION\" = \"4.4.7\"\n  }\n}\n\nI am attempting to add a CORS origin value to be utilized in my resource. Is there way to add this in Terraform, or if there is not, how could I go about configuring this in my Terraform file (possibly with the Azure SDK)?\n",
+    "question_score": 10,
+    "answer_text": "All,\nThis is now available here:\nhttps://www.terraform.io/docs/providers/azurerm/r/app_service.html#cors\nAnd here is my example:\n\nresource \"azurerm_app_service\" \"my-app\" {\n  name                = \"${var.api_name}\"\n  location            = \"${var.location}\"\n  resource_group_name = \"${var.resource_group}\"\n  app_service_plan_id = \"${azurerm_app_service_plan.api_asp.id}\"\n\n  site_config {\n    cors {\n      allowed_origins = [\"https://${var.ui_name}${var.dns_suffix}\"]\n    }\n  }\n\n  identity = {\n    type = \"SystemAssigned\"\n  }\n}\n\nAnd proof that the above works:\n\n",
+    "answer_id": 56762206,
+    "tags": [
+      "azure",
+      "cors",
+      "terraform",
+      "azure-virtual-network",
+      "azure-sdk"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 33133448,
+    "title": "Connection timeout port 80 on new Azure VM with NSG rules configured",
+    "question_text": "I just created a new Ubuntu 14.04 virtual machine in Microsoft Azure using the (recommended) resource manager deployment model. The following screenshots show the deployment configuration and the resulting resources:\n\nOnce it was deployed, I accessed the VM using SSH through the public IP, logged in and installed nginx. I left it with the default configuration and did a 'curl localhost' to ensure the webserver was running. \nThen I went to the Network Security Group resource and added an Allow rule for port 80 to the Inbound rules:\n\nI then opened a browser and tried to request the public IP associated with the NIC and got a connection timeout. \nEdit: I can get access by disassociating the NSG from the NIC, but if I re-associate it, I will get blocked again within a few minutes. \nI have tried using the same process to set up a Windows Server VM, with IIS, but I'm getting the same result. \nWhat am I missing here?\nI get no errors when doing the same setup using the classic deployment model, this only occurs when trying the recommended resource manager model.\n",
+    "question_score": 8,
+    "answer_text": "What is your source port on your NSG? Did you leave it Any/*? If not you are limiting yourself to traffic coming only from that one port.\n",
+    "answer_id": 33152440,
+    "tags": [
+      "azure",
+      "azure-virtual-machine",
+      "azure-virtual-network",
+      "azure-resource-manager"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 41826429,
+    "title": "Can address space of VNET in different region overlap?",
+    "question_text": "I just created a new VNET with address space 10.0.0.0/16 on West US, but got an warning on Azure portal says, The address space '10.0.0.0/16' overlaps with '10.0.0.0/16' in virtual network xxx. The VNET xxx was created before on another region.\nIs it really an issue? \n",
+    "question_score": 8,
+    "answer_text": "It is only an issue if you connect the two VNETs together. That's why it's only a warning.\nIf you don't set up a VNET-to-VNET connection between the two, it is not a problem.\n",
+    "answer_id": 41827643,
+    "tags": [
+      "azure",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 75723814,
+    "title": "Frontend app service calling a backend app service in a VNet with private endpoint returns 403 IP forbidden error",
+    "question_text": "I'm trying to secure an application, deployed in Azure, consisting of an Angular frontend and a Node (Nest.js) backend. I want the frontend to be accessible via the internet unlike the backend which should only be accessible from the frontend (without being accessible via the internet). The backend seems to restrict access by taking the client's IP instead of the frontend's IP which causes a 403 IP Forbidden error.\nIn summary (version with path to Bicep file below)\nTo do this, I created:\n\n1 App Service for the frontend\n1 App Service for the backend\n1 VNet with 2 subnets:\n\n1 Subnet for 1 private endpoint\n1 Subnet for the frontend App Service\n\n\n1 Private DNS Zone for Private Endpoint routing (created automatically when creating the Private Endpoint)\n\nAnd I made the following configuration:\n\nApp Service frontend > Networking >\n\nAccess restriction: Allow public access\nVNet integration: added the app service to the previously created subnet\n\n\nApp Service backend > Networking > Access restriction: Allow Public Access but \"Deny\" all \"Unmatched rule action\". I added a rule allowing access to the frontend subnet (Action: Allow, type: select VNet, subnet: select the subnet on which the frontend is) Like this\nApp Service backend > CORS: Added frontend URL\n\nResults\nOn my frontend, I make an HTTP request to my backend API. The backend responds to me ERR_FAILED 403 (Ip Forbidden). In the response headers, I see \"x-ms-forbidden-ip: xxx.xxx.xx.xx\" (the public ip of my company's network that my PC is on). See here. Shouldn't I see my frontend App Service IP?\nFor Information, if in App Service backend > Networking > Access restriction, I add a rule authorizing the public IP of my company, the request returns me a code 200 and no longer 403.\nHow do I block public access to the backend but still manage to perform requests from the frontend? (After many research, I haven't found any successful answers to solve this yet).\nVersion with Bicep file\nI followed this tutorial. At the end of the article, a Bicep file is available.\nSo I did the following:\n\naz group create --name SecureNTierApp --location \"France Central\"\naz deployment group create --name DeployementSecureNTierApp --resource-group SecureNTierApp --template-file <file-name>.bicep\nReactivate basic auth for deploy with Azure DevOps:\n\naz resource update --resource-group SecureNTierApp --name scm --namespace Microsoft.Web --resource-type basicPublishingCredentialsPolicies --parent sites/<frontend-name> --set properties.allow=true\naz resource update --resource-group SecureNTierApp --name scm --namespace Microsoft.Web --resource-type basicPublishingCredentialsPolicies --parent sites/<backend-name> --set properties.allow=true\nIn Access Restrictions > Advanced tool site (on both App Service) : add a new rule (action: Allow, type: Service Tag, service tags: AzureCloud)\n\n\nApp Service backend > CORS: Added frontend URL\nNote that the bicep file configures the backend > Networking > Access restriction to Allow public access: false\n\n",
+    "question_score": 8,
+    "answer_text": "From what I see you have your Azure environment set up correctly.  I suspect the code in your Angular frontend is asking your web browser to make direct calls to the backend.  You probably want your browser to make calls to the front end, which will then be routed or passed on to the back end.\nYou can confirm the current behavior by running Wireshark on the machine you're using your browser to access the website.  You'll see traffic going to your backend IPs.\n",
+    "answer_id": 75726184,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-virtual-network",
+      "azure-private-link",
+      "azure-private-dns"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 60936560,
+    "title": "Azure Web App VNet integration to Storage account with Private Link",
+    "question_text": "I have an API on an Azure App Service (S1) on which I configured VNet Integration (subnet 10.240.0.32/27). I also have a storage account on which I configured a Private Link (subnet 10.240.0.0/27 and got IP 10.240.0.4). It however does not work I get the following error:\n\nStorageException: This request is not authorized to perform this operation.\n\nDoes anyone know if I need to configure anything else for this to work?\nThis doc states that I don't have to change any connectionstring. The connections worked before a configured the private link.\nUpdate\nI have tried with an Azure SQL Database as well. Deployed a Private Link to SQL in the same subnet as the one for storage. Not much luck here either. Getting the following error:\n\nSqlException: Reason: An instance-specific error occurred while\nestablishing a connection to SQL Server. The public data endpoint on\nthis server is not accessible. To connect to this server, use the\nPrivate Endpoint from inside your virtual network.\n\nWhen I add the WEBSITE_VNET_ROUTE_ALL (to make all outgoing traffic go through the vnet instead of just private IPs) to the web app and set that to 1 I get the following error:\n\nSqlException: A network-related or instance-specific error occurred\nwhile establishing a connection to SQL Server. The server was not\nfound or was not accessible. Verify that the instance name is correct\nand that SQL Server is configured to allow remote connections.\n(provider: TCP Provider, error: 0 - A non-recoverable error occurred\nduring a database lookup.)\n\nThen I created a VM in the same subnet as the private links. From that VM I am able to run this command which nicely returns with the correct IP:\n.\\psping.exe azurenetworking.database.windows.net:1433\n\n\n\nUPDATE April 2nd 2020\nHad a call with Microsoft today. Turns out App Services are currently incapable of using a private DNS zone. So, you need to set up your own DNS server for now. It will be fixed but they were unable to give me an ETA. So for now it's either a custom DNS server or using Service Endpoints. I'll update this question when this changes\n\nUPDATE June 2\nDetails on this have been added to the documentation: https://learn.microsoft.com/en-us/azure/app-service/web-sites-integrate-with-vnet#azure-dns-private-zones\nComes down to:\nTo work with Azure DNS Private Zones you need to add the following app settings:\nWEBSITE_DNS_SERVER with value 168.63.129.16\nWEBSITE_VNET_ROUTE_ALL with value 1\nI wrote a blog about it for anyone interested in a full example: https://erwinstaal.nl/posts/securing-your-azure-db-connection-using-azure-private-link/\n",
+    "question_score": 7,
+    "answer_text": "The error could happen when you access your blob storage via a public endpoint but enable VNet firewall settings of storage account.\nIn this case of App VNet integration to Storage account connection, you can use service endpoint instead of private endpoint. To use service endpoints with your app, use regional VNet Integration to connect to a selected virtual network. Then configure service endpoints Microsoft.Storage on the subnet you used for the integration.\nIf you still want to use private endpoint, I am afraid that you need to use your own DNS server for name resolution from an Azure App Service (Web App, Function, or Bot) using virtual network integration to role instances or VMs in the same virtual network. See Name resolution for resources in Azure virtual networks. \nWith private link, the blob storage DNS name is resolved to the public IP address not a private endpoint IP address from the app service console. It looks like you are accessing blob storage outside the VNet through the public endpoint when you access from your app service. Meanwhile, it can be resolved to a private endpoint IP from the VM in the same subnet as the private endpoint. See DNS changes for private endpoints.\n\n",
+    "answer_id": 60990180,
+    "tags": [
+      "azure-sql-database",
+      "azure-storage",
+      "azure-web-app-service",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 34373003,
+    "title": "Connection timeout to MongoDb on Azure VM",
+    "question_text": "I have some timeout problems when connecting my Azure Web App to a MongoDb hosted on a Azure VM. \n2015-12-19T15:57:47.330+0100 I NETWORK  Socket recv() errno:10060 A connection attempt \n failed because the connected party did not properly respond after a period of time, \n or established connection failed because connected host has failed to respond.\n2015-12-19T15:57:47.343+0100 I NETWORK  SocketException: remote: 104.45.x.x:27017 error: \n 9001 socket exception [RECV_ERROR] server [104.45.x.x:27017]\n2015-12-19T15:57:47.350+0100 I NETWORK  DBClientCursor::init call() failed\n\nCurrently mongodb is configured on a single server (just for dev) and it is exposed through a public ip. Website connect to it using an azure domain name (*.westeurope.cloudapp.azure.com) and without a Virtual Network. \nUsually everything works well, but after some minutes of inactivity I get that timeout exception. The same will happen when using the MongoDb shell from my PC, so I'm quite sure that it is a problem on mongodb side.\nI'm missing some configuration?\n",
+    "question_score": 6,
+    "answer_text": "After some searching here my considerations:\n\nIt is usually a good practice to implement some sort of retry logic on every resource that you access on Azure (database, VM, ...). For MongoDb there is a partial implementation so you should potentially write your own. See also this issue and this.\nIf possible all resources on Azure should be in the same Azure Virtual Network (in this way all connections are made using Azure Private Ip instead of Public Ip. This is also useful for security reasons because you don't need to open endpoint to the public.\nWhen deploying MongoDb on Azure try to follow the official MongoDb guidelines. \nIn this particular case you should set the net.ipv4.tcp_keepalive_time to a value lower than the tcp keep alive of Azure, that by default is 240 seconds. In this way the connection is closed and MongoDb driver can intercept this condition and open a new connection. If the connection is closed by Azure the driver cannot intercept it. If you want to change this setting on Azure (not recommended) you can find it inside the Public Ip configuration.\n\nIn my development environment I have set the net.ipv4.tcp_keepalive_time to 120 and now everything seems to work fine. Consider that if you host MondoDb inside an Docker container you should set this setting on the Docker host.\nHere some other useful links:\n\nhttp://focusmatic.tumblr.com/post/39569711018/solving-mongodb-connection-losses-on-windows-azure\nhttps://docs.mongodb.org/ecosystem/platforms/windows-azure/\nhttps://michaelmckeownblog.wordpress.com/2013/12/04/resolving-internal-ips-vs-dns-names-between-vms/\nhttps://gist.github.com/davideicardi/f2094c4c3f3e00fbd490\nMongoDB connection problems on Azure\nMongoDB connection timeouts (Azure)\n\n",
+    "answer_id": 34373004,
+    "tags": [
+      "mongodb",
+      "azure",
+      "mongodb-.net-driver",
+      "azure-virtual-machine",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 59132282,
+    "title": "Terraform reports &#39;No module called &quot;name of the module&quot; is declared&#39; in &quot;root&quot; module",
+    "question_text": "I have done exploration and I want to stick customized module concept rather than to use the Azure public registry of modules.\nSource code location is here\nhttps://github.com/ameyaagashe/help_me_cross_2\n\nI run terraform on command line with below arguments:\nterraform plan -var \"resource_group_name=nxt-grp-prd-manage-rgp-au-se\" -var \"virtual_network_name=virtual_network_1\" -var \"sql_subnet_name=subnet_1\" -var \"app_subnet_name=subnet_2\" -var \"application_nsg=test_nsg\" -var \"count_vm=2\" -var \"sql_host_basename=sqlvms\" -var \"app_host_basename=appvms\" -var \"storage_account_suffix=sta\" -var \"virtual_machine_size=Standard_B1ms\" -var \"virtual_machine_image_publisher=MicrosoftWindowsServer\" -var \"virtual_machine_image_offer=WindowsServer\" -var \"virtual_machine_image_sku=2012-R2-Datacenter\" -var \"virtual_machine_image_version=latest\" -var \"username=devopsadmin\" -var \"password=Angular12#$%\"\n\nHowever, I am getting errors like below:\nError: Reference to undeclared module\n\n  on ../../modules/compute/main.tf line 25, in resource \"azurerm_virtual_machine\" \"tf-vm\":\n  25:   location                         = module.resourcegroup.external_rg_location\n\nNo module call named \"resourcegroup\" is declared in sql_vms.\n\n\nError: Reference to undeclared module\n\n  on ../../modules/compute/main.tf line 26, in resource \"azurerm_virtual_machine\" \"tf-vm\":\n  26:   resource_group_name              = module.resourcegroup.external_rg_name\n\nNo module call named \"resourcegroup\" is declared in sql_vms.\n\n\nError: Reference to undeclared module\n\n  on ../../modules/compute/main.tf line 27, in resource \"azurerm_virtual_machine\" \"tf-vm\":\n  27:   network_interface_ids            = [element(module.network.network_interface_ids,count.index)]\n\nNo module call named \"network\" is declared in sql_vms.\n\n\nError: Reference to undeclared module\n\n  on ../../modules/network/data.tf line 5, in data \"azurerm_virtual_network\" \"tf-vn\":\n   5:   resource_group_name  = module.resource_groups.external_rg_name\n\nNo module call named \"resource_groups\" is declared in networking.\n\n\nError: Reference to undeclared module\n\n  on ../../modules/nsg/main.tf line 3, in resource \"azurerm_network_security_group\" \"tf-nsg\":\n   3:   location            = module.resourcegroup.external_rg_location\n\nNo module call named \"resourcegroup\" is declared in network_security_group.\n\n\nError: Reference to undeclared module\n\n  on ../../modules/nsg/main.tf line 4, in resource \"azurerm_network_security_group\" \"tf-nsg\":\n   4:   resource_group_name = module.resourcegroup.external_rg_name\n\nNo module call named \"resourcegroup\" is declared in network_security_group.\n\n\nError: Reference to undeclared input variable\n\n  on ../../modules/resourcegroup/data.tf line 2, in data \"azurerm_resource_group\" \"tf-rg-external\":\n   2:   name = var.rg_name\n\nAn input variable with the name \"rg_name\" has not been declared. This variable\ncan be declared with a variable \"rg_name\" {} block.\n\nUnable to understand the underlying issue...\nI am defining all modules in their own terraform configuration files and calling them in root module?\nI would sincerely appreciate your assistance.\n",
+    "question_score": 6,
+    "answer_text": "Working through each problem individually probably won't be helpful to you in the long-term, so I'm going to offer a general sense of what's wrong and share references to help with future Terraform configurations.\nReferencing module.resource_group outputs from inside module.sql_vms won't work, because Terraform module composition doesn't allow sibling modules to directly reference outputs from each other. \nThere is a section in the documentation that explains it:\n\nhttps://www.terraform.io/docs/modules/composition.html\n\nOutputs can only be passed from one module into another by way of the root module. \nHere's an example from the Terraform documentation:\nmodule \"network\" {\n  source = \"./modules/aws-network\"\n\n  base_cidr_block = \"10.0.0.0/8\"\n}\n\nmodule \"consul_cluster\" {\n  source = \"./modules/aws-consul-cluster\"\n\n  vpc_id     = module.network.vpc_id\n  subnet_ids = module.network.subnet_ids\n}\n\nOnce this is fixed, the next problem is the modules aren't being referenced by their correct name. According to the main.tf in the git repo, 4 modules have been declared: \nmodule.sql_vms\nmodule.resource_group\nmodule.networking\nmodule.network_security_group\n\nSince the module is declared as resource_group, it should be referenced as such instead of resourcegroup.\nFinally, a variable named rg_name should be declared inside the modules/resourcegroup/ directory. Please see the following to learn about variable declarations:\n\nhttps://www.terraform.io/docs/configuration/variables.html\n\nThis may not be all the problems, but it's a start. If possible, I strongly recommend reading through the Terraform documentation on creating modules. They can be found here: \n\nhttps://www.terraform.io/docs/modules/index.html\n\n",
+    "answer_id": 59136494,
+    "tags": [
+      "azure-virtual-machine",
+      "azure-virtual-network",
+      "terraform-provider-azure",
+      "azure-security"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 28963504,
+    "title": "Should I use IP addresses from the Gateway Subnet in an Azure VPN?",
+    "question_text": "I am configuring an Azure VPN with site-to-site connectivity to a large enterprise customer. I have configured the following address space:\nNow the customer has asked \"Could you please send us traffic with one ip address, instead of range (192.168.2.0/27)\"\nI will only have one VM on the VPN so I can pick any IP in the range, but should I pick one from the Subnet-1 range or the Gateway range? What will the customer see our traffic as coming from?\nEdit Once I answered my own question I realised how poor the title was so I've edited it.\n",
+    "question_score": 6,
+    "answer_text": "The answer is no. Do not use the gateway subnet.\nI eventually found exactly what I required on this Microsoft page.  Specifically:\n\nAnd don't deploy VMs or anything else to the gateway subnet.\n\nand\n\nCan I deploy Virtual Machines or role instances to my gateway subnet?\nNo.\n\n",
+    "answer_id": 28986634,
+    "tags": [
+      "azure",
+      "vpn",
+      "azure-virtual-network",
+      "azure-vpn"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 26229468,
+    "title": "How to create a Virtual Machine in Microsoft Azure without PUBLIC VIRTUAL IP (VIP) address?",
+    "question_text": "Is there any way to create a virtual machine without Public IP address in Windows Azure? \nEven if you are creating a VM in virtual network we cannot control the Public IP assigned by Azure. Is there any way to disable or delete the public IP assigned by Azure? \n",
+    "question_score": 6,
+    "answer_text": "This is incorrect as of 11/29/2016 You can now choose in the provisioning stage through Azure portal to set the public IP Address as NONE. This will allow only communication within the virtual network that the VM is living in.\n",
+    "answer_id": 40872123,
+    "tags": [
+      "azure",
+      "virtual-machine",
+      "azure-virtual-network",
+      "virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 66465591,
+    "title": "Azure Network Security Group Vs Route Tables",
+    "question_text": "Networking newbie here. From the Documentation it feels like both NSG and Routing tables(UDR) are doing the same thing - capable of defining ACLs at multiple levels (Vnet, Subnet, VM)\nhttps://learn.microsoft.com/en-us/azure/virtual-network/network-security-group-how-it-works\nhttps://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-udr-overview\nSo how are they different and when is each used?\nthanks.\n",
+    "question_score": 6,
+    "answer_text": "Azure automatically creates a route table for each subnet within an Azure virtual network and adds system default routes to the table. The route table is like a networking map that tells the traffic from one place to another place via the next hop. This generates the \"path\" but does not filter traffic.\nThe Azure network security group is used to filter network traffic to and from Azure resources in an Azure virtual network. It contains security rules that allow or deny inbound network traffic to, or outbound network traffic from, several types of Azure resources. If there is no route to one place from a subnet, you even do not need to configure the security rules because there is no path. So when you consider the NSG it should have a successful network route.\nFor example, usually, we can access Azure VM in Azure virtual network via SSH or RDP over the Internet but it has a less secure way to expose the port 22 or 3389. We can restrict access to your Azure VM via specifying the source IP address in the NSG. This setting allows traffic only from a specific IP address or range of IP addresses to connect to the VM. Read more details here. In this scenario, we need to ensure that there is a route to the internet from your Azure virtual network and vice versa.\n",
+    "answer_id": 66467434,
+    "tags": [
+      "network-programming",
+      "azure-virtual-network",
+      "azure-nsg",
+      "routetable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 62195054,
+    "title": "Creating subnet per availability zones in Azure using terraform",
+    "question_text": "I am trying to create subnets per availability zones in Azure using terraform. I am using the code below to create a subnet.\nresource \"azurerm_subnet\" \"public_subnet\" {\n  name                 = \"public_subnet\"\n  virtual_network_name = azurerm_virtual_network.vnet.name\n  resource_group_name  = azurerm_resource_group.terraform_rg.name\n  address_prefix       = \"10.20.10.0/24\"\n}\n\nMy requirement is possible in AWS. Since I am new to Azure I am not sure whether it is possible to do the same in Azure. It would be great if some one render their hands to help me.\nThanks in advance!\n",
+    "question_score": 6,
+    "answer_text": "The azure subnet is not a Zonal service(where a resource is pinned to a specific zone), refer to Azure services and regions that support Availability Zones. So you need to create the specific support services per availability zone. \nFor example, you can create an Azure VM or Azure public IP per availability zone.\nresource \"azurerm_resource_group\" \"example\" {\n  name     = \"example-resources\"\n  location = \"east us\"\n}\n\nresource \"azurerm_public_ip\" \"example\" {\n  name                = \"acceptanceTestPublicIp1\"\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n  allocation_method   = \"Static\"\n  sku = \"Standard\"\n  zones = [\"1\"]\n\n}\n\nresource \"azurerm_virtual_network\" \"example\" {\n  name                = \"example-network\"\n  address_space       = [\"10.0.0.0/16\"]\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n}\n\nresource \"azurerm_subnet\" \"example\" {\n  name                 = \"internal\"\n  resource_group_name  = azurerm_resource_group.example.name\n  virtual_network_name = azurerm_virtual_network.example.name\n  address_prefix       = \"10.0.2.0/24\"\n}\n\nresource \"azurerm_network_interface\" \"example\" {\n  name                = \"example-nic\"\n  location            = azurerm_resource_group.example.location\n  resource_group_name = azurerm_resource_group.example.name\n\n  ip_configuration {\n    name                          = \"internal\"\n    subnet_id                     = azurerm_subnet.example.id\n    private_ip_address_allocation = \"Dynamic\"\n    public_ip_address_id          = azurerm_public_ip.example.id\n  }\n}\n\nresource \"azurerm_linux_virtual_machine\" \"example\" {\n  name                = \"example-machine\"\n  resource_group_name = azurerm_resource_group.example.name\n  location            = azurerm_resource_group.example.location\n  size                = \"Standard_F2\"\n  zone = \"1\"\n  admin_username      = \"adminuser\"\n  network_interface_ids = [\n    azurerm_network_interface.example.id,\n  ]\n\n admin_ssh_key {\n    username   = \"adminuser\"\n    public_key = file(\"~/.ssh/id_rsa.pub\")\n  }\n\n  os_disk {\n    caching              = \"ReadWrite\"\n    storage_account_type = \"Standard_LRS\"\n  }\n\n  source_image_reference {\n    publisher = \"Canonical\"\n    offer     = \"UbuntuServer\"\n    sku       = \"16.04-LTS\"\n    version   = \"latest\"\n  }\n}\n\nIf you're interested in the zone option, you can look at this open issue.\n",
+    "answer_id": 62207049,
+    "tags": [
+      "azure",
+      "terraform",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 59688004,
+    "title": "Azure vnet / subnet list connected devices",
+    "question_text": "I'm trying to write a PowerShell script that lists me all connected devices with there ips in my subnets in all VNets in all subscriptions. \nUPDATE the below script works, scroll down for original problem.\n$subs = Get-AzSubscription \nforeach ($Sub in $Subs) {\n    Write-Host \"***************************\"\n    Write-Host \" \"\n    $Sub.Name \n\n    $SelectSub = Select-AzSubscription -SubscriptionName $Sub.Name\n\n    $VNETs = Get-AzVirtualNetwork \n    foreach ($VNET in $VNETs) {\n        Write-Host \"--------------------------\"\n        Write-Host \" \"\n        Write-Host \"   vNet: \" $VNET.Name \n        Write-Host \"   AddressPrefixes: \" ($VNET).AddressSpace.AddressPrefixes\n\n        $vNetExpanded = Get-AzVirtualNetwork -Name $VNET.Name -ResourceGroupName $VNET.ResourceGroupName -ExpandResource 'subnets/ipConfigurations' \n\n        foreach($subnet in $vNetExpanded.Subnets)\n        {\n            Write-Host \"       Subnet: \" $subnet.Name\n            Write-Host \"          Connected devices \" $subnet.IpConfigurations.Count\n            foreach($ipConfig in $subnet.IpConfigurations)\n            {\n                Write-Host \"            \" $ipConfig.PrivateIpAddress\n            }\n        }\n\n        Write-Host \" \" \n    } \n}\n\nMy original problem:\nThe problem however is that I cannot get the $subnet.IpConfigurations property to be filled. By that I mean that I do get a list but the child items only contain an Id, the rest of the properties like name, privateip, etc are null.\n",
+    "question_score": 6,
+    "answer_text": "According to my research, if we want to get detailed information about subnet IpConfigurations, we need to specify the parameter ExpandResource with powershell command Get-AzVirtualNetwork.\nFor example\n$result=Get-AzVirtualNetwork -Name '<vnet name>'  -ResourceGroupName '<group nmae>' -ExpandResource 'subnets/ipConfigurations' \n\n$result.Subnets[0].IpConfigurations\n\n\n",
+    "answer_id": 59712742,
+    "tags": [
+      "azure",
+      "azure-powershell",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 42732276,
+    "title": "How to restore deleted azure resource groups",
+    "question_text": "One of my resource groups has been deleted by mistake. I am unable to find any option in the azure portal to restore it. Is there any option available to restore deleted resource groups?\n",
+    "question_score": 5,
+    "answer_text": "\nIs there any option available to restore deleted resource groups?\n\nDirectly, there's no method to restore deleted resource groups. One thing you could do is create a new resource group and find the deployment template used to create resource in the deleted resource group. You can then use that template to recreate the resources.\nFor future reference, you should lock your resource groups with \"CANNOT DELETE\" lock to prevent accidental deletes.\n",
+    "answer_id": 42732739,
+    "tags": [
+      "azure",
+      "azure-virtual-machine",
+      "azure-virtual-network",
+      "azure-resource-group"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 69158600,
+    "title": "Terraform - How to find Azure Kubernetes AKS vnet ID for network peering",
+    "question_text": "I'm using a single Terraform script to deploy AKS and an Application Gateway. So far everything is working as expected, and the last thing I need is to configure vnet peering between AKS and the Application Gateway.\nAccording to Terraform's docs, vnet peering requires the AKS vnet name and ID:\n# AppGw to AKS\nresource \"azurerm_virtual_network_peering\" \"appgw_aks_peering\" {\n  name                      = \"appgw-aks-peer\"\n  resource_group_name       = \"my-appgw-rg\"\n  virtual_network_name      = azurerm_virtual_network.my_vnet.name\n  remote_virtual_network_id = ???\n}\n\n# AKS to AppGw\nresource \"azurerm_virtual_network_peering\" \"aks_appgw_peering\" {\n  name                      = \"aks-appgw-peer\"\n  resource_group_name       = \"my-aksnode-rg\"\n  virtual_network_name      = ???\n  remote_virtual_network_id = azurerm_virtual_network.my_vnet.id\n}\n\nresource \"azurerm_kubernetes_cluster\" \"my_cluster\" {\n  name                = \"my-aks\"\n  location            = \"australiaeast\"\n  resource_group_name = \"my-aks-rg\"\n  node_resource_group = \"my-aksnode-rg\"\n\n  addon_profile {\n    ingress_application_gateway {\n      enabled    = true\n      gateway_id = azurerm_application_gateway.my_appgw.id\n    }\n  }\n\n  default_node_pool {\n    name                 = \"np01\"\n    node_count           = 1\n    os_disk_size_gb      = 30\n    vm_size              = var.aks_np_vm_sku\n  }\n\n  ...\n}\n\nThe problem I have is the AKS vnet is automatically created when AKS is created, and neither the name or ID are exported anywhere. I can't find a way to get the AKS vnet name or ID with Terraform. Can someone point me in the right direction or suggest an alternate solution?\n",
+    "question_score": 5,
+    "answer_text": "As it\u2019s not possible to get the Vnet ID from the resource block of the AKS cluster, you can create a vnet and subnet for the AKS as well and use it while creating the cluster in default node pool block like below:\ndefault_node_pool {\n    name                 = \"np01\"\n    node_count           = 1\n    os_disk_size_gb      = 30\n    vm_size              = var.aks_np_vm_sku\n    vnet_subnet_id = azurerm_subnet.aks.id\n  }\n\nSo, as per your requirement the .tf file will be something like below:\nprovider \"azurerm\" {\n    features{}\n}\ndata \"azurerm_resource_group\" \"name\" {\n  name = \"resourcegroupname\"\n}\nresource \"azurerm_virtual_network\" \"aks\" {\n  name                = \"aks-vnet\"\n  location            = data.azurerm_resource_group.name.location\n  resource_group_name = data.azurerm_resource_group.name.name\n  address_space       = [\"10.0.0.0/16\"]\n}\nresource \"azurerm_subnet\" \"aks\" {\n  name                 = \"aks-subnet\"\n  resource_group_name  = data.azurerm_resource_group.name.name\n  virtual_network_name = data.azurerm_resource_group.name.location\n  address_prefixes     = [\"10.0.1.0/24\"]\n}\nresource \"azurerm_virtual_network\" \"appgw\" {\n  name                = \"appgw-vnet\"\n  location            = data.azurerm_resource_group.name.location\n  resource_group_name = data.azurerm_resource_group.name.name\n  address_space       = [\"10.254.0.0/16\"]\n}\nresource \"azurerm_subnet\" \"frontend\" {\n  name                 = \"frontend\"\n  resource_group_name  = data.azurerm_resource_group.name.name\n  virtual_network_name = azurerm_virtual_network.appgw.name\n  address_prefixes     = [\"10.254.0.0/24\"]\n}\nresource \"azurerm_subnet\" \"backend\" {\n  name                 = \"backend\"\n  resource_group_name  = data.azurerm_resource_group.name.name\n  virtual_network_name = azurerm_virtual_network.appgw.name\n  address_prefixes     = [\"10.254.2.0/24\"]\n}\nresource \"azurerm_public_ip\" \"example\" {\n  name                = \"example-pip\"\n  resource_group_name = data.azurerm_resource_group.name.name\n  location            = data.azurerm_resource_group.name.location\n  allocation_method   = \"Dynamic\"\n}\n#&nbsp;since these variables are re-used - a locals block makes this more maintainable\nlocals {\n  backend_address_pool_name      = \"${azurerm_virtual_network.appgw.name}-beap\"\n  frontend_port_name             = \"${azurerm_virtual_network.appgw.name}-feport\"\n  frontend_ip_configuration_name = \"${azurerm_virtual_network.appgw.name}-feip\"\n  http_setting_name              = \"${azurerm_virtual_network.appgw.name}-be-htst\"\n  listener_name                  = \"${azurerm_virtual_network.appgw.name}-httplstn\"\n  request_routing_rule_name      = \"${azurerm_virtual_network.appgw.name}-rqrt\"\n  redirect_configuration_name    = \"${azurerm_virtual_network.appgw.name}-rdrcfg\"\n}\nresource \"azurerm_application_gateway\" \"network\" {\n  name                = \"example-appgateway\"\n  resource_group_name = data.azurerm_resource_group.name.name\n  location            = data.azurerm_resource_group.name.location\n  sku {\n    name     = \"Standard_Small\"\n    tier     = \"Standard\"\n    capacity = 2\n  }\n  gateway_ip_configuration {\n    name      = \"my-gateway-ip-configuration\"\n    subnet_id = azurerm_subnet.frontend.id\n  }\n  frontend_port {\n    name = local.frontend_port_name\n    port = 80\n  }\n  frontend_ip_configuration {\n    name                 = local.frontend_ip_configuration_name\n    public_ip_address_id = azurerm_public_ip.example.id\n  }\n  backend_address_pool {\n    name = local.backend_address_pool_name\n  }\n  backend_http_settings {\n    name                  = local.http_setting_name\n    cookie_based_affinity = \"Disabled\"\n    path                  = \"/path1/\"\n    port                  = 80\n    protocol              = \"Http\"\n    request_timeout       = 60\n  }\n  http_listener {\n    name                           = local.listener_name\n    frontend_ip_configuration_name = local.frontend_ip_configuration_name\n    frontend_port_name             = local.frontend_port_name\n    protocol                       = \"Http\"\n  }\n  request_routing_rule {\n    name                       = local.request_routing_rule_name\n    rule_type                  = \"Basic\"\n    http_listener_name         = local.listener_name\n    backend_address_pool_name  = local.backend_address_pool_name\n    backend_http_settings_name = local.http_setting_name\n  }\n}\nresource \"azurerm_virtual_network_peering\" \"appgw_aks_peering\" {\n  name                      = \"appgw-aks-peer\"\n  resource_group_name       = data.azurerm_resource_group.name.name\n  virtual_network_name      = azurerm_virtual_network.appgw.id\n  remote_virtual_network_id = azurerm_virtual_network.aks.id\n}\n# AKS to AppGw\nresource \"azurerm_virtual_network_peering\" \"aks_appgw_peering\" {\n  name                      = \"aks-appgw-peer\"\n  resource_group_name       = data.azurerm_resource_group.name.name\n  virtual_network_name      = azurerm_virtual_network.aks.id\n  remote_virtual_network_id = azurerm_virtual_network.appgw.id\n}\nresource \"azurerm_kubernetes_cluster\" \"my_cluster\" {\n  name                = \"my-aks\"\n  location            = data.azurerm_resource_group.name.location\n  resource_group_name = data.azurerm_resource_group.name.name\n   dns_prefix              = \"dns-myaks\"\n  addon_profile {\n    ingress_application_gateway {\n      enabled    = true\n      gateway_id = azurerm_application_gateway.network.id\n    }\n  }\n  default_node_pool {\n    name                 = \"np01\"\n    node_count           = 1\n    os_disk_size_gb      = 30\n    vm_size              = \"Standard_D2_v2\"\n    vnet_subnet_id = azurerm_subnet.aks.id\n  }\n    identity {\n    type = \"SystemAssigned\"\n  }\n}\n\nOutput:\n\n\n",
+    "answer_id": 69160386,
+    "tags": [
+      "azure",
+      "terraform",
+      "azure-aks",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 48549577,
+    "title": "Terraform Azure network security",
+    "question_text": "I'm trying to configure a network security rule for a network security group in Azure via Terraform with multiple source addresses. \nBased on the documentation\nhttps://www.terraform.io/docs/providers/azurerm/r/network_security_rule.html\nHowever, I'm not able to get this to work nor can I find any examples for it:\nhttps://www.terraform.io/docs/providers/azurerm/r/network_security_rule.html#source_address_prefixes\nI get the Error:\nError: azurerm_network_security_rule.test0: \"source_address_prefix\": required field is not set\nError: azurerm_network_security_rule.test0: : invalid or unknown key: source_address_prefixes\nHere is my sample:\nresource \"azurerm_network_security_rule\" \"test0\" {\nname = \"RDP\"\npriority = 100\ndirection = \"Inbound\"\naccess = \"Allow\"\nprotocol = \"TCP\"\nsource_port_range = \"*\"\ndestination_port_range = \"3389\"\nsource_address_prefixes = \"{200.160.200.30,200.160.200.60}\"\ndestination_address_prefix = \"VirtualNetwork\"\nnetwork_security_group_name= \"${azurerm_network_security_group.test.name}\"\nresource_group_name = \"${azurerm_resource_group.test.name}\"\n}\n\nPlease let me know.\nThanks!\n",
+    "question_score": 5,
+    "answer_text": "source_address_prefixes needs  list of source address prefixes.\nModify it as below:\nsource_address_prefixes = [\"200.160.200.30\",\"200.160.200.60\"]\n\nThere also a mistake in azurerm_network_security_group.test.name, the correct type is azurerm_network_security_group.test0.name. The following tf file works for me.\nresource \"azurerm_resource_group\" \"test0\" {\n  name     = \"shuinsg\"\n  location = \"West US\"\n}\n\nresource \"azurerm_network_security_group\" \"test0\" {\n  name                = \"shuinsgtest\"\n  location            = \"${azurerm_resource_group.test0.location}\"\n  resource_group_name = \"${azurerm_resource_group.test0.name}\"\n}\n\n\nresource \"azurerm_network_security_rule\" \"test0\" {\nname = \"RDP\"\npriority = 100\ndirection = \"Inbound\"\naccess = \"Allow\"\nprotocol = \"TCP\"\nsource_port_range = \"*\"\ndestination_port_range = \"3389\"\nsource_address_prefixes = [\"200.160.200.30\",\"200.160.200.60\"]\ndestination_address_prefix = \"VirtualNetwork\"\nnetwork_security_group_name= \"${azurerm_network_security_group.test0.name}\"\nresource_group_name = \"${azurerm_resource_group.test0.name}\"\n}\n\nHere is my test result.\n\n",
+    "answer_id": 48574584,
+    "tags": [
+      "azure",
+      "terraform",
+      "azure-virtual-network",
+      "network-security-groups",
+      "terraform-provider-azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 42092071,
+    "title": "How to rename Azure ARM VNET",
+    "question_text": "I have an existing ARM VNET that I would like to rename, how can this be accomplished?  Renaming does not seem to be possible from within the Azure portal, and I haven't discovered any PowerShell solutions either.\n",
+    "question_score": 5,
+    "answer_text": "You cannot rename a VNet in Azure. In fact, I can't think of a single resource you can rename after you created it\n",
+    "answer_id": 42092083,
+    "tags": [
+      "azure",
+      "azure-resource-manager",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 49363555,
+    "title": "Azure WebApp - Get Private IP of a service connected on VNET",
+    "question_text": "I have a Azure WebApp inside the VPN. When I go on networking I see the connection like this:\n\nWhen I click on \"Click here to configure\"it appears to be up & running:\n\nSo, everything appears OK.\nThe VPN externally connects BUT where can I find the Internal \"VPN\" IP Address of this Web App?\nIf I go on configurations / SCM etc I can only find the \"external\" IP!\nThanks\n",
+    "question_score": 5,
+    "answer_text": "If you have a normal App Service then you can't get it's IP, mainly because the application is running on a distributed environment and the exact location of the instance might change with little notice.\nIf you need a dedicated public (or private) IP, then I recommend you have a look at Azure App Service Enviroments.\n",
+    "answer_id": 49363819,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-virtual-network",
+      "azure-vpn"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 39209919,
+    "title": "Azure Data Factory can&#39;t access HDInsight cluster in IP restricted VNet",
+    "question_text": "I have a HDInsight Hadoop cluster (Linux, deployed separately) on Azure VNet (restricting client IPs using NSG). \nAzure SQL firewall has an option called \"Allow access to Azure services\", which allows Data Factory to access Azure SQL. \nIn VNet there is no such option, you have to either specify IP addresses range or set a tag (Internet, Virtual Network, AzureLoadBalancer). I thought AzureLoadBalancer will solve the issue, but no - HDInsight is still hidden from Azure Data Factory.\nI tried to find Data Factory port ranges, unsuccessfully. \nIs there a way to access secured HDInsight Linux cluster from Azure Data Factory?\n",
+    "question_score": 5,
+    "answer_text": "ADF can access resources which otherwise can be accessed publicly. If your HDInsight cluster is in a VNet then it cannot be publicly accessed. So ADF cannot access + orchestrate it. \nADF does want to be supported in a VNet environment but that would take some time to land. \nThanks, Harish\n",
+    "answer_id": 39281851,
+    "tags": [
+      "azure",
+      "azure-hdinsight",
+      "azure-virtual-network",
+      "azure-data-factory"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 31247506,
+    "title": "Azure VM public static outbound IP",
+    "question_text": "I have written a small service to grab files from one ftp server, edit them, and then send them to another ftp server. The catch being the ftp server being sent to requires a white-list of IP's. Now I chose to host this service on a Azure VM set up with a virtual public reserved IP address, thinking it would create a static IP that I could use for the white-list.\nUnfortunately even though the VM states the virtual public reserved IP is connected to the VM, when opening up a browser and going to whatismyip.com I get a completely different IP and of course Azure shuts all VMs down once every 2-3 months for maintenance (which I assume flushes the IP).\nNow I understand that the IP received from whatismyip.com is probably connected to the Azure load balancer but I can't figure out for the life of me why that would be the one that shows up for outbound connections.\nMy questions are: \n\nIs it possible to obtain a static public IP for outbound connections for that whitelist? \nIs there some obvious workaround I'm missing?\nWill Azure scheduled maintenance shutdowns save IP information? \nIs Azure just not a good platform for this kind of work? If so what is?  \n\n",
+    "question_score": 5,
+    "answer_text": "Now it is indeed possible. Please see https://azure.microsoft.com/en-us/documentation/articles/virtual-networks-reserved-public-ip/ for details.\nThe powershell code is as follows:\nNew-AzureReservedIP \u2013ReservedIPName MyReservedIP \u2013Location \"Central US\"\n\n$image = Get-AzureVMImage|?{$_.ImageName -like \"*RightImage-Windows-2012R2-x64*\"}\n\nNew-AzureVMConfig -Name TestVM -InstanceSize Small -ImageName $image.ImageName `\n| Add-AzureProvisioningConfig -Windows -AdminUsername adminuser -Password MyP@ssw0rd!! `\n| New-AzureVM -ServiceName TestService -ReservedIPName MyReservedIP -Location \"Central US\"\n\nBesides, now outbound connections only use a handful IPs by default. You can see them in new portal: https://portal.azure.com in site's Settings \u2192 Properties\n",
+    "answer_id": 34320979,
+    "tags": [
+      "azure",
+      "azure-virtual-machine",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 73249265,
+    "title": "service endpoints vs subnet delegation and basic vnet configuration",
+    "question_text": "I'm sure this is a very basic question, but I have been spending a lot of time on it and have not found a clear answer.\nI am trying to create a bicep file with the appropriate setup for my webapi, but have been struggling with vnet as I transition from a prototype to a beta release. I thought it might be easy to find a template for a app service for web api, connecting to an Azure SQL database and files from blob storage using a vnet. The place where I am stuck right now it\n\nservice endpoints\nsubnet delegation\n\nI read this post, which was helpful, but did not address service endpoints. Do I use delegation wherever possible and service endpoints when they are not available?\nI have other service to add like notification hubs and am considering api management as well as key vault but really need to get the basics down and I am struggling.\n",
+    "question_score": 5,
+    "answer_text": "A great reference for learning Bicep and seeing examples of how to create them:\n\nAzure/ResourceModules\nAzure/azure-quickstart-templates\n\n\nNote while the quick start repoistory is ARM templates, you can take most of those and use Bicep CLI to convert them to Bicep.\n\nThe primary difference between delegation and service endpoints with virtual networks (vnets):\n\ndelegation means a given subnet is only going to be used by that service (this is related to PaaS services)\nservice endpoint is allowing secure and direct connectivity for that service to the subnet assigned\n\nAn example of the above:\nDelegation\nDeploying App Services is one of the most common Azure services that requires a dedicated subnet be allocated just for that service, aka delegation.\nService Endpoint\nDeploying a Virtual Machine that you need to access a Storage Account from? The subnet where the Virtual Machine is deployed will need to have the Microsoft.Storage service endpoint enabled to allow the secure, direct connection to it.\nOne thing to note on service endpoints, while they are still used Microsoft recommends use of Private Endpoints as well. This allows you to directly connect to the service endpoint over the private/internal network of your VNet.\n",
+    "answer_id": 73848534,
+    "tags": [
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 34998899,
+    "title": "Vnet between Virtual Machine and App Service in Azure",
+    "question_text": "I cannot figure out how to connect a Web App (App Service) to a Virtual Machine in Azure. I've create a VNet from the Web App configuration panel. \nAll items are created using the Resource Management model, are in the same subscription and are at least of the Standard pricing tier.\nApparently a Web App cannot be connected to a V2 VNet. (Looks like these terms are used interchangeably, or is it something different).\nI've create a classic Vnet (V1?). But I cannot seem to find out how to connect my Virtual machine to it. \nHow can I connect both a Web App and VM to the same network? Are there any other requirements I'm missing?\n",
+    "question_score": 5,
+    "answer_text": "Unfortunately you're not missing anything, and this is all rather messy at the moment and it is probably wise to hold off trying to deploy into a VNet until they've got it all working properly. \nHowever, if this is something you particularly need, your choices will be to keep everything at v1, or to just have the web app VNet at v1 and create a v2 VNet for your VMs (you can't put v2 VM into a v1 VNet) \nYou could create a v2 VNet and have a site to site VPN between them. This would give a reasonably flat / Open IP structure. The problem with this will be that you are limited to approx 10mb bandwidth and the only way to up that would be to use Express Route. \n",
+    "answer_id": 34999354,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-virtual-machine",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 72156580,
+    "title": "Azure Databricks: Error with custom library on cluster in VNet",
+    "question_text": "We are using Azure Databricks with a single-node cluster in a VNet (Runtime Version 10.4 LTS).\nWe also need to use a custom/private python module (wheel).\nAfter the library is installed on the cluster, everything is working fine, but after the cluster is restarted and the library installed, the following error appears on the execution of any cell (de-/reattaching doesn't solve the issue):\n+ Failure starting repl. Try detaching and re-attaching the notebook.\n\njava.lang.Exception: org.apache.hadoop.hive.ql.metadata.HiveException: java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.metastore.HiveMetaStoreClient\n    at org.apache.spark.sql.hive.HiveExternalCatalog.$anonfun$withClient$2(HiveExternalCatalog.scala:160)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.maybeSynchronized(HiveExternalCatalog.scala:112)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.$anonfun$withClient$1(HiveExternalCatalog.scala:150)\n    at com.databricks.backend.daemon.driver.ProgressReporter$.withStatusCode(ProgressReporter.scala:364)\n    at com.databricks.spark.util.SparkDatabricksProgressReporter$.withStatusCode(ProgressReporter.scala:34)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.withClient(HiveExternalCatalog.scala:149)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.databaseExists(HiveExternalCatalog.scala:300)\n    at org.apache.spark.sql.internal.SharedState.externalCatalog$lzycompute(SharedState.scala:201)\n    at org.apache.spark.sql.internal.SharedState.externalCatalog(SharedState.scala:192)\n    at org.apache.spark.sql.hive.HiveSessionStateBuilder.externalCatalog(HiveSessionStateBuilder.scala:59)\n    at org.apache.spark.sql.hive.HiveSessionStateBuilder.$anonfun$resourceLoader$1(HiveSessionStateBuilder.scala:66)\n    at org.apache.spark.sql.hive.HiveSessionResourceLoader.client$lzycompute(HiveSessionStateBuilder.scala:160)\n    at org.apache.spark.sql.hive.HiveSessionResourceLoader.client(HiveSessionStateBuilder.scala:160)\n    at org.apache.spark.sql.hive.HiveSessionResourceLoader.$anonfun$addJar$1(HiveSessionStateBuilder.scala:164)\n    at org.apache.spark.sql.hive.HiveSessionResourceLoader.$anonfun$addJar$1$adapted(HiveSessionStateBuilder.scala:163)\n    at scala.collection.immutable.List.foreach(List.scala:431)\n    at org.apache.spark.sql.hive.HiveSessionResourceLoader.addJar(HiveSessionStateBuilder.scala:163)\n    at org.apache.spark.sql.execution.command.AddJarsCommand.$anonfun$run$1(resources.scala:33)\n    at org.apache.spark.sql.execution.command.AddJarsCommand.$anonfun$run$1$adapted(resources.scala:33)\n    at scala.collection.immutable.Stream.foreach(Stream.scala:533)\n    at org.apache.spark.sql.execution.command.AddJarsCommand.run(resources.scala:33)\n    at org.apache.spark.sql.execution.command.ExecutedCommandExec.sideEffectResult$lzycompute(commands.scala:80)\n    at org.apache.spark.sql.execution.command.ExecutedCommandExec.sideEffectResult(commands.scala:78)\n    at org.apache.spark.sql.execution.command.ExecutedCommandExec.executeCollect(commands.scala:89)\n    at org.apache.spark.sql.execution.QueryExecution$$anonfun$$nestedInanonfun$eagerlyExecuteCommands$1$1.$anonfun$applyOrElse$1(QueryExecution.scala:160)\n    at org.apache.spark.sql.execution.SQLExecution$.$anonfun$withCustomExecutionEnv$8(SQLExecution.scala:209)\n    at org.apache.spark.sql.execution.SQLExecution$.withSQLConfPropagated(SQLExecution.scala:356)\n    at org.apache.spark.sql.execution.SQLExecution$.$anonfun$withCustomExecutionEnv$1(SQLExecution.scala:160)\n    at org.apache.spark.sql.SparkSession.withActive(SparkSession.scala:958)\n    at org.apache.spark.sql.execution.SQLExecution$.withCustomExecutionEnv(SQLExecution.scala:115)\n    at org.apache.spark.sql.execution.SQLExecution$.withNewExecutionId(SQLExecution.scala:306)\n    at org.apache.spark.sql.execution.QueryExecution$$anonfun$$nestedInanonfun$eagerlyExecuteCommands$1$1.applyOrElse(QueryExecution.scala:160)\n    at org.apache.spark.sql.execution.QueryExecution$$anonfun$$nestedInanonfun$eagerlyExecuteCommands$1$1.applyOrElse(QueryExecution.scala:156)\n    at org.apache.spark.sql.catalyst.trees.TreeNode.$anonfun$transformDownWithPruning$1(TreeNode.scala:565)\n    at org.apache.spark.sql.catalyst.trees.CurrentOrigin$.withOrigin(TreeNode.scala:167)\n    at org.apache.spark.sql.catalyst.trees.TreeNode.transformDownWithPruning(TreeNode.scala:565)\n    at org.apache.spark.sql.catalyst.plans.logical.LogicalPlan.org$apache$spark$sql$catalyst$plans$logical$AnalysisHelper$$super$transformDownWithPruning(LogicalPlan.scala:30)\n    at org.apache.spark.sql.catalyst.plans.logical.AnalysisHelper.transformDownWithPruning(AnalysisHelper.scala:268)\n    at org.apache.spark.sql.catalyst.plans.logical.AnalysisHelper.transformDownWithPruning$(AnalysisHelper.scala:264)\n    at org.apache.spark.sql.catalyst.plans.logical.LogicalPlan.transformDownWithPruning(LogicalPlan.scala:30)\n    at org.apache.spark.sql.catalyst.plans.logical.LogicalPlan.transformDownWithPruning(LogicalPlan.scala:30)\n    at org.apache.spark.sql.catalyst.trees.TreeNode.transformDown(TreeNode.scala:541)\n    at org.apache.spark.sql.execution.QueryExecution.$anonfun$eagerlyExecuteCommands$1(QueryExecution.scala:156)\n    at org.apache.spark.sql.catalyst.plans.logical.AnalysisHelper$.allowInvokingTransformsInAnalyzer(AnalysisHelper.scala:324)\n    at org.apache.spark.sql.execution.QueryExecution.eagerlyExecuteCommands(QueryExecution.scala:156)\n    at org.apache.spark.sql.execution.QueryExecution.commandExecuted$lzycompute(QueryExecution.scala:141)\n    at org.apache.spark.sql.execution.QueryExecution.commandExecuted(QueryExecution.scala:132)\n    at org.apache.spark.sql.Dataset.&lt;init&gt;(Dataset.scala:225)\n    at org.apache.spark.sql.Dataset$.$anonfun$ofRows$2(Dataset.scala:104)\n    at org.apache.spark.sql.SparkSession.withActive(SparkSession.scala:958)\n    at org.apache.spark.sql.Dataset$.ofRows(Dataset.scala:101)\n    at org.apache.spark.sql.SparkSession.$anonfun$sql$1(SparkSession.scala:793)\n    at org.apache.spark.sql.SparkSession.withActive(SparkSession.scala:958)\n    at org.apache.spark.sql.SparkSession.sql(SparkSession.scala:788)\n    at org.apache.spark.sql.SQLContext.sql(SQLContext.scala:695)\n    at com.databricks.backend.daemon.driver.DriverLocal.$anonfun$new$3(DriverLocal.scala:267)\n    at com.databricks.sql.acl.CheckPermissions$.trusted(CheckPermissions.scala:1566)\n    at com.databricks.backend.daemon.driver.DriverLocal.$anonfun$new$2(DriverLocal.scala:267)\n    at scala.collection.Iterator.foreach(Iterator.scala:943)\n    at scala.collection.Iterator.foreach$(Iterator.scala:943)\n    at scala.collection.AbstractIterator.foreach(Iterator.scala:1431)\n    at scala.collection.IterableLike.foreach(IterableLike.scala:74)\n    at scala.collection.IterableLike.foreach$(IterableLike.scala:73)\n    at scala.collection.AbstractIterable.foreach(Iterable.scala:56)\n    at com.databricks.backend.daemon.driver.DriverLocal.&lt;init&gt;(DriverLocal.scala:250)\n    at com.databricks.backend.daemon.driver.PythonDriverLocalBase.&lt;init&gt;(PythonDriverLocalBase.scala:152)\n    at com.databricks.backend.daemon.driver.PythonDriverLocal.&lt;init&gt;(PythonDriverLocal.scala:73)\n    at com.databricks.backend.daemon.driver.PythonDriverWrapper.instantiateDriver(DriverWrapper.scala:697)\n    at com.databricks.backend.daemon.driver.DriverWrapper.setupRepl(DriverWrapper.scala:335)\n    at com.databricks.backend.daemon.driver.DriverWrapper.run(DriverWrapper.scala:224)\n    at java.lang.Thread.run(Thread.java:748)\nCaused by: java.lang.Throwable: java.lang.RuntimeException: Unable to instantiate org.apache.hadoop.hive.metastore.HiveMetaStoreClient\n    at org.apache.hadoop.hive.ql.metadata.Hive.getDatabase(Hive.java:1169)\n    at org.apache.hadoop.hive.ql.metadata.Hive.databaseExists(Hive.java:1154)\n    at org.apache.spark.sql.hive.client.Shim_v0_12.databaseExists(HiveShim.scala:619)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.$anonfun$databaseExists$1(HiveClientImpl.scala:435)\n    at scala.runtime.java8.JFunction0$mcZ$sp.apply(JFunction0$mcZ$sp.java:23)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.$anonfun$withHiveState$1(HiveClientImpl.scala:335)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.$anonfun$retryLocked$1(HiveClientImpl.scala:236)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.synchronizeOnObject(HiveClientImpl.scala:272)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.retryLocked(HiveClientImpl.scala:228)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.withHiveState(HiveClientImpl.scala:315)\n    at org.apache.spark.sql.hive.client.HiveClientImpl.databaseExists(HiveClientImpl.scala:435)\n    at org.apache.spark.sql.hive.client.PoolingHiveClient.$anonfun$databaseExists$1(PoolingHiveClient.scala:321)\n    at org.apache.spark.sql.hive.client.PoolingHiveClient.$anonfun$databaseExists$1$adapted(PoolingHiveClient.scala:320)\n    at org.apache.spark.sql.hive.client.PoolingHiveClient.withHiveClient(PoolingHiveClient.scala:149)\n    at org.apache.spark.sql.hive.client.PoolingHiveClient.databaseExists(PoolingHiveClient.scala:320)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.$anonfun$databaseExists$1(HiveExternalCatalog.scala:300)\n    at scala.runtime.java8.JFunction0$mcZ$sp.apply(JFunction0$mcZ$sp.java:23)\n    at com.databricks.spark.util.FrameProfiler$.record(FrameProfiler.scala:80)\n    at org.apache.spark.sql.hive.HiveExternalCatalog.$anonfun$withClient$2(HiveExternalCatalog.scala:151)\n    ... 70 more\nCaused by: java.lang.Throwable: Unable to instantiate org.apache.hadoop.hive.metastore.HiveMetaStoreClient\n    at org.apache.hadoop.hive.metastore.MetaStoreUtils.newInstance(MetaStoreUtils.java:1412)\n    at org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.&lt;init&gt;(RetryingMetaStoreClient.java:62)\n    at org.apache.hadoop.hive.metastore.RetryingMetaStoreClient.getProxy(RetryingMetaStoreClient.java:72)\n    at org.apache.hadoop.hive.ql.metadata.Hive.createMetaStoreClient(Hive.java:2453)\n    at org.apache.hadoop.hive.ql.metadata.Hive.getMSC(Hive.java:2465)\n    at org.apache.hadoop.hive.ql.metadata.Hive.getDatabase(Hive.java:1165)\n    ... 88 more\nCaused by: java.lang.Throwable: null\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n    at java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n    at org.apache.hadoop.hive.metastore.MetaStoreUtils.newInstance(MetaStoreUtils.java:1410)\n    ... 93 more\nCaused by: java.lang.Throwable: Error creating transactional connection factory\n    at org.datanucleus.api.jdo.NucleusJDOHelper.getJDOExceptionForNucleusException(NucleusJDOHelper.java:671)\n    at org.datanucleus.api.jdo.JDOPersistenceManagerFactory.freezeConfiguration(JDOPersistenceManagerFactory.java:830)\n    at org.datanucleus.api.jdo.JDOPersistenceManagerFactory.createPersistenceManagerFactory(JDOPersistenceManagerFactory.java:334)\n    at org.datanucleus.api.jdo.JDOPersistenceManagerFactory.getPersistenceManagerFactory(JDOPersistenceManagerFactory.java:213)\n    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method)\n    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)\n    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)\n    at java.lang.reflect.Method.invoke(Method.java:498)\n    at javax.jdo.JDOHelper$16.run(JDOHelper.java:1965)\n    at java.security.AccessController.doPrivileged(Native Method)\n    at javax.jdo.JDOHelper.invoke(JDOHelper.java:1960)\n    at javax.jdo.JDOHelper.invokeGetPersistenceManagerFactoryOnImplementation(JDOHelper.java:1166)\n    at javax.jdo.JDOHelper.getPersistenceManagerFactory(JDOHelper.java:808)\n    at javax.jdo.JDOHelper.getPersistenceManagerFactory(JDOHelper.java:701)\n    at org.apache.hadoop.hive.metastore.ObjectStore.getPMF(ObjectStore.java:331)\n    at org.apache.hadoop.hive.metastore.ObjectStore.getPersistenceManager(ObjectStore.java:360)\n    at org.apache.hadoop.hive.metastore.ObjectStore.initialize(ObjectStore.java:269)\n    at org.apache.hadoop.hive.metastore.ObjectStore.setConf(ObjectStore.java:244)\n    at org.apache.hadoop.util.ReflectionUtils.setConf(ReflectionUtils.java:79)\n    at org.apache.hadoop.util.ReflectionUtils.newInstance(ReflectionUtils.java:139)\n    at org.apache.hadoop.hive.metastore.RawStoreProxy.&lt;init&gt;(RawStoreProxy.java:58)\n    at org.apache.hadoop.hive.metastore.RawStoreProxy.getProxy(RawStoreProxy.java:67)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore$HMSHandler.newRawStore(HiveMetaStore.java:497)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore$HMSHandler.getMS(HiveMetaStore.java:475)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore$HMSHandler.createDefaultDB(HiveMetaStore.java:523)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore$HMSHandler.init(HiveMetaStore.java:397)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore$HMSHandler.&lt;init&gt;(HiveMetaStore.java:356)\n    at org.apache.hadoop.hive.metastore.RetryingHMSHandler.&lt;init&gt;(RetryingHMSHandler.java:54)\n    at org.apache.hadoop.hive.metastore.RetryingHMSHandler.getProxy(RetryingHMSHandler.java:59)\n    at org.apache.hadoop.hive.metastore.HiveMetaStore.newHMSHandler(HiveMetaStore.java:4944)\n    at org.apache.hadoop.hive.metastore.HiveMetaStoreClient.&lt;init&gt;(HiveMetaStoreClient.java:171)\n    ... 98 more\nCaused by: java.lang.Throwable: null\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n    at java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n    at org.datanucleus.plugin.NonManagedPluginRegistry.createExecutableExtension(NonManagedPluginRegistry.java:606)\n    at org.datanucleus.plugin.PluginManager.createExecutableExtension(PluginManager.java:330)\n    at org.datanucleus.store.AbstractStoreManager.registerConnectionFactory(AbstractStoreManager.java:203)\n    at org.datanucleus.store.AbstractStoreManager.&lt;init&gt;(AbstractStoreManager.java:162)\n    at org.datanucleus.store.rdbms.RDBMSStoreManager.&lt;init&gt;(RDBMSStoreManager.java:285)\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance0(Native Method)\n    at sun.reflect.NativeConstructorAccessorImpl.newInstance(NativeConstructorAccessorImpl.java:62)\n    at sun.reflect.DelegatingConstructorAccessorImpl.newInstance(DelegatingConstructorAccessorImpl.java:45)\n    at java.lang.reflect.Constructor.newInstance(Constructor.java:423)\n    at org.datanucleus.plugin.NonManagedPluginRegistry.createExecutableExtension(NonManagedPluginRegistry.java:606)\n    at org.datanucleus.plugin.PluginManager.createExecutableExtension(PluginManager.java:301)\n    at org.datanucleus.NucleusContextHelper.createStoreManagerForProperties(NucleusContextHelper.java:133)\n    at org.datanucleus.PersistenceNucleusContextImpl.initialise(PersistenceNucleusContextImpl.java:422)\n    at org.datanucleus.api.jdo.JDOPersistenceManagerFactory.freezeConfiguration(JDOPersistenceManagerFactory.java:817)\n    ... 127 more\nCaused by: java.lang.Throwable: Attempt to invoke the &quot;HikariCP&quot; plugin to create a ConnectionPool gave an error : Failed to initialize pool: Could not connect to address=(host=prod-metastore.mysql.database.azure.com)(port=3306)(type=master) : prod-metastore.mysql.database.azure.com\n    at org.datanucleus.store.rdbms.ConnectionFactoryImpl.generateDataSources(ConnectionFactoryImpl.java:232)\n    at org.datanucleus.store.rdbms.ConnectionFactoryImpl.initialiseDataSources(ConnectionFactoryImpl.java:117)\n    at org.datanucleus.store.rdbms.ConnectionFactoryImpl.&lt;init&gt;(ConnectionFactoryImpl.java:82)\n    ... 145 more\nCaused by: java.lang.Throwable: Failed to initialize pool: Could not connect to address=(host=prod-metastore.mysql.database.azure.com)(port=3306)(type=master) : prod-metastore.mysql.database.azure.com\n    at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:512)\n    at com.zaxxer.hikari.pool.HikariPool.&lt;init&gt;(HikariPool.java:105)\n    at com.zaxxer.hikari.HikariDataSource.&lt;init&gt;(HikariDataSource.java:71)\n    at org.datanucleus.store.rdbms.connectionpool.HikariCPConnectionPoolFactory.createConnectionPool(HikariCPConnectionPoolFactory.java:176)\n    at org.datanucleus.store.rdbms.ConnectionFactoryImpl.generateDataSources(ConnectionFactoryImpl.java:213)\n    ... 147 more\nCaused by: java.lang.Throwable: Could not connect to address=(host=prod-metastore.mysql.database.azure.com)(port=3306)(type=master) : prod-metastore.mysql.database.azure.com\n    at org.mariadb.jdbc.internal.util.exceptions.ExceptionMapper.get(ExceptionMapper.java:175)\n    at org.mariadb.jdbc.internal.util.exceptions.ExceptionMapper.connException(ExceptionMapper.java:83)\n    at org.mariadb.jdbc.internal.protocol.AbstractConnectProtocol.connectWithoutProxy(AbstractConnectProtocol.java:1111)\n    at org.mariadb.jdbc.internal.util.Utils.retrieveProxy(Utils.java:502)\n    at org.mariadb.jdbc.MariaDbConnection.newConnection(MariaDbConnection.java:155)\n    at org.mariadb.jdbc.Driver.connect(Driver.java:86)\n    at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:95)\n    at com.zaxxer.hikari.util.DriverDataSource.getConnection(DriverDataSource.java:101)\n    at com.zaxxer.hikari.pool.PoolBase.newConnection(PoolBase.java:341)\n    at com.zaxxer.hikari.pool.HikariPool.checkFailFast(HikariPool.java:506)\n    ... 151 more\nCaused by: java.lang.Throwable: prod-metastore.mysql.database.azure.com\n    at java.net.AbstractPlainSocketImpl.connect(AbstractPlainSocketImpl.java:184)\n    at java.net.SocksSocketImpl.connect(SocksSocketImpl.java:392)\n    at java.net.Socket.connect(Socket.java:607)\n    at org.mariadb.jdbc.internal.protocol.AbstractConnectProtocol.connect(AbstractConnectProtocol.java:445)\n    at org.mariadb.jdbc.internal.protocol.AbstractConnectProtocol.connectWithoutProxy(AbstractConnectProtocol.java:1103)\n    ... 158 more\n\nThis is independent if the custom module is imported/used, even if the custom library has no real code inside. Modules from PyPI work fine, though.\nWe could narrow it down to the activation of the VNet feature. Are there configurations or script to bypass this?\n",
+    "question_score": 5,
+    "answer_text": "You need to make sure that you have configure Network Security Group rules according to documentation, specifically that you don't block traffic on port 3306. You also need to check that your user-defined routes or firewall are configured correctly and don't block outgoing traffic to the built-in Hive metastore - the host name & IP address are specific to the region and could be found in the documentation.\n",
+    "answer_id": 72161112,
+    "tags": [
+      "python",
+      "databricks",
+      "azure-databricks",
+      "azure-virtual-network"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-virtual-network",
+    "question_id": 60608715,
+    "title": "Azure Storage Network Security Group",
+    "question_text": "I want to add an Azure storage account to a VNet / Network Security Group but keep receiving an Authorisation Failure message.\n\nThe error was: 'code: AuthorizationFailure content: _CYCLIC_OBJECT_ message: This request is not authorized to perform this operation.\n\nI've added the VNet to the storage account with the Microsoft.Storage service endpoint and the subnets have been associated with the NSG.\nI've created an inbound rule for the IP addresses and an outbound rule using the storage service tag on the NSG.\nI've even tried it with an all internet inbound rule but no joy.\nIf I whitelist the IP address in the Firewall and Virtual Network settings on the storage account then it works fine.\nIs there something that I'm missing?\n",
+    "question_score": 5,
+    "answer_text": "In your comment, you want to manage the firewall rule of storage account via associated it with a VNet and NSG. This's not in the right direction.\nYou can not use network security rules for Azure Storage Services because the storage account can not be inside a VNet or a part of a VNet and the NSG works at the IP address, port, protocol level. For more information, you could refer to this answer.\nIn addition, if you have added selected VNets in the Firewall and Virtual Network settings on the storage account, it grants access storage account from a virtual network. So only selected VNet could access your storage account. It will appear access deny from your corporate network if you don't add its external IP address in the firewall.\nYou may want to create Private Endpoints for your storage account, which assigns a private IP address from your VNet to the storage account, and secures all traffic between your VNet and the storage account over a private link. With this, You can also use the firewall to block all access through the public endpoint when using private endpoints. Please note that currently, you can't configure NSG rules and user-defined routes for private endpoints.\n",
+    "answer_id": 60630413,
+    "tags": [
+      "azure",
+      "azure-storage",
+      "azure-virtual-network",
+      "azure-nsg"
+    ]
+  }
+]

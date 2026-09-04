@@ -1,0 +1,86 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-tasks",
+    "question_id": 71146830,
+    "title": "Cloud Functions / Cloud Tasks UNAUTHENTICATED error",
+    "question_text": "I am trying to get a Cloud Function to create a Cloud Task that will invoke a Cloud Function. Easy.\nThe flow and use case are very close to the official tutorial here.\nI also looked at this article by Doug Stevenson and in particular its security section.\nNo luck, I am consistently getting a 16 (UNAUTHENTICATED) error in Cloud Task.\n\nIf I can trust what I see in the console it seems that Cloud Task is not attaching the OIDC token to the request:\n\nYet, in my code I do have the oidcToken object:\nconst { v2beta3, protos } = require(\"@google-cloud/tasks\");\nimport {\n  PROJECT_ID,\n  EMAIL_QUEUE,\n  LOCATION,\n  EMAIL_SERVICE_ACCOUNT,\n  EMAIL_HANDLER,\n} from \"./../config/cloudFunctions\";\n\n\nexport const createHttpTaskWithToken = async function (\n  payload: {\n    to_email: string;\n    templateId: string;\n    uid: string;\n    dynamicData?: Record<string, any>;\n  },\n  {\n    project = PROJECT_ID,\n    queue = EMAIL_QUEUE, \n    location = LOCATION, \n    url = EMAIL_HANDLER, \n    email = EMAIL_SERVICE_ACCOUNT,\n  } = {}\n) {\n  const client = new v2beta3.CloudTasksClient();\n  const parent = client.queuePath(project, location, queue);\n\n  // Convert message to buffer.\n  const convertedPayload = JSON.stringify(payload);\n  const body = Buffer.from(convertedPayload).toString(\"base64\");\n\n  const task = {\n    httpRequest: {\n      httpMethod: protos.google.cloud.tasks.v2.HttpMethod.POST,\n      url,\n      oidcToken: {\n        serviceAccountEmail: email,\n        audience: new URL(url).origin,\n      },\n      headers: {\n        \"Content-Type\": \"application/json\",\n      },\n      body,\n    },\n  };\n\n\n  try {\n    // Send create task request.\n    const request = { parent: parent, task: task };\n    const [response] = await client.createTask(request);\n    console.log(`Created task ${response.name}`);\n    return response.name;\n  } catch (error) {\n    if (error instanceof Error) console.error(Error(error.message));\n    return;\n  }\n};\n\nWhen logging the task object from the code above in Cloud Logging I can see that the service account is the one that I created for the purpose of this and that the Cloud Tasks are successfully created.\n\nIAM:\n\nAnd the function that the Cloud Task needs to invoke:\n\nEverything seems to be there, in theory.\nAny advice as to what I would be missing?\nThanks,\n",
+    "question_score": 9,
+    "answer_text": "Your audience is incorrect. It must end by the function name. Here, you only have the region and the project https://<region>-<projectID>.cloudfunction.net/. Use the full Cloud Functions URL.\n",
+    "answer_id": 71150030,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-functions",
+      "service-accounts",
+      "google-iam",
+      "google-cloud-tasks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-tasks",
+    "question_id": 69209115,
+    "title": "Cloud Run: 429: The request was aborted because there was no available instance",
+    "question_text": "We (as a company) experience large spikes every day. We use Pub/Sub -> Cloud Run combination.\nThe issue we experience is that when high traffic hits, Pub/Sub tries to push messages to Cloud/Run all at the same time without any flow control. The result?\n429: The request was aborted because there was no available instance.\nAlthough this is marked as a warning, every 4xx HTTP response results in the message retry delivery.\nMessages, therefore, come back to the queue and wait. If a message repeats this process and the instances are still taken, Cloud Run returns 429 again, and the message is sent back to the queue. This process repeats x times (depends on what value we set in Maximum delivery attempts). After that, the message goes to the dead-letter queue.\nWe want to avoid this and ideally don't get any 429, so the message won't travel back and forth, and it won't end up in the dead-letter subscription because it is not one of the application errors we want to keep there, but rather a warning caused by Pub/Sub not controlling the flow and coordinating with Cloud Run.\nNeither Pub/Sub nor a push subscription (which is required to use for Cloud Run) have any flow control feature.\n\nIs there any way to control how many messages are sent to Cloud Run to avoid getting the 429 response? And also, why does Pub/Sub even try to deliver when it is obvious that Cloud Run hit the limit of instances. The best would be to keep the messages in a queue until the instances free up.\n\nMost of the answers would probably suggest increasing the limit of instances. We already set 1000. This would not be scalable because even if we set the limit to 1500 and a huge spike comes, we would pass the limit and get the 429 messages again.\nThe only option I can think of is some flow control. So far, we have read about Cloud Tasks, but we are not sure if this can help us. Ideally, we don't want to introduce any new service, but if necessary, we will do.\nThank you for all your tips and time! :)\n",
+    "question_score": 8,
+    "answer_text": "Here are some options:\n\nUse a 1st gen event-driven Cloud Function https://stackoverflow.com/a/75763414/10720618\nUse Cloud Tasks to rate limit. But then you don't get dead lettering\nDisable dead lettering and have pubsub continuously attempt delivery. May want to set an end condition to avoid infinite retry loops. Also need to setup some alerting to ensure messages don't expire (if the service cannot keep up with the load).\nHandle in application code by tracking attempt count for each messageId (IE using Redis), and publishing to a dead letter topic when attempt count has exceeded a threshold. This is easy to abstract, doesn't introduce a new service, and checks all the boxes but definitely adds overhead of state management.\n\n",
+    "answer_id": 76269946,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-pubsub",
+      "google-cloud-run",
+      "google-cloud-tasks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-tasks",
+    "question_id": 65079497,
+    "title": "ImportError: cannot import name &#39;tasks_v2&#39; from &#39;google.cloud&#39;",
+    "question_text": "I'm trying to use the Google Cloud Tasks code sample provided in the GCP documentation here:\nhttps://cloud.google.com/tasks/docs/creating-http-target-tasks (see code below). However, it's unclear from the documentation which package I need for this to work. Any ideas?\nHowever, I'm getting the following error.\nImportError: cannot import name 'tasks_v2' from 'google.cloud'\n\nCode sample:\nfrom google.cloud import tasks_v2\nfrom google.protobuf import timestamp_pb2\n\n# Create a client.\nclient = tasks_v2.CloudTasksClient()\n\n# TODO(developer): Uncomment these lines and replace with your values.\n# project = 'my-project-id'\n# queue = 'my-appengine-queue'\n# location = 'us-central1'\n# payload = 'hello'\n\n# Construct the fully qualified queue name.\nparent = client.queue_path(project, location, queue)\n\n# Construct the request body.\ntask = {\n        'app_engine_http_request': {  # Specify the type of request.\n            'http_method': 'POST',\n            'relative_uri': '/example_task_handler'\n        }\n}\nif payload is not None:\n    # The API expects a payload of type bytes.\n    converted_payload = payload.encode()\n\n    # Add the payload to the request.\n    task['app_engine_http_request']['body'] = converted_payload\n\nif in_seconds is not None:\n    # Convert \"seconds from now\" into an rfc3339 datetime string.\n    d = datetime.datetime.utcnow() + datetime.timedelta(seconds=in_seconds)\n\n    # Create Timestamp protobuf.\n    timestamp = timestamp_pb2.Timestamp()\n    timestamp.FromDatetime(d)\n\n    # Add the timestamp to the tasks.\n    task['schedule_time'] = timestamp\n\n# Use the client to build and send the task.\nresponse = client.create_task(parent, task)\n\nprint('Created task {}'.format(response.name))\nreturn response\n\n",
+    "question_score": 5,
+    "answer_text": "This worked for me:\npip3 install -U google-cloud-tasks\n\nIf you get any problems importing packages for other GCP services, this is a great resource:\nhttps://github.com/googleapis/google-cloud-python. The links point straight to the relevant package names on pypi.org.\n",
+    "answer_id": 65079498,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-tasks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-tasks",
+    "question_id": 56058381,
+    "title": "How to secure an app engine app to be available only to Google Cloud Task?",
+    "question_text": "I would like to create a task handler that is supposed to deal with some tasks with retry, etc.\nBut I want this endpoint to only be triggerable by a specific queue in google task ?\nHow am I supposed to deal with it ? What is the best practice ?\nBest regards\n",
+    "question_score": 5,
+    "answer_text": "UPDATE: Check Will's comment. This answer might be outdated and no longer work. Before applying it, be sure to test extensively.\n\nAccording to the Cloud Tasks documentation, requests incoming from Cloud Tasks will have the X-AppEngine-QueueName header.\nThis header does not appear listed in the GAE docs about requests headers removed, but I just tested it and this header is also removed.\nTo secure your GAE app to only be called through Cloud Tasks, validate that the X-AppEngine-QueueName header is in one of the approved queues that you want to allow to call your app.\n",
+    "answer_id": 56059353,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "google-tasks",
+      "google-cloud-tasks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-tasks",
+    "question_id": 61964810,
+    "title": "How do I verify a Google Cloud Task token from an HTTP request?",
+    "question_text": "I am trying to implement Google Cloud Task queues with a HTTP Target. I've used the queues for App Engine but in moving to Cloud Run I wish to use the same queue system. I have implemented the dispatcher code but unlike App Engine I can't trust the headers so I'm aware I need to verify the request using an auth token but I'm struggling to get my head around it? I'm making a lot of assumptions as well. I'm trying to build this in PHP so if possible it would be good to see an example in PHP but even just some Psuedo code of the flow would be useful.\nMy first assumption is it's best to use OIDC Tokens? based off of: \n\nif you are writing your own code in the targeted service to validate\n  the token, you should use an OIDC token. For more information on what\n  this entails, see OpenID Connect, particularly Validating an ID token.\n\nI've read the linked heading for this but it didn't make much of it clear to me if I'm honest.\nSecondly tokens will be in the Authorization header as Bearer <token>?\nThirdly I guess I should use something like the package firebase/php-jwt to decode the token. But how do I decoded it exactly? My service JSON file only has a private key, do I need to grab the public key from the cloud console? Once I do that is there particular parts of the token I need to look at to verify the request? Or should the fact I can decode it into valid JSON be enough?\nEverytime I read a bit of documentation on how to do it I think I'm getting closer to the answer but I'm at the point it's taken far longer than I'd like and it's a bit frustrating when Google documentation rarely seems to just point out what I need to do.\n",
+    "question_score": 5,
+    "answer_text": "\nYou can refer to the link : https://developer.okta.com/blog/2019/05/07/php-token-authentication-jwt-oauth2-openid-connect\n\nfor more information about how to create http tasks with authentication tokens for cloud run. Note that the code is given for python, jave, GO, and node.js. But it will give you an idea of the flow.\n\nA request example of the authorization header (https://developer.okta.com/docs/reference/api/oidc/):\n\ncurl -v -X POST \n-H \"Authorization: Bearer ${access_token}\" \n\"https://{baseUrl}/userinfo\"\n\nInformation on how to decode the token:\n\nhttps://developer.okta.com/blog/2019/05/07/php-token-authentication-jwt-oauth2-openid-connect\n",
+    "answer_id": 62546655,
+    "tags": [
+      "php",
+      "openid-connect",
+      "google-cloud-tasks"
+    ]
+  }
+]

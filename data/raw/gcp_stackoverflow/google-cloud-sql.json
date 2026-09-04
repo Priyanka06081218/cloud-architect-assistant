@@ -1,0 +1,1304 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 51084907,
+    "title": "How to increase the connection limit for the Google Cloud SQL Postgres database?",
+    "question_text": "The number of connections for Google Cloud SQL PostgreSQL databases is relatively low. Depending on the plan this is somewhere between 25 and 500, while the limit for MySQL in Google Cloud SQL is between 250 and 4000, reaching 4000 very quickly.\nWe currently have a number of trial instances for different customers running on Kubernetes and backed by the same Google Cloud SQL Postgres server. Each instance uses a separate set of database, roles and connections (one per service). We've already reached the limit of connections for our plan (50) and we're not even close to getting to the memory or cpu limits. Connection pooling seems not to be an option, because the connections are with different users.\nI'm wondering now why the limit is so low and if there's a way to increase the limit without having to upgrade to a more expensive plan.\n",
+    "question_score": 48,
+    "answer_text": "It looks like google just released this as a beta feature.\nWhen creating or editing a database instance, you can add a flag called max_connections, where you can enter a new limit between 14 and 262143 connections.\n\n",
+    "answer_id": 55479093,
+    "tags": [
+      "postgresql",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 60412688,
+    "title": "What&#39;s the difference between Google Cloud Spanner and Cloud SQL?",
+    "question_text": "I am novice in GCP stack so I am so confused about several listed technologies for storing data:\nhttps://cloud.google.com/products/databases\nSpecifically, I'm interested in the differences between Cloud Spanner and Cloud SQL.\nFrom my current view I don't see any significant difference between Cloud SQL(with postgres under the hood) and Cloud Spanner. I found that it has a bit different syntax but it doesn't answer when I should prefer this technology to spring cloud sql.\nCould you please explain it ?\nP.S.\nI consider spring cloud SQL as a traditional database with automatic replication and horizontal scalability managed by google.\n",
+    "question_score": 48,
+    "answer_text": "There is not a big difference between them in terms on what they do (storing data in tables). The difference is how they handle the data in a small and big scale\nCloud Spanner is used when you need to handle massive amounts of data with an elevated level of consistency and with a big amount of data handling (+100,000 reads/write per second). Spanner gives much better scalability and better SLOs.\nOn the other hand, Spanner is also much more expensive than Cloud SQL.\nIf you just want to store some data of your customer in a cheap way but still don't want to face server configuration Cloud SQL is the right choice.\nIf you are planning to create a big product or if you want to be ready for a huge increase in users for your application (viral games/applications) Spanner is the right product.\nYou can find detailed information about Cloud Spanner in this official paper\n",
+    "answer_id": 60413196,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-spanner",
+      "spring-cloud-gcp"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 43023107,
+    "title": "How to connect Google Cloud SQL from Cloud Functions?",
+    "question_text": "I am trying to use Cloud Functions for Firebase to build an API that talks with a Google Cloud SQL (PostgreSQL) instance.\nI am using HTTP(S) trigger.\nWhen I white-list my desktop's IP address, I can connect to the Cloud SQL with the function's node.js code from my local machine. But when I deploy, I can't connect, and I can't figure out the HOST IP address of Firebase Function's server, to white-list.\nHow do you talk to Google Cloud SQL from Cloud Functions for Firebase?\nThanks!\n// Code Sample, of what's working on Localhost.\nvar functions = require('firebase-functions');\n\nvar pg = require('pg');\nvar pgConfig = {\n  user: functions.config().pg.user,\n  database: functions.config().pg.database,\n  password: functions.config().pg.password,\n  host: functions.config().pg.host\n}\n\nexports.helloSql = functions.https.onRequest((request, response) => {\n  console.log('connecting...');\n  try {\n    client.connect(function(err) {\n      if (err) throw err;\n\n      console.log('connection success');\n      console.log('querying...');\n\n      client.query('SELECT * FROM guestbook;', function(err, result){\n        if (err) throw err;\n\n        console.log('querying success.');\n        console.log('Results: ', result);\n        console.log('Ending...');\n\n        client.end(function(err){\n          if (err) throw err;\n          console.log('End success.');\n          response.send(result);\n        });\n      });\n\n    });\n  } catch(er) {\n    console.error(er.stack)\n    response.status(500).send(er);\n  }\n});\n\n",
+    "question_score": 43,
+    "answer_text": "New Answer:\nSee other answers, it's now officially supported. https://cloud.google.com/functions/docs/sql\nOld Answer:\nIt's not currently possible. It is however a feature request on the issue tracker #36388165:\n\nConnecting to Cloud SQL from Cloud Functions is currently not\n  supported, as the UNIX socket does not exist (causing ENOENT) and\n  there is no defined IP range to whitelist (causing ETIMEDOUT). One\n  possibility is to whitelist 0.0.0.0/0 from the Cloud SQL instance but\n  this is not recommended for security reasons.\n\nIf this is an important feature for you I would suggest you visit the issuetracker and star the feature request to help it gain popularity.\n",
+    "answer_id": 43257853,
+    "tags": [
+      "javascript",
+      "firebase",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 47299696,
+    "title": "Specifying the DB to connect with gcloud sql",
+    "question_text": "When connecting to a Google Cloud SQL instance, is there a way to specify the database I want to connect to?\nThis is the command I execute and the error I get:\n$ gcloud beta sql connect MY_INSTANCE --user=MY_USER\nWhitelisting your IP for incoming connection for 5 minutes...done.\nConnecting to database with SQL user [MY_USER].Password for user MY_USER:\npsql: FATAL:  database \"MY_USER\" does not exist\n\nIt seems to try to connect to a database that has the same name than the user, but what when that's not the case? (I don't want to create a dummy DB called MY_USER just to be able to jump to the DB I want).\nHere are the docs for the command gcloud beta sql, but I don't see anything useful for this there: https://cloud.google.com/sdk/gcloud/reference/beta/sql/connect\n",
+    "question_score": 37,
+    "answer_text": "gcloud sql connect does not currently allow you to specify the database name. There is a open issue to add it: https://issuetracker.google.com/issues/69314375\nIn the meantime, you can work around this by utilizing the PGDATABASE environment variable:\ne.g.\nPGDATABASE=mydb gcloud sql connect myinstance\n\nYou could create a shell alias to do this for you.\n",
+    "answer_id": 47316156,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 10763171,
+    "title": "Can SQLAlchemy be used with Google Cloud SQL?",
+    "question_text": "I've looked over Google Cloud SQL's documentation and various searches, but I can't find out whether it is possible to use SQLAlchemy with Google Cloud SQL, and if so, what the connection URI should be.\nI'm looking to use the Flask-SQLAlchemy extension and need the connection string like so:\nmysql://username:password@server/db\nI saw the Django example, but it appears the configuration uses a different style than the connection string.  https://developers.google.com/cloud-sql/docs/django\nGoogle Cloud SQL documentation:\nhttps://developers.google.com/cloud-sql/docs/developers_guide_python\n",
+    "question_score": 35,
+    "answer_text": "Update\nGoogle Cloud SQL now supports direct access, so the MySQLdb dialect can now be used.  The recommended connection via the mysql dialect is using the URL format:\nmysql+mysqldb://root@/<dbname>?unix_socket=/cloudsql/<projectid>:<instancename>\n\nmysql+gaerdbms has been deprecated in SQLAlchemy since version 1.0\nI'm leaving the original answer below in case others still find it helpful.\n\nFor those who visit this question later (and don't want to read through all the comments), SQLAlchemy now supports Google Cloud SQL as of version 0.7.8 using the connection string / dialect (see: docs):\nmysql+gaerdbms:///<dbname>\n\nE.g.:\ncreate_engine('mysql+gaerdbms:///mydb', connect_args={\"instance\":\"myinstance\"})\n\n\nI have proposed an update to the mysql+gaerdmbs:// dialect to support both of Google Cloud SQL APIs (rdbms_apiproxy and rdbms_googleapi) for connecting to Cloud SQL from a non-Google App Engine production instance (ex. your development workstation).  The change  will also modify the connection string slightly by including the project and instance as part of the string, and not require being passed separately via connect_args.\nE.g.\nmysql+gaerdbms:///<dbname>?instance=<project:instance>\n\nThis will also make it easier to use Cloud SQL with Flask-SQLAlchemy or other extension where you don't explicitly make the create_engine() call.\nIf you are having trouble connecting to Google Cloud SQL from your development workstation, you might want to take a look at my answer here - https://stackoverflow.com/a/14287158/191902.\n",
+    "answer_id": 10900826,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "sqlalchemy",
+      "flask-sqlalchemy",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 41215667,
+    "title": "Google Cloud SQL proxy couldn&#39;t find default credentials",
+    "question_text": "I'm trying to run Google Cloud SQL proxy locally like this:\n$ ./cloud_sql_proxy -instances project-name:region-name:instance-id tcp:3306\n\nBut it's returning \ngoogle: could not find default credentials. See https://developers.google.com/accounts/docs/application-default-credentials for mor information.\n\nMy Google Cloud SDK is already installed and logged in to Google.\nHow do I fix this?\n",
+    "question_score": 35,
+    "answer_text": "Two problems may be generating your problem.\nTo find what is login, using:\ngcloud auth login\n\n1. You haven't application default credentials\nIf you have a recent version of gcloud you will get:\nWARNING: `gcloud auth login` no longer writes application default credentials.\n\nTo make your local application use your credentials you need to do (ref):\ngcloud auth application-default login\n\nIf you don't see this warning consider updating gcloud, with:\ngcloud components update\n\n2. You haven't defined your project\nAfter login, you should see: \nYour current project is [project-id].\n\nOnce again two solutions:\na. Associate a project\nIf you are not seeing this, do (ref):\ngcloud config set project PROJECT_ID\n\nb. Use global --project flag in the call\nIn your command associate a project:\n.\\cloud_sql_proxy -instances=project-id:region-name:instance-id=tcp:3306 --project=project-id\n\n",
+    "answer_id": 42054453,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-sdk"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 60514629,
+    "title": "unrecognized configuration parameter &quot;default table access method&quot; google cloud",
+    "question_text": "I try to import some files to a PostgreSQL database but I get this error:\nFalha Importar: \nSET \nSET \nSET \nSET \nSET \nset_config ------------ \n(1 row) \nSET \nSET \nSET \nSET \nSET \nImport error: exit status 3 ERROR: unrecognized configuration parameter \"default_table_access_method\"\n\n",
+    "question_score": 31,
+    "answer_text": "You are importing a PostgreSQL v12 pg_dump into something that is obviously based on an earlier version of PostgreSQL.\nThis error is harmless (the parameter default_table_access_method was introduced in v12), but you may have more interesting problems with other new v12 features. If the rest of the import works without error, you are probably fine, but keep in mind that downgrading PostgreSQL is not supported.\nYou would be best off using the same version throughout. If you cannot have that locally because the hosted database is a closed source fork, that is a good point against using it.\n",
+    "answer_id": 60521251,
+    "tags": [
+      "postgresql",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 45836831,
+    "title": "Is there a way to access google cloud SQL via proxy inside docker container",
+    "question_text": "I have multiple docker machines(dev,staging) running on Google Compute Engine which hosts Django servers(this needs access to Google Cloud SQL access). I have multiple Google Cloud SQL instances running, and each instance is used by respective docker machines on my Google Compute Engine instance. \nCurrently i'm accessing the Cloud SQL by whitelisting my Compute Engine IP. But i dont want to use IPs for obvious reasons ie., i dont use a static ip for my dev machines.\nBut Now want to use google_cloud_proxy way to gain the access. But How do i do that ! GCP gives multiple ways to access google Cloud SQL instances. But none of them fit my usecase:\nI have this option https://cloud.google.com/sql/docs/mysql/connect-compute-engine; but this \n\nonly gives my computer engine access to the SQL instance; which i have to access from my Docker.\nThis doesn't support me to proxy multiple SQL instances on same compute engine machine; I was hoping to do this proxy inside the docker if possible . \n\nSo, How do I gain access to the CLoud SQL inside Docker ? If docker compose is a better way to start; How easy is it to implement for kubernetes(i use google container engine for production)    \n",
+    "question_score": 31,
+    "answer_text": "I was able to figure out how to use cloudsql-proxy on my local docker environment by using docker-compose. You will need to pull down your Cloud SQL instance credentials and have them ready. I keep them in my project root as credentials.json and add it to my .gitignore in the project.\nThe key part I found was using =tcp:0.0.0.0:5432 after the GCP instance ID so that the port can be forwarded. Then, in your application, use cloudsql-proxy instead of localhost as the hostname. Make sure the rest of your db creds are valid in your application secrets so that it can connect through local proxy being supplied by the cloudsql-proxy container.\nNote: Keep in mind I'm writing a tomcat java application and my docker-compose.yml reflects that.\ndocker-compose.yml:\nversion: '3'\nservices:\n  cloudsql-proxy:\n      container_name: cloudsql-proxy\n      image: gcr.io/cloudsql-docker/gce-proxy:1.11\n      command: /cloud_sql_proxy --dir=/cloudsql -instances=<YOUR INSTANCE ID HERE>=tcp:0.0.0.0:5432 -credential_file=/secrets/cloudsql/credentials.json\n      ports:\n        - 5432:5432\n      volumes:\n        - ./credentials.json:/secrets/cloudsql/credentials.json\n      restart: always\n\n  tomcatapp-api:\n    container_name: tomcatapp-api\n    build: .\n    volumes:\n      - ./build/libs:/usr/local/tomcat/webapps\n    ports:\n      - 8080:8080\n      - 8000:8000\n    env_file:\n      - ./secrets.env\n    restart: always\n\n",
+    "answer_id": 48431559,
+    "tags": [
+      "google-cloud-platform",
+      "google-compute-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 20433973,
+    "title": "Local MySQLdb connection fails with AttributeError for paramstyle when running GAE development server",
+    "question_text": "I'm building a GAE Flask application with Flask-Alchemy, against Cloud SQL, and running dev_appserver to test the application as I build it.\nHowever, if I set the SQLALCHEMY_DATABASE_URI to a mysql+gaerdbms:///appname?instance=instanceid URL, I get the following traceback when trying to call db.create_all():\nTraceback (most recent call last):\n  # earlier lines omitted for brevity\n  File \"/Project/app/foo.bar/foo/bar/admin/__init__.py\", line 26, in init_db\n    db.create_all()\n  File \"/Project/app/distlib/flask_sqlalchemy/__init__.py\", line 856, in create_all\n    self._execute_for_all_tables(app, bind, 'create_all')\n  File \"/Project/app/distlib/flask_sqlalchemy/__init__.py\", line 848, in _execute_for_all_tables\n    op(bind=self.get_engine(app, bind), tables=tables)\n  File \"/Project/app/distlib/flask_sqlalchemy/__init__.py\", line 797, in get_engine\n    return connector.get_engine()\n  File \"/Project/app/distlib/flask_sqlalchemy/__init__.py\", line 473, in get_engine\n    self._engine = rv = sqlalchemy.create_engine(info, **options)\n  File \"/Project/app/distlib/sqlalchemy/engine/__init__.py\", line 332, in create_engine\n    return strategy.create(*args, **kwargs)\n  File \"/Project/app/distlib/sqlalchemy/engine/strategies.py\", line 69, in create\n    dialect = dialect_cls(**dialect_args)\n  File \"/Project/app/distlib/sqlalchemy/dialects/mysql/base.py\", line 1986, in __init__\n    default.DefaultDialect.__init__(self, **kwargs)\n  File \"/Project/app/distlib/sqlalchemy/engine/default.py\", line 124, in __init__\n    self.paramstyle = self.dbapi.paramstyle\nAttributeError: 'module' object has no attribute 'paramstyle'\n\nWhat gives? Why is the (DB-API 2.0 required) paramstyle attribute missing?\n",
+    "question_score": 31,
+    "answer_text": "This means the MySQLdb module is missing and failed to import. The GAE SDK does not itself come with the MySQLdb client library; install MySQLdb (as instructed in the SDK documentation):\nvenv/bin/pip install mysql-python\n\nor use your OS package manager to install MySQLdb in your system python.\nThe error is caused by the Google google.appengine.api.rdbms_mysqldb module, acting as a stub, not having a paramstyle attribute when import MySQLdb fails. A stub connect() function is provided that'll raise a more helpful exception, but due to an unfortunate interaction with SQLAlchemy the error there is a lot less informative.\n",
+    "answer_id": 20433974,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "sqlalchemy",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 50828098,
+    "title": "Permissions For Google Cloud SQL Import Using Service Accounts",
+    "question_text": "I've exported MySQL Database following the MySQL Export Guide successfully. \nNow, I'm trying to import MySQL Database following the MySQL Import Guide.\nI've checked the permissions for the service_account_email I'm using, and I have allowed both Admin SQL and Admin Storage permissions. \nI was able to successfully activate my service account using this command locally:\ngcloud auth activate-service-account <service_account_email> --key-file=<service_account_json_file>  \n\nAfter I ran the command:\ngcloud sql import sql <instance> <gstorage_file> --database=<db_name> --async\n\nI got this information:\n{\n  \"error\": {\n    \"errors\": Array[1][\n      {\n        \"domain\": \"global\",\n        \"reason\": \"required\",\n        \"message\": \"Login Required\",\n        \"locationType\": \"header\",\n        \"location\": \"Authorization\"\n      }\n    ],\n    \"code\": 401,\n    \"message\": \"Login Required\"\n  }\n}\n\nOther Things I've Tried\nI also tried using the service_account_email of my SQL instance, which came from:\ngcloud sql instances describe <instance_name>\n\nBut, it seems to have the same error.\nQuestion\nBased on the REST API JSON error I'm given, how do I \"login\" using the service_account_email so I wouldn't get the 401 Error?\n",
+    "question_score": 25,
+    "answer_text": "Problem is about the permission of database instance service account to write on created bucket. Steps to solve this issue \n1) Go to your Cloud SQL Instance and copy service account of instance (Cloud SQL->{instance name}->OVERVIEW->Service account)\n2) After copy the service account, go the Cloud Storage Bucket where to want to dump and set desired permission to that account (Storage->{bucket name}->permissions->add member).     \n",
+    "answer_id": 53608811,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-sql",
+      "user-permissions",
+      "service-accounts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 55693241,
+    "title": "How to securely connect to Cloud SQL from Cloud Run?",
+    "question_text": "How do I connect to the database on Cloud SQL without having to add my credentials file inside the container?\n",
+    "question_score": 25,
+    "answer_text": "UPDATE: to connect to Cloud SQL from Cloud Run see the official documentation\n\nCloud SQL is now supported by the fully managed version of Cloud Run (Cloud Run on GKE users were already able to use Cloud SQL using a private IP)\nTo get started:\n\nif you do not have one already, create a Cloud SQL instance.\nmake sure that the Cloud SQL admin API is enabled\ndeploy a new revision of your Cloud Run service with gcloud alpha and the following flag:\n$ gcloud run services update --add-cloudsql-instances [INSTANCE_CONNECTION_NAME]\nWhere is INSTANCE_CONNECTION_NAME is of the type project:region:instancename.\n\nWhen you do this, Cloud Run will activate and configure the Cloud SQL proxy for you. You should then connect to it via the /cloudsql/[INSTANCE_CONNECTION_NAME] Unix socket.\n",
+    "answer_id": 55892255,
+    "tags": [
+      "google-cloud-sql",
+      "google-cloud-run"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 36454569,
+    "title": "Export from Google BigQuery into CloudSQL?",
+    "question_text": "I want to dump data from BigQuery (i.e. reports) into a CloudSQL database, what is the best way to achieve this programatically?\nI realise I could do this manually by running a BigQuery query, downloading it as a CSV, then uploading it through the Cloud console, but I want to do this programatically, preferably in Python/SQL.\n",
+    "question_score": 23,
+    "answer_text": "If you would like to dump entire tables, you can use a combination of the BigQuery and Cloud SQL APIs to achieve this.\nThe BigQuery documentation has an API example in python for extracting a BigQuery table to Cloud Storage.\nOnce the data is in Cloud Storage, you can use the Cloud SQL Admin API to import the data into a MySQL table.\nIf you need more granular control, you can use the BigQuery API to perform the query, fetch the results, connect to the Cloud SQL instance and insert the data. This won't perform as well if the amount of data is large.\nA more complex approach is to use Dataflow to write the data you are interested in to Cloud Storage and use the Cloud SQL API to import it.\n(For my own curiosity, can you describe the use case for wanting the data in Cloud SQL instead of BigQuery? It will help me/us understand how our customers are using our product and where we can improve.)\n",
+    "answer_id": 36464054,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-storage",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52352103,
+    "title": "Run node.js database migrations on Google Cloud SQL during Google Cloud Build",
+    "question_text": "I would like to run database migrations written in node.js during the Cloud Build process. \nCurrently, the database migration command is being executed but it seems that the Cloud Build process does not have access to connect to Cloud SQL via an IP address with username/password.\n",
+    "question_score": 22,
+    "answer_text": "In the case with Cloud SQL and Node.js it would look something like this:\nsteps:\n  # Install Node.js dependencies\n  - id: yarn-install\n    name: node:18\n    entrypoint: yarn\n    args: [\"install\", \"--frozen-lockfile\"]\n    waitFor: [\"-\"]\n\n  # Install Cloud SQL proxy\n  - id: proxy-install\n    name: node:18\n    entrypoint: sh\n    args:\n      - \"-c\"\n      - \"wget https://storage.googleapis.com/cloud-sql-connectors/cloud-sql-proxy/v2.4.0/cloud-sql-proxy.linux.amd64 -O cloud_sql_proxy && chmod +x cloud_sql_proxy\"\n    waitFor: [\"-\"]\n\n  # Migrate database schema to the latest version\n  - id: migrate\n    name: node:18\n    entrypoint: sh\n    args:\n      - \"-c\"\n      - \"mkdir /cloudsql; chmod 777 /cloudsql; (./cloud_sql_proxy --unix-socket /cloudsql <CLOUD_SQL_CONNECTION> & sleep 2) && yarn knex migrate:latest\"\n    timeout: \"1200s\"\n    waitFor: [\"yarn-install\", \"proxy-install\"]\ntimeout: \"1200s\"\n\nYou would launch yarn install and download Cloud SQL Proxy in parallel. Once these two steps are complete, you run launch the proxy, wait 2 seconds and finally run yarn knex migrate:latest.\nFor this to work you would need Cloud SQL Admin API enabled in your GCP project.\nWhere <CLOUD_SQL_INSTANCE> is your Cloud SQL instance connection name that can be found here. The same name will be used in your SQL connection settings, e.g. host=/cloudsql/example:us-central1:pg13.\nAlso, make sure that the Cloud Build service account has \"Cloud SQL Client\" role in the GCP project, where the db instance is located.\n",
+    "answer_id": 52366671,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-build"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 63543561,
+    "title": "BigQuery vs Cloud SQL for dashboards backend",
+    "question_text": "I'm a bit confused about BQ vs Cloud SQL use cases. I've got few Gbs of row data in BQ and need to build web dashboards on that data (SQL with JOINs over several tables).\nIs there a big downside of querying data right from BQ (e.g. latency or concurrency), and should I move data to Cloud SQL(pSQL) and query that?\nThe data isn't realtime. I expect at most few hundred concurrent requests.\nI don't expect high cost on this, thus query speed and reliability is the main goal.\nThanks!\n",
+    "question_score": 22,
+    "answer_text": "BigQuery is perfectly suited for storing and querying large data sets quickly.\nGoogle Cloud SQL on the other hand, is mainly based on Relational Database Management System (RDBMS) concepts. It provides support for MySQL and PostgreSQL.\nBig Query is however best suited for analytics but handling transactional data is possible as well. BigQuery is quite fast, certainly faster than Querying in CloudSQL because BigQuery is a Datawarehouse that has the ability to query absurdly large data sets to return results immediately. When you have to deal with really large data sets, then BigQuery will be the cheaper Database. Cloud SQL either MySQL or PostgreSQL can only handle up to 30,720 GB depending on the machine type for MySQL or depending on whether the instance has dedicated or shared vCPUs for PostgreSQL while BigQuery doesn\u2019t have this kind of storage limitation. Please also refer to other quotas and limitation of BigQuery.\nWith that being said, the charges can rack up quickly on BigQuery if you don't construct your queries properly since it traverses too much data too frequently.\nCloud SQL and BigQuery are priced differently, please refer to the pricing page of Cloud SQL and BigQuery for more details.\nI see this link that compares some of the features of BigQuery with CloudSQL. I think the details shared in the article may be helpful.\nGenerally, Cloud SQL is a relational database which is more intended for transactional purposes while BigQuery on the other hand is analytics data warehouse which is intended for analytics, data visualization, business intelligence and/or machine learning, etc. So, if your purpose is to store data for transactional purposes then Cloud SQL would be a choice, but, if you\u2019re storing data for analytical purposes then BigQuery is the way to go.\n",
+    "answer_id": 63585216,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 35043927,
+    "title": "Dealing with Concurrent Requests &amp; Connections in Cloud SQL",
+    "question_text": "We have created an app on App Engine using Datastore. Now we have been led to use Cloud SQL as we wanted to use joins, nested queries, and functions such as average, total etc. Data gets migrated from Datastore to Cloud SQL by daily Cron jobs.\nI was just going through the below links to know the basic details related to performance and limitations.\n\nhttps://cloud.google.com/sql/docs/diagnose-issues#data-issues\nhttps://cloud.google.com/sql/pricing#v1-pricing\nhttps://cloud.google.com/sql/faq#sizeqps\n\nSo far it looks like Tier D0 or D1 will serve the purpose that we intended.\nA few things that are confusing me:\nA) What is Pending Connection and how does it affect?\nNot sure if this throws 1033 Instance has too many concurrent requests when it exceeds 100. How do we handle this? Is it like we can create 250 connections but use only 100 at a time?\nB) 250 Concurrent Connections.\nShould throw error Too Many Connections if it exceeds 250\nC) Per app engine instance 12 concurrent connections per SQL Instance. How do we ensure that no more than 12 connections per app engine instance?\nI have gone through the following forums:\nWhat are the connection limits for Google Cloud SQL from App Engine, and how to best reuse DB connections?\nWhat's a good approach to managing the db connection in a Google Cloud SQL (GAE) Python app?\nBut people face certain issues with that.\nD) We got an OperationalError:\n\n(2013, \"Lost connection to MySQL server at 'reading initial communication packet', system error: 38\") error when we tried a test with 1000+ requests.\n\nWe have 1500+ people using our system concurrently and it looks like it will fail. So we are just confused if we can use Cloud SQL due to the above-mentioned issues. But solutions should be available though.\n",
+    "question_score": 22,
+    "answer_text": "In my company, we run a postgres database on Google Cloud SQL. We encountered a similar problem, and our solution consisted of using a proxy service that keeps a common pool of connectors for all the users.\nFor Postgres, this is called PgBouncer (https://www.pgbouncer.org/). After a short googling session I found ProxySQL (https://proxysql.com/) which is mentioned as a potential similar tool for MySQL (see: https://github.com/prisma/prisma/issues/3258).\nOn their website, ProxySQL also provides a schema that can help you understand how this service looks in practice.\n\n",
+    "answer_id": 74170004,
+    "tags": [
+      "python",
+      "mysql",
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 8952696,
+    "title": "Java Google App Engine and Google Cloud SQL running on local dev server",
+    "question_text": "I've been researching a solution to this all week and while there have been solutions to similar problems there are none that address and rectify this problem directly.\nI have created a web application project using Google App Engine and Google Cloud SQL.\nRunning the GAE application using the eclipse Google plugin and a local MySQL server the application works great.\nWhen running the application from the command line using:-\nsudo /opt/appengine-java-sdk-1.6.1/bin/dev_appserver.sh --jvm_flag=-Drdbms.server=local --jvm_flag=-Drdbms.driver=com.mysql.jdbc.Driver --jvm_flag=-Drdbms.url=jdbc:mysql://localhost:3306/twincam?user=root --port=7070 /home/ben/workspace/Twincam/war\n\nI get the following:-\njava.lang.IllegalStateException: java.lang.ClassNotFoundException: com.mysql.jdbc.Driver\nat com.google.appengine.api.rdbms.dev.LocalRdbmsServiceLocalDriver.registerDriver(LocalRdbmsServiceLocalDriver.java:95)\n\nI have the classpath referencing the mysql-connector.jar located in /Twincam/war/WEB-INF/lib/mysql-connector-java-5.1.18-bin.jar referenced by my user library as in the following .classpath file and directory structure :-\n   <?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<classpath>\n    <classpathentry kind=\"src\" path=\"src\"/>\n    <classpathentry kind=\"con\" path=\"com.google.appengine.eclipse.core.GAE_CONTAINER\"/>\n    <classpathentry kind=\"con\" path=\"org.eclipse.jdt.launching.JRE_CONTAINER\"/>\n    <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/mysql-connector-java-5.1.18-bin.jar\"/>\n    <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/gson-2.1-javadoc.jar\"/>\n    <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/gson-2.1-sources.jar\"/>\n    <classpathentry kind=\"lib\" path=\"war/WEB-INF/lib/gson-2.1.jar\"/>\n    <classpathentry kind=\"output\" path=\"war/WEB-INF/classes\"/>\n</classpath>\n\n\n\nUpdate: I checked file permissions and all are set at the default 664 so I'm confident that this is not the problem.\n",
+    "question_score": 19,
+    "answer_text": "I had the same problem.\nI solved it by dropping the mysql .jar in appengine-java-sdk-x.x.x/lib/impl.\n",
+    "answer_id": 9483485,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 40793222,
+    "title": "Connecting to multiple CloudSQL instances using Cloud sql proxy?",
+    "question_text": "I'm attempting to use the cloud sql proxy to connect to 2 different cloud sql instances...\nIn the docs I found a line about Use -instances parameter. For multiple instances, use a comma-separated list. but not sure how to make that look. https://cloud.google.com/sql/docs/sql-proxy. I'm using Google Container engine, and with a single CloudSQL instance it works great:\n- name: cloudsql-proxy\n  image: b.gcr.io/cloudsql-docker/gce-proxy:1.05\n  command: [\"/cloud_sql_proxy\", \"--dir=/cloudsql\",\n            \"-instances=starchup-147119:us-central1:first-db=tcp:3306\",\n            \"-credential_file=/secrets/cloudsql/credentials.json\"]\n  volumeMounts:\n  - name: cloudsql-oauth-credentials\n    mountPath: /secrets/cloudsql\n    readOnly: true\n  - name: ssl-certs\n    mountPath: /etc/ssl/certs\n\nBut for multiple I've tried the -instances section as such:\n-instances=starchup-147119:us-central1:first-db,starchup-147119:us-central1:second-db=tcp:3306  \nand  \n-instances=starchup-147119:us-central1:first-db=tcp:3306,starchup-147119:us-central1:second-db=tcp:3306\n\nbut they all give various errors; ECONNREFUSED 127.0.0.1:3306, ER_DBACCESS_DENIED_ERROR, and ER_ACCESS_DENIED_ERROR\nAny help is much appreciated!\n",
+    "question_score": 19,
+    "answer_text": "You cannot have two databases hosted on the same TCP port. Instead, specify ports for each database in the comma-separated list:\n-instances=project:region:db=tcp:3306,project:region:db-2=tcp:3307\n\nI used 3306 and 3307 here, but you can use any ports you want! Make sure that the rest of your Container Engine config allows for communication between nodes on these ports (maybe that's true by default, I don't use GKE).\nMost mysql drivers connect to port 3306 by default but have a way to specify another port. You'll have to arrange for your code to connect to the different port you choose for the second database.\n",
+    "answer_id": 40809664,
+    "tags": [
+      "mysql",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 66536427,
+    "title": "Incorrect Service Networking config for instance: xxxx:SERVICE_NETWORKING_NOT_ENABLED",
+    "question_text": "I'm trying to replicate a SQL instance in GCP via terraform. The active instance has a public IP, however subnets from a secondary project are shared with the project hosing the SQL instance, and the SQL instance is associated with the secondary project's network.\nI've added the private_network setting properly (I think) in the ip_configuration section, however I'm getting the following error:\n\nError: Error, failed to create instance xxxx: googleapi: Error 400: Invalid request: Incorrect Service Networking config for instance: xxxx:xxxxx:SERVICE_NETWORKING_NOT_ENABLED., invalid\n\nI can't find much documentation when I google that particular error, and I'm relatively new to Terraform, so I'm hoping someone can point out what I'm missing from either this section of my Terraform config, or another resource altogether.\nresource \"google_sql_database_instance\" \"cloudsql-instance-qa\" {\n  depends_on       = [google_project_service.project_apis]\n  database_version = \"MYSQL_5_7\"\n  name             = \"${var.env_shorthand}-${var.resource_name}\"\n  project          = var.project_id\n  region           = var.region\n\n  settings {\n    activation_policy = \"ALWAYS\"\n    availability_type = \"ZONAL\"\n\n    backup_configuration {\n      binary_log_enabled             = \"true\"\n      enabled                        = \"true\"\n      point_in_time_recovery_enabled = \"false\"\n      start_time                     = \"15:00\"\n    }\n\n    crash_safe_replication = \"false\"\n    disk_autoresize        = \"true\"\n    disk_size              = \"5003\"\n    disk_type              = \"PD_SSD\"\n\n    ip_configuration {\n      ipv4_enabled    = \"true\"\n      private_network = \"projects/gcp-backend/global/networks/default\"\n      require_ssl     = \"false\"\n    }\n\n    location_preference {\n      zone = var.zone\n    }\n\n    maintenance_window {\n      day  = \"7\"\n      hour = \"4\"\n    }\n\n    pricing_plan     = \"PER_USE\"\n    replication_type = \"SYNCHRONOUS\"\n    tier             = \"db-n1-standard-1\"\n  }\n}\n\n",
+    "question_score": 19,
+    "answer_text": "If you see the following error:\n\nError: Error, failed to create instance xxxx: googleapi: Error 400:\nInvalid request: Incorrect Service Networking config for instance:\nxxxx:xxxxx:SERVICE_NETWORKING_NOT_ENABLED., invalid\n\nEnable the Service Networking API:\ngcloud services enable servicenetworking.googleapis.com --project=[PSM_PROJECT_NUMBER]\n\nGetting Started with the Service Networking API\n",
+    "answer_id": 66537918,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "google-cloud-sql",
+      "terraform-provider-gcp",
+      "google-vpc"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 50138337,
+    "title": "Logging slow queries on Google Cloud SQL PostgreSQL instances",
+    "question_text": "The company I work for uses Google Cloud SQL to manage their SQL databases in production.\nWe're having performance issues and I thought it'd be a good idea (among other things) to see/monitor all queries above a specific threshold (e.g. 250ms).\nBy looking at the PostgreSQL documentation I think log_min_duration_statement seems like the flag I need.\n\nlog_min_duration_statement (integer)\nCauses the duration of each completed statement to be logged if the statement ran for at least the specified number of milliseconds. Setting this to zero prints all statement durations. \n\nBut judging from the Cloud SQL documentation I see that is only possible to set a narrow set of database flags (as in for each DB instance) but as you can see from here log_min_duration_statement is not among those supported flags.\nSo here comes the question. How do I log/monitor my slow PostgreSQL queries with Google Cloud SQL? If not possible then what kind of tool/methodologies do you suggest I use to achieve a similar result?\n",
+    "question_score": 18,
+    "answer_text": "April 3, 2019 UPDATE\nIt is now possible to log slow queries on Google Cloud SQL PostgreSQL instances, see https://cloud.google.com/sql/docs/release-notes#april_3_2019:\ndatabase_flags = [\n  {\n    name = \"log_min_duration_statement\"\n    value = \"1000\"\n  },\n]\n\nOnce you enable log_min_duration_statement, you can view the logs using Stackdriver logging. Select Cloud SQL Database -> cloudsql.googleapis.com/postgres.log and you will see the log like this.\n[103402]: [9-1] db=cloudsqladmin,user=cloudsqladmin LOG: duration: 11.211 ms statement: [YOUR SQL HERE]\n\nReferences:\n\nFull list of supported flags (CTRL+F for log_min_duration_statement): https://cloud.google.com/sql/docs/postgres/flags#postgres-l\nIssue tracker: https://issuetracker.google.com/issues/74578509#comment54\nPostgreSQL docs: https://www.postgresql.org/docs/9.6/runtime-config-logging.html#GUC-LOG-MIN-DURATION-STATEMENT\n\n",
+    "answer_id": 55575830,
+    "tags": [
+      "postgresql",
+      "performance",
+      "monitoring",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 22248880,
+    "title": "Datastore vs Cloud SQL in Google App Engine",
+    "question_text": "I want to build an application that will serve a lot of people (more than 2 million) so I think that I should use Google Cloud Datastore. However I also know that there is an option to use Google Cloud SQL and still serve a lot of people using mySQL (like what Facebook and Youtube do).\nIs this a correct assumption to use Datastore rather that the relational Cloud SQL with this many users? Thank you in advance \n",
+    "question_score": 17,
+    "answer_text": "It is not strictly true that Facebook and YouTube are using MySQL to serve the majority of their content to the majority of their users.  They both mainly use very large NoSQL stores (Cassandra and BigTable) for scalability, and probably use MySQL for smaller scale work that demands more complex relational storage.  Try to use Datastore if you can, because you can start for free and will also save money when handling large volumes of data.\n",
+    "answer_id": 22256569,
+    "tags": [
+      "mysql",
+      "database",
+      "google-app-engine",
+      "google-cloud-storage",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 64611122,
+    "title": "GCP Cloud SQL failed to delete instance because `deletion_protection` is set to true",
+    "question_text": "I have a tf script for provisioning a Cloud SQL instance, along with a couple of dbs and an admin user. I have renamed the instance, hence a new instance was created but terraform is encountering issues when it comes to deleting the old one.\nError: Error, failed to delete instance because deletion_protection is set to true. Set it to false to proceed with instance deletion\n\nI have tried setting the deletion_protection to false but I keep getting the same error. Is there a way to check which resources need to have the deletion_protection set to false in order to be deleted?\nI have only added it to the google_sql_database_instance resource.\nMy tf script:\n// Provision the Cloud SQL Instance\nresource \"google_sql_database_instance\" \"instance-master\" {\n  name             = \"instance-db-${random_id.random_suffix_id.hex}\"\n  region           = var.region\n  database_version = \"POSTGRES_12\"\n\n  project = var.project_id\n\n  settings {\n    availability_type = \"REGIONAL\"\n    tier              = \"db-f1-micro\"\n    activation_policy = \"ALWAYS\"\n    disk_type         = \"PD_SSD\"\n\n    ip_configuration {\n      ipv4_enabled    = var.is_public ? true : false\n      private_network = var.network_self_link\n      require_ssl     = true\n\n      dynamic \"authorized_networks\" {\n        for_each = toset(var.is_public ? [1] : [])\n\n        content {\n          name  = \"Public Internet\"\n          value = \"0.0.0.0/0\"\n        }\n      }\n    }\n\n    backup_configuration {\n      enabled = true\n    }\n\n    maintenance_window {\n      day  = 2\n      hour = 4\n\n      update_track = \"stable\"\n    }\n\n    dynamic \"database_flags\" {\n      iterator = flag\n      for_each = var.database_flags\n\n      content {\n        name  = flag.key\n        value = flag.value\n      }\n    }\n\n    user_labels = var.default_labels\n  }\n\n  deletion_protection = false\n  depends_on          = [google_service_networking_connection.cloudsql-peering-connection, google_project_service.enable-sqladmin-api]\n}\n\n// Provision the databases\nresource \"google_sql_database\" \"db\" {\n  name     = \"orders-placement\"\n  instance = google_sql_database_instance.instance-master.name\n  project  = var.project_id\n}\n\n// Provision a super user\nresource \"google_sql_user\" \"admin-user\" {\n  name     = \"admin-user\"\n  instance = google_sql_database_instance.instance-master.name\n  password = random_password.user-password.result\n  project  = var.project_id\n}\n\n// Get latest CA certificate\nlocals {\n  furthest_expiration_time = reverse(sort([for k, v in google_sql_database_instance.instance-master.server_ca_cert : v.expiration_time]))[0]\n  latest_ca_cert           = [for v in google_sql_database_instance.instance-master.server_ca_cert : v.cert if v.expiration_time == local.furthest_expiration_time]\n}\n\n// Get SSL certificate\nresource \"google_sql_ssl_cert\" \"client_cert\" {\n  common_name = \"instance-master-client\"\n  instance    = google_sql_database_instance.instance-master.name\n}\n\n",
+    "question_score": 17,
+    "answer_text": "Seems like your code going to recreate this sql-instance. But your current tfstate file contains an instance-code with true value for deletion_protection parameter. In this case, you need first of all change value of this parameter to false manually in tfstate file or by adding deletion_protection = true in the code with running terraform apply command after that (beware: your code shouldn't do a recreation of the instance). And after this manipulations, you can do anything with your SQL instance\n",
+    "answer_id": 64911997,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 49547602,
+    "title": "Can&#39;t import PostgreSQL10 dump into 9.6 database",
+    "question_text": "I need to somehow convert a v10 dump file into one which is 9.6 compatible \nGoogle's Cloud SQL runs PostgreSQL version 9.6 and my database has been running on version 10 since its creation. \nTHE ISSUE: When trying to import the database into Cloud SQL, I get the an unknown error has occurred. message of death.\nI have already tried commenting out my postgis / other extensions when importing to Cloud SQL but, to no avail.\nI have tried using using psql my_96_db < my_10.sql and get tons of errors like this:\n...\nCREATE TABLE\nERROR:  syntax error at or near \"AS\"\nLINE 2:     AS integer\n            ^\nERROR:  relation \"authentication_phonecontact_id_seq\" does not exist\nCREATE TABLE\n...\n\nI have tried using postgres 9.6's pg_restore on my v10 pg_dump -Fc command, but it will not successfully import into a 9.6 database. An example of one of the many failures in the output is \npg_restore: [archiver (db)] could not execute query: ERROR:  relation \"public.authentication_referral_id_seq\" does not exist\nLINE 1: SELECT pg_catalog.setval('public.authentication_referral_id_...\n                                 ^\n    Command was: SELECT pg_catalog.setval('public.authentication_referral_id_seq', 1, false);\n\n",
+    "question_score": 16,
+    "answer_text": "Judging from the error messages you show, you'll have to edit the SQL dump and remove all occurrences of AS integer from all CREATE SEQUENCE statements.\nThe AS data_type clause of CREATE SEQUENCE is new in PostgreSQL v10, and older server versions will not understand it.\n",
+    "answer_id": 49550075,
+    "tags": [
+      "postgresql",
+      "version",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 36410483,
+    "title": "Getting notAuthorized error with cloud_sql_proxy locally",
+    "question_text": "I'm trying to setup a connection locally for 2nd generation cloud sql instance.\nCall for the proxy is\n./cloud_sql_proxy -dir=/cloudsql -instances=status-1268:us-central1:status-dev=tcp:3306 & mysql -u status_stg --host 127.0.0.1\n\nI am a bit unclear on how to set up correctly the service accounts from the API section, so I tried with both of the defaults, App engine default service account and Compute engine default service account. I also created a new one service account. For each one of them I assigned the service account ID to be Editor and Owner from the manage permissions section. Perhaps there is another way to enable Cloud SQL Admin API for these accounts?\nOutput from proxy when my service tries to talk to DB:\n./cloud_sql_proxy -dir=/cloudsql -instances=status-1268:us-central1:status-   dev=tcp:3306 & mysql -u status_stg --host 127.0.0.1\nERROR 2003 (HY000): Can't connect to MySQL server on '127.0.0.1' (61)\n2016/04/04 11:26:58 Open socket for \"status-1268:us-central1:status-dev\" at     \"127.0.0.1:3306\"\n2016/04/04 11:26:58 Socket prefix: /cloudsql\n2016/04/04 11:27:10 Got a connection for \"status-1268:us-central1:status-dev\"\n2016/04/04 11:27:11 couldn't connect to \"status-1268:us-central1:status-dev\": googleapi: Error 403: The client is not authorized to make this request., notAuthorized\n2016/04/04 11:29:08 Got a connection for \"status-1268:us-central1:status-dev\"\n2016/04/04 11:29:08 couldn't connect to \"status-1268:us-central1:status-dev\": googleapi: Error 403: The client is not authorized to make this request., notAuthorized\n\nThoughts on what to look for? I think I am missing something basic here configuring the service accounts.\n(Overall, for my project I am running a node.js express app and hoping to connect it to 2nd gend cloud sql DB instance without having to expose it with 0.0.0.0 as I currently have working)\nThanks\n",
+    "question_score": 16,
+    "answer_text": "Please double check the connection string. It sounds like your credentials are in order, so it's likely you have an error in the instance name. \nI recommend copying & pasting the \"Instance connection name\" from the Cloud Console page for the instance:\n\n",
+    "answer_id": 36412365,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52243652,
+    "title": "GCP SQL Postgres problem with privileges : can&#39;t run a query with postgres user with generated symfony db",
+    "question_text": "I am struggling to solve this problem with Google Cloud Platform's Cloud SQL component. My tech stack consists of hosting my application in a Google Kubernetes Engine (GKE) deployment, using the Cloud SQL proxy sidecar to connect to the database within the pods. The backend is a Symfony project.\nI follow these steps to create and populate the database (without success):\n\nCreate Cloud SQL Postgres instance\nAdd proxy to k8s container to connect to the Cloud SQL instance with all credentials, as described in the GCP documentation\nEnter my Symfony (phpfpm) pod and run the command php bin/console doctrine:schema:update --force to update the schema. The queries are executed in the database, so the schema is created and so on.\nI try to open the database from the SQL console connection within GCP with the postgres user and try to execute a simple select * from foo; query. The response is Insufficient privilege: 7 ERROR:  permission denied for relation\n\nHow can I query the data in the database with the postgres user?\nEDIT :\nI have this situation about users :\n     Role name     |                         Attributes                         |           Member of           \n-------------------+------------------------------------------------------------+-------------------------------\n acando14          | Create role, Create DB                                     | {cloudsqlsuperuser,proxyuser}\n cloudsqladmin     | Superuser, Create role, Create DB, Replication, Bypass RLS | {}\n cloudsqlagent     | Create role, Create DB                                     | {cloudsqlsuperuser}\n cloudsqlreplica   | Replication                                                | {}\n cloudsqlsuperuser | Create role, Create DB                                     | {}\n postgres          | Create role, Create DB                                     | {cloudsqlsuperuser,acando14}\n proxyuser         | Create role, Create DB                                     | {cloudsqlsuperuser}\n\nAnd I have this situation in the tables :\n              List of relations\n Schema |      Name       | Type  |  Owner   \n--------+-----------------+-------+----------\n public | article         | table | acando14\n\nIf I use postgres user logged in my db symfony works :\nsymfony => select * from article;\n id | model_id | code | size \n----+----------+------+------\n(0 rows)\n\nBut if I use the server to execute the code the response is :\n\nSQLSTATE[42501]: Insufficient privilege: 7 ERROR: permission denied\n  for relation employee at PDOException(code: 42501): SQLSTATE[42501]:\n  Insufficient privilege: 7 ERROR: permission denied for relation .. at\n\nAnd another problem is that I didn't generate all the tables with the command but I have to generate it executing all the queries, so strange...\nThank you, regards\n",
+    "question_score": 16,
+    "answer_text": "The default postgres user in Google Cloud Platform's (GCP) Cloud SQL (PostgreSQL) is not a superuser of the instance (GCP docs link):\n\nWhen you create a new Cloud SQL for PostgreSQL instance... the postgres user is part of the cloudsqlsuperuser role, and has the following attributes (privileges): CREATEROLE, CREATEDB, and LOGIN. It does not have the SUPERUSER or REPLICATION attributes.\n\nThe superuser attribute grants a user the ability to bypass all permissions checks and, accordingly, it can go anywhere in the database instance to read data from any database (PostgreSQL docs link):\n\nA database superuser bypasses all permission checks, except the right to log in.\n\nIn a typical PostgreSQL deployment outside GCP, the postgres user is indeed a superuser. This deviation in Cloud SQL breaks with the normal convention expected of Postgres that the postgres user can always access and mutate any object in the cluster by virtue of those superuser rights.\nWithout this privilege, you will need to be more careful about the roles used when creating database objects and the role used when attempting to access them, either interactively at the Postgres shell or programmatically in your application.\nI assume you are using a separate, dedicated user for your k8s deployment to connect to the database, rather than the postgres user. By default, that user's role will own the objects created by the schema population operation. Per the GRANT documentation, this owner will by default have the full suite of privileges over the object:\n\nIf the \u201cAccess privileges\u201d column is empty for a given object, it means the object has default privileges (that is, its privileges column is null). Default privileges always include all privileges for the owner...\n\n\nAlternatives\n\n(Recommended) Create a dedicated role which can be shared between the postgres user and whatever other user(s) you log into the database with to populate its schema.\nConfigure the operation which populates the database objects in the schema creation operation to set its role prior to creating the objects to this shared role, such that all users have the ability to access, manage and view these objects. By default, new roles have the INHERIT attribute set, which means attempts to access the objects created by the role will succeed for members of the role in future.\nFor example, you could use the cloudsqlsuperuser role for this purpose, of which all users created in the console and the postgres built-in are automatically members. However, I would recommend creating a custom role for the purpose:\nCREATE ROLE symfonyapp;\nGRANT symfonyapp TO postgres;\nGRANT symfonyapp TO <your_k8s_application_user>;\n\nLater, when creating database objects, ensure you assume the symfonyapp role before doing so. At the console, run:\nSET ROLE symfonyapp;\n\nwhen logged in as a user to which the symfonyapp role has been granted. You should review the documentation of the libraries you are using to ascertain how to set the role when connecting to the database programmatically.\nCreate a role as above, and assign it to the postgres user. Additionally, give the role the LOGIN attribute and set a password, which permits you to log into the database instance using the role name and a password directly. In this case, the postgres user inherits privileges of the role (such as objects it owns), and the ability to log in directly obviates the need to call SET ROLE on first connection.\nFor objects already created, you can adjust their ownership to your custom role using the command ALTER <TYPE> <name> OWNER TO symfonyapp; for example:\nALTER TABLE mytable OWNER TO symfonyapp;\n\n\nIt is not possible to directly grant the SUPERUSER role attribute to the postgres user, as you do not have access to a user with SUPERUSER privileges to do so! (Only superusers can make other users superusers.) The Google Cloud SQL for Postgres documentation notes a specific exclusion of support for any features which require superuser privileges, so this route is not available to you. The only superuser is the cloudsqladmin user, created by default and used by Google to perform instance-level administrative operations on your behalf; you could reset the password and login as this account to grant superuser privileges, but I do not recommend doing so as this is likely to break other managed functions.\n\nWorked example\nThe default set of roles present in a newly-created database cluster is as follows:\n                                        List of roles\n     Role name     |                         Attributes                         |      Member of\n-------------------+------------------------------------------------------------+---------------------\n cloudsqladmin     | Superuser, Create role, Create DB, Replication, Bypass RLS | {}\n cloudsqlagent     | Create role, Create DB                                     | {cloudsqlsuperuser}\n cloudsqlreplica   | Replication                                                | {}\n cloudsqlsuperuser | Create role, Create DB                                     | {}\n postgres          | Create role, Create DB                                     | {cloudsqlsuperuser}\n\nMoreover, new databases created using the \"Databases\" tab in the Cloud Console have ownership assigned, by default, to the cloudsqlsuperuser role. (As shown in the above role listing, the cloudsqlsuperuser role is inherited by the postgres user.)\n                                  List of databases\n  Name  |       Owner       | Encoding |  Collate   |   Ctype    | Access privileges\n--------+-------------------+----------+------------+------------+-------------------\n testdb | cloudsqlsuperuser | UTF8     | en_US.UTF8 | en_US.UTF8 |\n\nAccordingly, members of the cloudsqlsuperuser role will have permissions to create objects in the database by default. However, when doing so, they will by default have their owner set to the user which created them, rather than the parent role: \ntestdb=> CREATE TABLE sometable (id SERIAL NOT NULL);\nCREATE TABLE\ntestdb=> \\dt sometable\n           List of relations\n Schema |   Name    | Type  |  Owner\n--------+-----------+-------+----------\n public | sometable | table | testuser\n\nIf we call SET ROLE cloudsqlsuperuser before creating our table, the owner will now default to the cloudsqlsuperuser role, which will allow postgres and other members of the role the default permissions assigned to the role by default:\nYou can also use triggers and other approaches to set the role automatically on table creation.\ntestdb=> SET ROLE cloudsqlsuperuser;\nSET\ntestdb=> CREATE TABLE anothertable (id SERIAL NOT NULL);\nCREATE TABLE\ntestdb=> \\dt anothertable;\n                 List of relations\n Schema |     Name     | Type  |       Owner\n--------+--------------+-------+-------------------\n public | anothertable | table | cloudsqlsuperuser\n(1 row)\n\nFor production usage, as noted in the \"Alternatives\" section, I recommend using a dedicated role rather than the built-in cloudsqlsuperuser role.\n",
+    "answer_id": 52244674,
+    "tags": [
+      "php",
+      "postgresql",
+      "symfony",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 56742056,
+    "title": "Accessing Cloud SQL from another GCP project",
+    "question_text": "I want to connect to Cloud SQL from a different GCP project.\nCloud SQL is location in ProjectSQL and a VPC network is there in ProjectSQL project with name sql_vpc\nThere is another project ProjectDataflow and this has a vpc dataflow_vpc. I want to connect to cloudSQL from ProjectSQL with the VM launched in ProjectDataflow project\nThings I have tried with success and failure.\nPrivate ACCESS:\nVPC Peering:\nEnable Private IP access in Cloud with the vpc sql_vpc\nCreating VPC peering between dataflow_vpc and sql_vpc\nThis solution does not work because you can not access the Peered Network.\nhttps://cloud.google.com/sql/docs/mysql/private-ip\nStatus: FAILED\n\nShared Network\nAs per doc I can create the CloudSQL in shared VPC network, that says I \nhave to create the CloudSQL in host project, and to access the Cloud \nSQL from  VM instance, it has be in the same network as of authorized \nprivate ip network of Cloud SQL\nStatus: NOT TRIED but looks to be Negative\n\nPublic Access:\nCreate a Cloud NAT in ProjectDataflow with dataflow_vpc with manual IP\nUse the Cloud NAT public ip to whitelist in CloudSQL instance\nNow I can access the CloudSQL from project ProjectDataflow using CloudSQL Public IP\nSTATUS: Success\n\nPlease share your experience accessing Cloud SQL from another project.\nIs there any best practice to connect cloud SQL from another gcp project?\n",
+    "question_score": 16,
+    "answer_text": "EDIT:\nNewer instances seem to be having this option enabled by default and there's no need to contact support anymore. However, if after all the process, the setup is still not working, it may be needed to contact support.\nIMPORTANT: The VPC peering option will not work anymore, as stated in the documentation, more precisely in the Considerations topic. Then the only available option to achieve it is using Shared VPCs\nThe process of interconnecting a Cloud SQL with another GCP project it is pretty straightforward following the documentation. The only thing you need to take into consideration in order to make it work is that you will have to request Google Cloud Support to enable custom routes for your Cloud SQL speckle umbrella instance in which your Cloud SQL is running under otherwise you won\u2019t be able to access your Cloud SQL within your GCP project.\nThe following steps will work for you:\n-Configuring VPC for Cloud SQL instance\n\nInside the project where you have your Cloud SQL instance, create a\n  VPC network with the ip address range of your desire. Choose the same\n  zone for the VPC in which your instance is located.\n\n-Configuring VPC for GCP project\n\nNow switch to the project where your CloudDataflow instance is located\n  and follow the same process. Create the VPC network being careful that\n  the IP ranges do not collide between each other. You can use the following tool to\n  check if the IP addresses range collide. Also take into consideration\n  that both VPC networks must be in the same zone.\n\n-Connecting VPC of both projects with peering\n\nOnce both VPC networks are created it is needed to configure the VPC\n  network peering from both projects.  From the Cloud SQL instance side,\n  configure the peering specifying the project and VPC network name to\n  connect with and also select the option to export custom routes. This\n  way the other part of the peering, in this case your GCP project, will\n  have visibility of your Cloud SQL instance. Now, from the GCP project\n  side, configure the peering specifying the Cloud SQL project name and\n  the VPC network name to connect with. The same way we did with the\n  Cloud SQL peering, we have to set up the peering to import custom\n  routes as it will receive exported routes coming from the other side\n  of the connection, which in our case is your Cloud SQL instance.\n\nHere you can check more information about importing and exporting routes between any VPC network peerings.\n-Request Google Cloud Support to enable for you the exchange custom routes for your Cloud SQL\n\nReach Google Cloud Support and ask them to enable the exchange of\n  custom routes for your speckle-umbrella VPC network associated with\n  your instance that is automatically created upon the Cloud SQL\n  instance is created.\n\nTake into consideration that this last step is very important, all SQL projects run under the umbrella project, hence without requesting Google Cloud Support to enable the exchange custom routes for your instance this will never work.\nShared VPC\nAs for Shared VPC, the only thing you need to take into consideration is that you need to enable the option once creating your Cloud SQL instance as you can\u2019t add it afterwards.\nYou will find a configuration guide for Shared VPC in the following link.\n",
+    "answer_id": 56757764,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-networking"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 24749810,
+    "title": "How to make a Google Cloud SQL Instance accessible for any IP address?",
+    "question_text": "I have just created a Google Cloud SQL instance. When I was looking on the access control of my instance, I found that if I want to access my database, I should authorize my IP address to get the right to access the database, but the problem is that my application will be deployed anywhere where the clients need, and even if I know where they will run the application and also I authorized their IP address, it (the IP) will be changed at least one time every 24 hours because it is not static IP, and then I have to re-authorize the IP again and again!\nIs there any way to make the instance accessible from any IP? \nThanks\n",
+    "question_score": 14,
+    "answer_text": "You can whitelist any subnet. You just need to enter it using CIDR notation: http://en.wikipedia.org/wiki/Cidr\nIn particular, you can whitelist 0.0.0.0/0 which includes all possible IP Address.\nPlease note that this is not recommended for security reasons. You want your access to be as restricted as possible.\n",
+    "answer_id": 24750403,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 10905861,
+    "title": "GAE DataStore vs Google Cloud SQL for Enterprise Management Systems",
+    "question_text": "I am building an application that is an enterprise management system using gae. I have built several applications using gae and the datastore, but never one that will require a high volume of users entering transactions along with the need for administrative and management reporting. My biggest fear is that when I need to create cross-tab and other detailed reports (or business intelligence reporting and data manipulation) I will be facing a mountain of problems with gae's datastore querying and data pull limits. Is it really just architectural preference or are there quantitative concerns here?\nIn the past I have built systems using C++/c#/Java against an Oracle/MySql/MSSql (with a caching layer sprinkled in for some added performance on complex or frequently accessed db results).\nI keep reading that we are to throw away the old mentality of relational data and move to the new world of the big McHashTable in the sky... but new isnt always better... Any insight or experience on the above would be helpful.\n",
+    "question_score": 14,
+    "answer_text": "From the Cloud SQL FAQ:\n\nShould I use Google Cloud SQL or the App Engine Datastore?\nThis depends on the requirements of the application. Datastore provides NoSQL key-value  > storage that is highly scalable, but does not support the complex queries offered by a SQL database. Cloud SQL supports complex queries and ACID transactions, but this means the database acts as a \u2018fixed pipe\u2019 and performance is less scalable. Many applications use both types of storage.\n\nIf you need a lot of writes (~XXX per/s) to db entity w/ distributed keys, that's where the Google App Engine datastore really shine.\nIf you need support for complex and random user crafted queries, that's where Google Cloud SQL is more convenient.\n",
+    "answer_id": 10916982,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-datastore",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 14127532,
+    "title": "Retrieving Automated Google Cloud SQL Backups",
+    "question_text": "My team has a requirement that we be able to retrieve a backup of our database (hosted on Google Cloud SQL) and restore that database to a locally hosted instance of MySQL. \nI know that Google Cloud SQL has the ability to schedule backups, but these don't appear to be available to download anywhere. \nI also know that we are able to \"export\" our database to Google Cloud Storage, but we'd like to be able to schedule the \"export\".\nThe end goal here is to execute the following steps in some sort of an admin script:\n\nAutomatically backup our database that is hosted on Google Cloud SQL.\nDownload the backup to a local (not cloud) server.\nRestore backup to a local instance of MySQL. \n\nAny ideas?\n",
+    "question_score": 13,
+    "answer_text": "gcloud sdk commands now provide import/export functionality:\ngcloud sql export sql <DATABASE_INSTANCE> \\\n    gs://<CLOUD_STORAGE_BUCKET>/cloudsql/export.sql.gz \\\n    --database <DATABASE_NAME>\n\nThis export can be downloaded using gsutil. It can also be imported using mysqlimport\n",
+    "answer_id": 35706416,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 47624181,
+    "title": "Best way to import Google Cloud SQL data into BigQuery",
+    "question_text": "I have a database in a Cloud SQL instance. I would like to copy its content into BigQuery in order to perform analysis.\nIt is not a requirement for me to continuously update the BigQuery dataset. It is OK if the export is done only once.\nWhat is the best way to achieve this?\nThe 'Create Table' BigQuery UI does not allow me to import from Cloud SQL (only File, Cloud Storage, Drive or BigTable).\n",
+    "question_score": 12,
+    "answer_text": "Up to now, there is no automated tool to import data into BigQuery from Cloud SQL, so a procedure you can follow consists in:\n\nExport the data from the table you want in your Cloud SQL instance in CSV format, as explained in the documentation.\nImport the CSV data into the BigQuery table you want following the procedure also explained in the documentation.\n\nYou are done. If your database is large and has many tables, you may want to do the import programatically, using the API.\n",
+    "answer_id": 47669897,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52760307,
+    "title": "Connect a Google CloudSQL Postgres database to Data Studio",
+    "question_text": "I am trying to connect a Postgres database hosted in a google Cloud Sql instance to Data Studio. \nI have followed the instructions (found here https://support.google.com/datastudio/answer/7288010) but to my disappointment, I still cannot connect to the database from Data Studio.\nI think the problem lies with the SSL connection, as if I enable \"non-secure connections\" in the options in CloudSql I can successfully connect from Data Studio.\nI have created the 3 files required for the ssl connection to work:\n\nClient certificate \nClient key\nServer certificate\n\nI have uploaded them in the relevant fields in the Data Studio connection page:\n\nWhen I press authenticate I get an error saying:\n\nPlease make sure that the private key is in PKCS8 format.\n\nI tried changing the format of the client key file by running:\n\nopenssl pkcs8 -topk8 -inform PEM -outform DER -in client-key.pem -out client-key.pkcs8 -nocrypt\n \nbut then I get an error:\n\nCan't reach the host. Please double check your connection parameters. Learn more about database connectors here.\n\nFinally it must be noted that if I try to connect to the database from my local machine using ssl and the exact same keys, but the client key in the pem format, I can connect successfully.\nShould I convert the certificate to other formats too?\nI feel like connecting a Postgres db to Data Studio over SSL is something that shouldn't be that difficult, am I missing something obvious?\nAny help would be greatly appreciated.\nThanks.\n",
+    "question_score": 12,
+    "answer_text": "Eventually it turns out that just changing the format of the client key works.\nThe reason the above didn't work was that the command to change the format was wrong.\nIt should be:\nopenssl pkcs8 -topk8 -inform PEM -outform PEM -in client-key.pem -out client-key.key -nocrypt\n\n(notice the PEM instead of DER parameter that is posted in the question).\nSo Data Studio connection works! Happy days!\n",
+    "answer_id": 52764079,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql",
+      "pem",
+      "looker-studio",
+      "pkcs#8"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 49547016,
+    "title": "How to run Google Cloud SQL only when I need it?",
+    "question_text": "Google Cloud SQL advertises that it's only $0.0150 per hour for the smallest machine type, and I'm being charged for every hour, not just hours that I'm connected.  Is this because I'm using a pool?  How do I setup my backend so that it queries the cloud db only when needed so I don't get charged for every hour of the day?\nconst mysql      = require('mysql');\nconst pool = mysql.createPool({\n    host : process.env.SQL_IP,\n    user     : 'root',\n    password : process.env.SQL_PASS,\n    database : 'mydb',\n    ssl      : {\n          [redacted]\n    }\n});\n\nfunction query(queryStatement, cB){\n  pool.getConnection(function(err, connection) {\n    // Use the connection\n    connection.query(queryStatement, function (error, results, fields) {\n      // And done with the connection.\n      connection.destroy();\n      // Callback\n      cB(error,results,fields);\n\n    });\n  });\n}\n\n",
+    "question_score": 12,
+    "answer_text": "This is not so much about the pool as it is about the nature of Cloud SQL. Unlike App Engine, Cloud SQL instances are always up. I learned this the hard way one Saturday morning when I'd been away from the project for a week. :)\nThere's no way to spin them down when they're not being used, unless you explicitly go stop the service.\nThere's no way to schedule a service stop, at least within the GCP SDK. You could alway write a cron job, or something like that, that runs a little gcloud sql instances patch [INSTANCE_NAME] --activation-policy NEVER command at, for example, 6pm local time, M-F. I was too lazy to do that, so I just set a calendar reminder for myself to shut down my instance at the end of my workday.\nHere's the MySQL Instance start/stop/restart page for the current SDK's docs:\nhttps://cloud.google.com/sql/docs/mysql/start-stop-restart-instance\nOn an additional note, there is an ongoing 'Feature Request' in the GCP Platform to start/stop the Cloud SQL (2nd Gen), according to the traffic as well. You can also visit the link and provide your valuable suggestions/comments there as well.\n",
+    "answer_id": 49548249,
+    "tags": [
+      "javascript",
+      "mysql",
+      "node.js",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 10424442,
+    "title": "What are the connection limits for Google Cloud SQL from App Engine, and how to best reuse DB connections?",
+    "question_text": "I have a Google App Engine app that uses a Google Cloud SQL instance for storing data.  I need my instance to be able to serve hundreds of clients at a time, via restful calls, which each result in one or a handful of DB queries. I've wrapped the methods that need DB access and store the handle to the DB connection in os.environ.  See this SO question/answer for basically how I'm doing it. \nHowever, as soon as a couple hundred clients connect to my app and trigger database calls, I start getting these errors in the Google App Engine error logs (and my app returns 500, of course):\ncould not connect: ApplicationError: 1033 Instance has too many concurrent requests: 100 Traceback (most recent call last): File \"/base/python27_run\n\nAny tips from experienced users of Google App Engine and Google Cloud SQL?  Thanks in advance.\nHere's the code for the decorator I use around methods that require DB connection:\ndef with_db_cursor(do_commit = False):\n    \"\"\" Decorator for managing DB connection by wrapping around web calls.\n    Stores connections and open connection count in the os.environ dictionary\n    between calls.  Sets a cursor variable in the wrapped function. Optionally\n    does a commit.  Closes the cursor when wrapped method returns, and closes\n    the DB connection if there are no outstanding cursors.\n\n    If the wrapped method has a keyword argument 'existing_cursor', whose value\n    is non-False, this wrapper is bypassed, as it is assumed another cursor is\n    already in force because of an alternate call stack.\n\n    Based mostly on post by : Shay Erlichmen\n    At: https://stackoverflow.com/a/10162674/379037\n    \"\"\"\n\n    def method_wrap(method):\n        def wrap(*args, **kwargs):\n            if kwargs.get('existing_cursor', False):\n                #Bypass everything if method called with existing open cursor\n                vdbg('Shortcircuiting db wrapper due to exisiting_cursor')\n                return  method(None, *args, **kwargs)\n\n            conn = os.environ.get(\"__data_conn\")\n\n            # Recycling connection for the current request\n            # For some reason threading.local() didn't work\n            # and yes os.environ is supposed to be thread safe \n            if not conn:                    \n                conn = _db_connect()\n                os.environ[\"__data_conn\"] = conn\n                os.environ[\"__data_conn_ref\"] = 1\n                dbg('Opening first DB connection via wrapper.')\n            else:\n                os.environ[\"__data_conn_ref\"] = (os.environ[\"__data_conn_ref\"] + 1)\n                vdbg('Reusing existing DB connection. Count using is now: {0}',\n                    os.environ[\"__data_conn_ref\"])        \n            try:\n                cursor = conn.cursor()\n                try:\n                    result = method(cursor, *args, **kwargs)\n                    if do_commit or os.environ.get(\"__data_conn_commit\"):\n                        os.environ[\"__data_conn_commit\"] = False\n                        dbg('Wrapper executing DB commit.')\n                        conn.commit()\n                    return result                        \n                finally:\n                    cursor.close()                    \n            finally:\n                os.environ[\"__data_conn_ref\"] = (os.environ[\"__data_conn_ref\"] -\n                        1)  \n                vdbg('One less user of DB connection. Count using is now: {0}',\n                    os.environ[\"__data_conn_ref\"])\n                if os.environ[\"__data_conn_ref\"] == 0:\n                    dbg(\"No more users of this DB connection. Closing.\")\n                    os.environ[\"__data_conn\"] = None\n                    db_close(conn)\n        return wrap\n    return method_wrap\n\ndef db_close(db_conn):\n    if db_conn:\n        try:\n            db_conn.close()\n        except:\n            err('Unable to close the DB connection.', )\n            raise\n    else:\n        err('Tried to close a non-connected DB handle.')\n\n",
+    "question_score": 12,
+    "answer_text": "Short answer:\n  Your queries are probably too slow and the mysql server doesn't have enough threads to process all of the requests you are trying to send it.\nLong Answer:\nAs background, Cloud SQL has two limits that are relevant here:\n\nConnections: These correspond to the 'conn' object in your code.  There is a corresponding datastructure on the server.  Once you have too many of these objects (currently configured to 1000), the least recently used will automatically be closed.  When a connection gets closed underneath you, you'll get an unknown connection error (ApplicationError: 1007) the next time you try to use that connection.\nConcurrent Requests: These are queries that are executing on the server.  Each executing query ties up a thread in the server, so there is a limit of 100.  When there are too many concurrent requests, subsequent requests will be rejected with the error you are getting (ApplicationError: 1033)\n\nIt doesn't sound like the connection limit is affecting you, but I wanted to mention it just in case.\nWhen it comes to Concurrent Requests, increasing the limit might help, but it usually makes the problem worse.  There are two cases we've seen in the past:\n\nDeadlock: A long running query is locking a critical row of the database.  All subsequent queries block on that lock.  The app times out on those queries, but they keep running on the server, tying up those threads until the deadlock timeout triggers.\nSlow Queries: Each query is really, really slow.  This usually happens when the query requires a temporary file sort.  The application times out and retries the query while the first try of the query is still running and counting against the concurrent request limit.  If you can find your average query time, you can get an estimate of how many QPS your mysql instance can support (e.g. 5 ms per query means 200 QPS for each thread.  Since there are 100 threads, you could do 20,000 QPS.  50 ms per query means 2000 QPS.)\n\nYou should use EXPLAIN and SHOW ENGINE INNODB STATUS to see which of the two problems is going on.\nOf course, it is also possible that you are just driving a ton of traffic at your instance and there just aren't enough threads.  In that case, you'll probably be maxing out the cpu for the instance anyway, so adding more threads won't help. \n",
+    "answer_id": 10436158,
+    "tags": [
+      "python",
+      "mysql",
+      "google-app-engine",
+      "wsgi",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 53694089,
+    "title": "ERROR: (gcloud.sql.connect) HTTPError 400: The incoming request contained invalid data",
+    "question_text": "Problem\nI am not able to connect to my Cloud SQL postgres instance with the command line, which has been working previously:\ngcloud sql connect <instance_name> --user=<username>\n\nThis is the error I'm getting:\nERROR: (gcloud.sql.connect) HTTPError 400: The incoming request contained invalid data.\nVersion\nRunning macOS Mojave 10.14 (18A391) with a tethered 4G hotspot via my Samsung Galaxy S8.\n$ gcloud --version\nGoogle Cloud SDK 227.0.0\nbq 2.0.39\ncore 2018.11.30\ngsutil 4.34\n\nLog\nRunning the command with the --log-http flag, it returns:\n{\n \"error\": {\n  \"errors\": [\n   {\n    \"domain\": \"global\",\n    \"reason\": \"invalidRequest\",\n    \"message\": \"The incoming request contained invalid data.\"\n   }\n  ],\n  \"code\": 400,\n  \"message\": \"The incoming request contained invalid data.\"\n }\n}\n\nQuestion\nWhy is this happening and what can I do to fix it?\n",
+    "question_score": 12,
+    "answer_text": "Apparently it had to do with my tethered connection. It works from my network at home. So this isn't really an issue with gcloud. However, I still don't know why it doesn't work when using my phone network.\n",
+    "answer_id": 53695202,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 51201632,
+    "title": "Jdbc connection error from Google Apps Script",
+    "question_text": "I have created a Google Cloud Project MySQL database to use in conjunction with the Jdbc service provided by Google Apps Script. Everything went as planned with the connection. I am basically connecting as it does in the docs.\nvar conn = Jdbc.getCloudSqlConnection(dbUrl, user, userPwd);\n\nI shared the file with another account and all of a sudden I am seeing a red error saying:\n'Failed to establish a database connection. Check connection string, username and password.'\nNothing changed in the code, but there is an error. When I go back to my original account and run the same bit of code, there is no error. What is happening here? Any ideas?\n",
+    "question_score": 12,
+    "answer_text": "I'd double-check once again all IP ranges which should be whitelisted. According to your description it worked fine in first account, probably in second account Apps Script uses another IP for connection, which was not whitelisted or whitelisted with some typo. Could you share screenshot how did you exactly whitelist the ranges from this article?\n",
+    "answer_id": 51274305,
+    "tags": [
+      "jdbc",
+      "google-apps-script",
+      "google-sheets",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 41891742,
+    "title": "Is Google Cloud SQL high availability really improving reliability?",
+    "question_text": "I want to create a Google Cloud SQL instance but I am not sure about choosing high availability or not. \nFrom what I understand the failover switch can take a few minutes, it is not instantly done, and the cost is roughly 2x the cost of a regular instance.\nThe failover is triggered only in case of zone outage, not in case of db issues. Since the monthly uptime is 99.95 at least, that makes an outage possibility of 21mins per month maximum. A failover can take up to 5 mins, and we can suppose the 21minutes downtime is not happening on a single event, therefore is there a real need to subscribe to High Availability?\n",
+    "question_score": 12,
+    "answer_text": "A full zone outage is probably quite rare, so if you don't care about it, an HA instance might indeed not be needed.\nOne advantage of HA is that failover can be faster than restart. We've experienced cases when the primary instance gets \"stuck\" and a restart would take up to 30 minutes (GCP ticket). In such cases it's faster to failover to an HA instance.\n(Before October 2019, HA failover instances could also be used for read queries, and thus avoid the need for an additional read replica. With the change from binlog-based replication to disk-based replication this is not the case anymore.)\n",
+    "answer_id": 50130593,
+    "tags": [
+      "google-cloud-sql",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 67595318,
+    "title": "CloudRun Suddenly got `Improper path /cloudsql/{SQL_CONNECTION_NAME} to connect to Postgres Cloud SQL instance &quot;{SQL_CONNECTION_NAME}&quot;`",
+    "question_text": "We have been running a service using NestJS and TypeORM on fully managed CloudRun without issues for several months. Yesterday PM we started getting Improper path /cloudsql/{SQL_CONNECTION_NAME} to connect to Postgres Cloud SQL instance \"{SQL_CONNECTION_NAME}\" errors in our logs.\nWe didn't make any server/SQL changes around this timestamp. Currently there is no impact to the service so we are not sure if this is a serious issue.\nThis error is not from our code, and our third party modules shouldn't know if we use Cloud SQL, so I have no idea where this errors come from.\nMy assumption is Cloud SQL Proxy or any SQL client used in Cloud Run is making this error. We use --add-cloudsql-instances flag when deploying with \"gcloud run deploy\" CLI command.\nLink to the issue here\n",
+    "question_score": 12,
+    "answer_text": "This log was recently added in the Cloud Run data path to provide more context for debugging CloudSQL connectivity issues. However, the original logic was overly aggressive, emitting this message even for properly working CloudSQL connections. Your application is working correctly and should not receive this warning.\nThank you for reporting this issue. The fix is ready and should roll out soon. You should not see this message anymore after the fix is out.\n",
+    "answer_id": 67609580,
+    "tags": [
+      "postgresql",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "typeorm",
+      "google-cloud-run"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 29837531,
+    "title": "Changing Permissions of Google Container Engine Cluster",
+    "question_text": "I have been able to successfully create a Google Container Cluster in the developers console and have deployed my app to it. This all starts up fine, however I find that I can't connect to Cloud SQL, I get;\n \"Error: Handshake inactivity timeout\"\n\nAfter a bit of digging, I hadn't had any trouble connecting to the Database from App Engine or my local machine so I thought this was a little strange. It was then I noticed the cluster permissions...\nWhen I select my cluster I see the following;\n  Permissions\n\nUser info           Disabled\nCompute             Read Write\nStorage             Read Only\nTask queue          Disabled\nBigQuery            Disabled\nCloud SQL           Disabled\nCloud Datastore     Disabled\nCloud Logging       Write Only\nCloud Platform      Disabled\n\nI was really hoping to use both Cloud Storage and Cloud SQL in my Container Engine Nodes. I have allowed access to each of these API's in my project settings and my Cloud SQL instance is accepting connections from any IP (I've been running Node in a Managed VM on App Engine previously), so my thinking is that Google is Explicitly disabling these API's.\nSo my two part question is;\n\nIs there any way that I can modify these permissions?\nIs there any good reason why these API's are disabled? (I assume there must be)\n\nAny help much appreciated!\n",
+    "question_score": 11,
+    "answer_text": "The permissions are defined by the service accounts attached to your node VMs during cluster creation (service accounts can't be changed after a VM is instantiated, so this the only time you can pick the permissions). \nIf you use the cloud console, click the \"More\" link on the create cluster page and you will see a list of permissions that you can add to the nodes in your cluster (all defaulting to off). Toggle any on that you'd like and you should see the appropriate permissions after your cluster is created. \nIf you use the command line to create your cluster, pass the --scopes command to gcloud container clusters create to set the appropriate service account scopes on your node VMs. \n",
+    "answer_id": 29838468,
+    "tags": [
+      "node.js",
+      "google-cloud-storage",
+      "google-cloud-sql",
+      "google-cloud-platform",
+      "google-kubernetes-engine"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 64682873,
+    "title": "Creating a CloudSQL instance with terraform and custom tier",
+    "question_text": "Problem:\nI want to be able to granularly create/modify a PostgreSQL CloudSQL instance in Google Cloud Platform with Terraform.\nCurrently there is a setting tier = \"<instance_type>\"\nExample:\nTaken from Terraform documentation\n  name             = \"master-instance\"\n  database_version = \"POSTGRES_11\"\n  region           = \"us-central1\"\n\n  settings {\n    # Second-generation instance tiers are based on the machine\n    # type. See argument reference below.\n    tier = \"db-f1-micro\"\n  }\n}\n\nSummary:\nHow Can I modify this to match what I have now? Can I create a custom image to use in GCP?\nI see there is a way to make a custom image here, but how would I use it in Terraform?\nCurrent settings in CloudSQL\n",
+    "question_score": 11,
+    "answer_text": "The instance tier is the machine type and and for custom machine types you can set the values in that variable like this: db-custom-<CPUs>-<Memory_in_MB> so for example in your case would be:\n  name             = \"master-instance\"\n  database_version = \"POSTGRES_11\"\n  region           = \"us-central1\"\n\n  settings {\n    # Second-generation instance tiers are based on the machine\n    # type. See argument reference below.\n    tier = \"db-custom-12-61440\"\n  }\n}\n\nI replicated it on  my project and with this values I was able to create an instance with 12 CPUs and 60 GB memory\n",
+    "answer_id": 64685774,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "google-cloud-sql",
+      "terraform-provider-gcp"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 53813922,
+    "title": "How can I create a PostgreSQL db-f1-micro instance?",
+    "question_text": "In the Cloud SQL for PostgreSQL pricing examples, I see that I should be able to create a db-f1-micro instance, using a shared CPU and 0.6 GB of RAM, at the price of $9/month.\nHowever, when I try to actually create such an instance, I don't see that option. The UI only allows me to create a custom machine type with at least 1 vCPU and 3.75 GB of RAM, which would cost $51/month:\n\nInterestingly, for MySQL, I do get the option to create a db-f1-micro instance. But I can't use MySQL for this project.\nAre the docs in error here? Or is there a trick to actually creating a budget db-f1-micro instance using PostgreSQL?\n",
+    "question_score": 11,
+    "answer_text": "Aha, I was missing a trick: the Cores slider isn't all the way on the left! Dragging it down sets it to \"1 shared vCPU\" and changes the memory settings to my satisfaction:\n\n",
+    "answer_id": 53813950,
+    "tags": [
+      "postgresql",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 43197399,
+    "title": "ssl connection error: unknown error number",
+    "question_text": "Using MySQL Workbench Ver. 6.3.6\nAs of an update just pushed to my Google SQL db instance I can no longer connect to the db with Workbench..   I receive the following error when I do.\nssl connection error: unknown error number\n\nAnyone else experiencing this?   Know a fix?\nSo far I have found only one person in google groups reporting the same issue a just 2 days back.  \nP.S. My second instance in Google SQL has NOT updated yet, and I can still connect to it.\nP.S.S. I'm not using SSL connections even. \nUPDATE\n5 Back to back Updates by google in the last 30 minutes.    Somethings definitely up.. but sadly I still can't connect.\n",
+    "question_score": 11,
+    "answer_text": "The latest update to Google SQL makes MySQL Workbench 6.3.6 no longer able to connect.\nUpdating to 6.3.9 fixed it for me.\nDownload Latest MySQL WorkBench Here\n",
+    "answer_id": 43207082,
+    "tags": [
+      "mysql",
+      "ssl",
+      "google-cloud-platform",
+      "mysql-workbench",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 54278828,
+    "title": "Unable to enable a private IP for my Postgres Cloud SQL instance",
+    "question_text": "When I try to enable a private IP on my Cloud SQL instance (Postgresql 9.6) I get the follwoing error message:\nNetwork association failed due to the following error: set Service Networking service account as servicenetworking.serviceAgent role on consumer project\nI have a VPC which I select in the \"Associated Network\" dropdown and I chose a managed services network too which I have already setup so in theory it should all work. \nI cannot find anything under IAM that relates to the error message, either a service account or even the servicenetworking.serviceAgent permission.\nUpdate\nIncluding the relevant terraform snippets \n## VPC Setup\nresource \"google_compute_network\" \"my_network\" {\n  project                 = \"${var.project_id}\"\n  name                    = \"vpc-play\"\n  auto_create_subnetworks = \"false\"\n  routing_mode            = \"REGIONAL\"\n}\n# There is a bunch of subnets linked to this network which are not included here\n\n## Managed services network\n\nresource \"google_compute_global_address\" \"default\" {\n  name = \"google-managed-services-vpc-${var.project_id}\"\n  project = \"${var.project_id}\"\n  provider = \"google-beta\"\n  ip_version = \"IPV4\"\n  prefix_length = 16\n  address_type = \"INTERNAL\"\n  purpose = \"VPC_PEERING\"\n  network = \"${google_compute_network.my_network.self_link}\"\n}\n\n\n## Error occurs on this step\n## Error is : google_service_networking_connection.private_vpc_connection: set Service Networking service account as servicenetworking.serviceAgent role on consumer project\n\nresource \"google_service_networking_connection\" \"private_vpc_connection\" {\n    provider = \"google-beta\"\n    network       = \"${google_compute_network.my_network.self_link}\"\n    service       = \"servicenetworking.googleapis.com\"\n    reserved_peering_ranges = [\"${google_compute_global_address.default.name}\"]\n}\n\n## Database configuration <-- omitted private ip stuff for now as doesn't even get to creation of this, error in previous step\n\nresource \"google_sql_database_instance\" \"my_db\" {\n  depends_on = [\"google_service_networking_connection.private_vpc_connection\"]\n  name             = \"my_db\"\n  project          = \"${var.project_id}\"\n  database_version = \"POSTGRES_9_6\"\n  region           = \"${var.region}\"\n  lifecycle {\n    prevent_destroy = true\n  }\n\n  settings {\n    tier = \"db-f1-micro\"\n\n    backup_configuration {\n      enabled     = true\n      start_time  = \"02:00\"\n    }\n\n    maintenance_window {\n      day = 1\n      hour = 3\n      update_track = \"stable\"\n    }\n\n    ip_configuration {\n      authorized_networks = [\n        {\n          name  = \"office\"\n          value = \"${var.my_ip}\"\n        },\n      ]\n    }\n\n    disk_size         = 10\n    availability_type = \"ZONAL\"\n\n    location_preference {\n      zone = \"${var.zone}\"\n    }\n  }\n}\n\n\n",
+    "question_score": 11,
+    "answer_text": "It seems terraform messed up the permissions on the account at some point and removed the servicenetworking.serviceAgent role from all users.  \nDisabling and then reenabling the service networking API resolves the problem by resetting the permissions on all users of the system.\n",
+    "answer_id": 54351644,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 50806254,
+    "title": "How do I terminate a session in Google Cloud SQL for PostgreSQL?",
+    "question_text": "Since Google Cloud SQL for PostgreSQL doesn't give us a superuser (not even the postgres user), I can't see what queries other sessions are running from pg_stat_activity, nor can I terminate other sessions if needed.\nFor example:\npostgres@testdb=> select pg_terminate_backend(1584);\nERROR:  42501: must be a member of the role whose process is being terminated or member of pg_signal_backend\nLOCATION:  pg_terminate_backend, misc.c:319\nTime: 23.800 ms\n\nWithout true superuser access, how do we do these things in Cloud SQL PostgreSQL instances? Only the cloudsqladmin account is superuser and AFAIK I can't become that:\npostgres@testdb=> \\dg\n                                            List of roles\n     Role name     |                         Attributes                         |      Member of\n-------------------+------------------------------------------------------------+---------------------\n cloudsqladmin     | Superuser, Create role, Create DB, Replication, Bypass RLS | {}\n cloudsqlagent     | Create role, Create DB                                     | {cloudsqlsuperuser}\n cloudsqlreplica   | Replication                                                | {}\n cloudsqlsuperuser | Create role, Create DB                                     | {}\n don               | Create role, Create DB                                     | {cloudsqlsuperuser}\n postgres          | Create role, Create DB                                     | {cloudsqlsuperuser}\n\npostgres@testdb=> set role cloudsqladmin;\nERROR:  42501: permission denied to set role \"cloudsqladmin\"\nLOCATION:  call_string_check_hook, guc.c:9803\nTime: 25.293 ms\n\nFWIW, you can terminate a session if you log in as that session's user. Users can terminate any of their sessions, standard PostgreSQL stuff.\npostgres@postgres=> select pg_terminate_backend(23644);\nERROR:  42501: must be a member of the role whose process is being terminated or member of pg_signal_backend\nLOCATION:  pg_terminate_backend, misc.c:319\n\ndon@postgres=> select pg_terminate_backend(23644);\n pg_terminate_backend\n----------------------\n t\n(1 row)\n\n",
+    "question_score": 11,
+    "answer_text": "pg_terminate_backend says:\n\npg_terminate_backend(pid int)   - Terminate a backend. This is also allowed if the calling role is a member of the role whose backend is being terminated or the calling role has been granted pg_signal_backend, however only superusers can terminate superuser backends.\n\nWhen you are a member of Google's cloudsqlsuperuser (default for gcloud sql users create) you can grant yourself:\nGRANT pg_signal_backend TO myuser;\n\nThen you can terminate any session except Superusers:\nSELECT pg_terminate_backend(pid), * FROM pg_stat_activity\nWHERE usename = 'rogue_user' AND pid <> pg_backend_pid();\n\npg_signal_backend was introduced in v9.6 - exactly the version on Google Cloud!\nAlternative way is to be within other role to be able to terminate session being me:\nGRANT other TO me;\n\n",
+    "answer_id": 57982013,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 53180140,
+    "title": "How to access Cloud SQL from Google Colab",
+    "question_text": "I have a Google Cloud SQL instance with a public IP, only accessible to whitelisted IP and through an SSL connection.\nI'd like to know how I can connect to this database from Google Colab with Python.\nIf I try to connect like any external application, the connection is refused since the ip of the \"client\" is not whitelisted (and I can't whitelist it since I don't it and it's highly probable it's volatile)\nIs there a shortcut, like with Google App Engine to connect to the database using its instance and a google client?\nThanks\n",
+    "question_score": 11,
+    "answer_text": "A little late to answer, but I think I have a solution and it involved using the Cloud SQL Proxy. Overall, you first need to use the Gcloud SDK (included with Colab) to authenticate, then install the proxy, then spin it up. I did this in two blocks\n# gcloud login and check the DB\n!gcloud auth login\n!gcloud config set project [YOUR PROJECT ID]\n!gcloud sql instances describe [YOUR CLOUDSQL INSTANCE ID]\n\nThis last line will output a dump of info and we want connectionName in particular. The next block then downloads the proxy and tells it to proxy for that CloudSQL instance:\n# download and initialize the psql proxy\n!wget https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64 -O cloud_sql_proxy\n!chmod +x cloud_sql_proxy\n# \"connectionName\" is from the previous block\n!nohup ./cloud_sql_proxy -instances=\"[connectionName]\"=tcp:5432 &\n!sleep 30s\n\nLater on you can (and I've found it helpful) to check the proxy's logs with\n!cat nohup.out\n\nAnd finally, you can construct a connection with the address 127.0.0.1:5432 (or whatever port you set above. I did so with psycopg2 like this\nconn = psycopg2.connect(\n    host='127.0.0.1', port='5432', database=[YOUR DB NAME],\n    user=[USERNAME], password=[PASSWORD])\n\nIt seems to work, though it's definitely a bit slower than a direct connection.\n",
+    "answer_id": 53745949,
+    "tags": [
+      "google-cloud-sql",
+      "google-colaboratory"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52229493,
+    "title": "ERROR 2005 (HY000): Unknown MySQL server host &#39;[35.232.51.216]&#39; (0) in google cloud SQL client",
+    "question_text": "I am trying to connect my gcloud VM to a mySQL instance also on the cloud, and keep getting this errror: \nERROR 2005 (HY000): Unknown MySQL server host '[10.0.0.1]' (0)\nI have followed the instructions from google's documentation here https://cloud.google.com/sql/docs/mysql/connect-admin-ip#connect-ssl and have not found any reasons as to why this could be happening after a lot of searching.  I have double checked that the static IP of the VM is authorized, and that I have the right IP for the SQL database.  I have tried two ways to connect, using these IP addresses and SSL.\n    mysql --host=[10.0.0.1] --user=root --password=\n\nand\n    mysql --ssl-ca=server-ca.pem --ssl-cert=client-cert.pem --ssl- \n    key=client-key.pem  --host=[10.0.0.1] --user=root --password=ms\n\nBoth return the same error and I am at a loss as to where to look.  Has anyone seen this before, or is more experienced in SQL?  This is my first time using a SQL database on google cloud...\nThanks!\n",
+    "question_score": 11,
+    "answer_text": "In the documentation you pointed to, the example\" mysql --host=[INSTANCE_IP] --user=root --password is to imply that the \"[INSTANCE_IP]\" should be substituted for the IP of your MySQL instance. However, in the snippets above it appears, you may have substituted only the inner content of the braces (i.e. [10.0.0.1]), so try re-running your commands without the braces around your IP:\nmysql --host=10.0.0.1 --user=root --password\n",
+    "answer_id": 52229911,
+    "tags": [
+      "mysql",
+      "sql",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 48283583,
+    "title": "Google App Engine .Net Core 2.0 app can&#39;t access Google Cloud SQL database",
+    "question_text": "I have a dotnet core 2.0 application running in Google App Engine Flexible Environment. Within the same Google project I have a Cloud SQL - MySQL database. On the Cloud SQL Instance details page, under the Authorizations tab, it states \n\nApps in this project: All authorized.\n\nHowever, I cannot access the database from my application unless I add the 0.0.0.0/0 route to the Authorized networks section.\nWhat can I do to give my application db access without opening my database to the world?\n\nUpdate 2018-05-21 from Jeffery Rennie (accepted answer)\nApp Engine now supports connecting to a Cloud SQL instance using a port number instead of a unix domain socket.  So now, you can add something like this to your app.yaml:\nbeta_settings:\n    cloud_sql_instances: \"your-project-id:us-central1:instance-name=tcp:5432\"\n\nAnd specify Host=cloudsql in your connection string in your appsettings.json:\n\"ConnectionString\": \"Uid=aspnetuser;Pwd=;Host=cloudsql;Database=visitors\"\n\nIn the sample above, the port is 5432, which is the default port for a PostgreSQL database.  For a MySQL database, use port 3306.\nA full example with instructions for deploying to App Engine can be found here:\nhttps://github.com/GoogleCloudPlatform/dotnet-docs-samples/tree/master/appengine/flexible/CloudSql\n",
+    "question_score": 11,
+    "answer_text": "The ideal solution is to use a unix domain socket to connect from your app engine instance to Cloud SQL.  That's how other programming languages like Python and PHP do it.  Unfortunately, the MySQL connector does not work with domain sockets.  I see no reason why it can't, but it doesn't.  I hope they fix that issue soon.\nAs described in https://cloud.google.com/appengine/kb/#static-ip, \n\nNote that using static IP address filtering is not considered a safe\n  and effective means of protection. For example, an attacker could set\n  up a malicious App Engine app which could share the same IP address\n  range as your application. Instead, we suggest that you take a defense\n  in depth approach using OAuth and Certs.\n\nIf certificates are not sufficient to protect your application, then the only remaining option I see today is to build a custom runtime that runs the Cloud SQL Proxy.  The proxy can forward a local ip port number to a unix domain socket.  If you have built a docker image or two, then it's not too bad.\nI will update this answer as the situation improves.\n\nUpdate 2018-05-21\nApp Engine now supports connecting to a Cloud SQL instance using a port number instead of a unix domain socket.  So now, you can add something like this to your app.yaml:\nbeta_settings:\n    cloud_sql_instances: \"your-project-id:us-central1:instance-name=tcp:5432\"\n\nAnd specify Host=cloudsql in your connection string in your appsettings.json:\n\"ConnectionString\": \"Uid=aspnetuser;Pwd=;Host=cloudsql;Database=visitors\"\n\nIn the sample above, the port is 5432, which is the default port for a PostgreSQL database.  For a MySQL database, use port 3306.\nA full example with instructions for deploying to App Engine can be found here:\nhttps://github.com/GoogleCloudPlatform/dotnet-docs-samples/tree/master/appengine/flexible/CloudSql\n",
+    "answer_id": 48307983,
+    "tags": [
+      "google-app-engine",
+      ".net-core",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "app-engine-flexible"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 42290972,
+    "title": "Cannot Connect by Cloud SQL Proxy from Cloud Shell By Proxy",
+    "question_text": "I am following the Django sample for GAE and have problem to connect to Cloud SQL instance by Proxy from Google Cloud Shell. Possibly related to permission setting since I see the request not authorized,\nOther context,\n\n\"gcloud beta sql connect auth-instance --user=root\" has no problem to connect.\nI have a service account for SQL Proxy Client.\n\nI possibly miss something. Could someone please shed some light? Thanks in advance.\nThanks in advance.\n\nProxy log:\n./cloud_sql_proxy -instances=auth-158903:asia-east1:auth-instance=tcp:3306\n\n2017/02/17 14:00:59 Listening on 127.0.0.1:3306 for auth-158903:asia-east1:auth-instance\n2017/02/17 14:00:59 Ready for new connections\n2017/02/17 14:01:07 New connection for \"auth-158903:asia-east1:auth-instance\"\n2017/02/17 14:03:16 couldn't connect to \"auth-158903:asia-east1:auth-instance\": dial tcp 107.167.191.26:3307: getsockopt: connection timed out\n\nClient Log:\nmysql -u root -p --host 127.0.0.1\nEnter password: \nERROR 2013 (HY000): Lost connection to MySQL server at 'reading initial communication packet', system error: 0\n\nI also try with credential file but still no luck,\n./cloud_sql_proxy -instances=auth-158903:asia-east1:auth-instance=tcp:3306 -credential_file=Auth-2eede8ae0d0b.jason\n\n2017/02/17 14:21:36 using credential file for authentication; email=sql-proxy-client@auth-158903.iam.gserviceaccount.com\n2017/02/17 14:21:36 Listening on 127.0.0.1:3306 for auth-158903:asia-east1:auth-instance\n2017/02/17 14:21:36 Ready for new connections\n2017/02/17 14:21:46 New connection for \"auth-158903:asia-east1:auth-instance\"\n2017/02/17 14:21:48 couldn't connect to \"auth-158903:asia-east1:auth-instance\": ensure that the account has access to \"auth-158903:asia-east1:auth-instance\" (and make sure there's no typo in that name). Error during get instance auth-158903:asia-east1:auth-instance: googleapi:     **Error 403: The client is not authorized to make this request., notAuthorized**\n\n",
+    "question_score": 11,
+    "answer_text": "The Cloud SQL proxy uses port 3307 instead of the more usual MySQL port 3306. This is because it uses TLS in a different way and has different IP ACLs. As a consequence, firewalls that allow MySQL traffic won't allow Cloud SQL proxy by default.\nTake a look and see if you have a firewall on your network that blocks port 3307. To use Cloud SQL proxy, authorize this port for outbound connections.\n",
+    "answer_id": 42493299,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 55521876,
+    "title": "Is there a way to allow cloudbuild steps to access the Cloud SQL in GCP",
+    "question_text": "I'm setting up a cloud build trigger in order to deploy a PHP/Symfony Application. When the docker file runs the php app/console assetic:dump command in order to create the assets I get the following error.\nSQLSTATE[HY000] [2002] Connection timed out \n[PDOException] \n\nSQLSTATE[HY000] [2002] Connection timed out\n[Doctrine\\DBAL\\Driver\\PDOException] \n\n\nAn exception occurred in driver: SQLSTATE[HY000] [2002] \nConnection timed out \n[Doctrine\\DBAL\\Exception\\ConnectionException] \n\nI have resolved to trying to get the docker container to connect to the database instead of trying to fix the symfony application because I don't know enough about the framework or php.\nIs it possible to set this up so that I can allow some kind of IP on the CLOUDSQL side to allow these connections?\n",
+    "question_score": 11,
+    "answer_text": "A solution to setup the proxy in the same step is described in the answer here:\nRun node.js database migrations on Google Cloud SQL during Google Cloud Build\n",
+    "answer_id": 64599525,
+    "tags": [
+      "docker",
+      "network-programming",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-build"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 50701736,
+    "title": "Start CloudSQL Proxy on Python Dataflow / Apache Beam",
+    "question_text": "I am currently working on a ETL Dataflow job (using the Apache Beam Python SDK) which queries data from CloudSQL (with psycopg2 and a custom ParDo) and writes it to BigQuery. My goal is to create a Dataflow template which I can start from a AppEngine using a Cron job.\nI have a version which works locally using the DirectRunner. For that I use the CloudSQL (Postgres) proxy client so that I can connect to the database on 127.0.0.1 .\nWhen using the DataflowRunner with custom commands to start the proxy within a setup.py script, the job won't execute.\nIt stucks with repeating this log-message:  \nSetting node annotation to enable volume controller attach/detach \nA part of my setup.py looks the following:\nCUSTOM_COMMANDS = [\n['echo', 'Custom command worked!'],\n['wget', 'https://dl.google.com/cloudsql/cloud_sql_proxy.linux.amd64', '-O', 'cloud_sql_proxy'],\n['echo', 'Proxy downloaded'],\n['chmod', '+x', 'cloud_sql_proxy']]\n\nclass CustomCommands(setuptools.Command):\n  \"\"\"A setuptools Command class able to run arbitrary commands.\"\"\"\n\n  def initialize_options(self):\n    pass\n\n  def finalize_options(self):\n    pass\n\n  def RunCustomCommand(self, command_list):\n    print('Running command: %s' % command_list)\n    logging.info(\"Running custom commands\")\n    p = subprocess.Popen(\n        command_list,\n        stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)\n    # Can use communicate(input='y\\n'.encode()) if the command run requires\n    # some confirmation.\n    stdout_data, _ = p.communicate()\n    print('Command output: %s' % stdout_data)\n    if p.returncode != 0:\n      raise RuntimeError(\n          'Command %s failed: exit code: %s' % (command_list, p.returncode))\n\n  def run(self):\n    for command in CUSTOM_COMMANDS:\n      self.RunCustomCommand(command)\n    subprocess.Popen(['./cloud_sql_proxy', '-instances=bi-test-1:europe-west1:test-animal=tcp:5432'])\n\nI added the last line as separate subprocess.Popen() within run() after reading this issue on Github from sthomp  and this discussion on Stackoverflo. I also tried to play around with some parameters of subprocess.Popen. \nAnother mentioned solution from brodin was to allow access from every IP address and to connect via username and password. In my understanding he does not claim this as best practice. \nThank you in advance for you help.\n!!! Workaround solution at bottom of this post !!!\n\nUpdate - Logfiles\nThese are the logs on error level which occur during a job:\nE  EXT4-fs (dm-0): couldn't mount as ext3 due to feature incompatibilities \nE  Image garbage collection failed once. Stats initialization may not have completed yet: unable to find data for container / \nE  Failed to check if disk space is available for the runtime: failed to get fs info for \"runtime\": unable to find data for container / \nE  Failed to check if disk space is available on the root partition: failed to get fs info for \"root\": unable to find data for container / \nE  [ContainerManager]: Fail to get rootfs information unable to find data for container / \nE  Could not find capacity information for resource storage.kubernetes.io/scratch \nE  debconf: delaying package configuration, since apt-utils is not installed \nE    % Total    % Received % Xferd  Average Speed   Time    Time     Time  Current \nE                                   Dload  Upload   Total   Spent    Left  Speed \nE  \n  0     0    0     0    0     0      0      0 --:--:-- --:--:-- --:--:--     0\n100  3698  100  3698    0     0  25674      0 --:--:-- --:--:-- --:--:-- 25860 \n\n\n\n#-- HERE IS WHEN setup.py FOR MY JOB IS EXECUTED ---\n\nE  debconf: delaying package configuration, since apt-utils is not installed \nE  insserv: warning: current start runlevel(s) (empty) of script `stackdriver-extractor' overrides LSB defaults (2 3 4 5). \nE  insserv: warning: current stop runlevel(s) (0 1 2 3 4 5 6) of script `stackdriver-extractor' overrides LSB defaults (0 1 6). \nE  option = Interval; value = 60.000000; \nE  option = FQDNLookup; value = false; \nE  Created new plugin context. \nE  option = PIDFile; value = /var/run/stackdriver-agent.pid; \nE  option = Interval; value = 60.000000; \nE  option = FQDNLookup; value = false; \nE  Created new plugin context. \n\n\nHere you can find are all logs after the start of my custom setup.py (log-level: any; all logs):\nhttps://jpst.it/1gk2Z \nUpdate logfiles 2\nJob logs (I manually canceled the job after not stucking for a while):\n 2018-06-08 (08:02:20) Autoscaling is enabled for job 2018-06-07_23_02_20-5917188751755240698. The number of workers will b...\n 2018-06-08 (08:02:20) Autoscaling was automatically enabled for job 2018-06-07_23_02_20-5917188751755240698.\n 2018-06-08 (08:02:24) Checking required Cloud APIs are enabled.\n 2018-06-08 (08:02:24) Checking permissions granted to controller Service Account.\n 2018-06-08 (08:02:25) Worker configuration: n1-standard-1 in europe-west1-b.\n 2018-06-08 (08:02:25) Expanding CoGroupByKey operations into optimizable parts.\n 2018-06-08 (08:02:25) Combiner lifting skipped for step Save new watermarks/Write/WriteImpl/GroupByKey: GroupByKey not fol...\n 2018-06-08 (08:02:25) Combiner lifting skipped for step Group watermarks: GroupByKey not followed by a combiner.\n 2018-06-08 (08:02:25) Expanding GroupByKey operations into optimizable parts.\n 2018-06-08 (08:02:26) Lifting ValueCombiningMappingFns into MergeBucketsMappingFns\n 2018-06-08 (08:02:26) Annotating graph with Autotuner information.\n 2018-06-08 (08:02:26) Fusing adjacent ParDo, Read, Write, and Flatten operations\n 2018-06-08 (08:02:26) Fusing consumer Get rows from CloudSQL tables into Begin pipeline with watermarks/Read\n 2018-06-08 (08:02:26) Fusing consumer Group watermarks/Write into Group watermarks/Reify\n 2018-06-08 (08:02:26) Fusing consumer Group watermarks/GroupByWindow into Group watermarks/Read\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/WriteBundles/WriteBundles into Save new watermar...\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/GroupByKey/GroupByWindow into Save new watermark...\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/GroupByKey/Reify into Save new watermarks/Write/...\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/GroupByKey/Write into Save new watermarks/Write/...\n 2018-06-08 (08:02:26) Fusing consumer Write to BQ into Get rows from CloudSQL tables\n 2018-06-08 (08:02:26) Fusing consumer Group watermarks/Reify into Write to BQ\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/Map(<lambda at iobase.py:926>) into Convert dict...\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/WindowInto(WindowIntoFn) into Save new watermark...\n 2018-06-08 (08:02:26) Fusing consumer Convert dictionary list to single dictionary and json into Remove \"watermark\" label\n 2018-06-08 (08:02:26) Fusing consumer Remove \"watermark\" label into Group watermarks/GroupByWindow\n 2018-06-08 (08:02:26) Fusing consumer Save new watermarks/Write/WriteImpl/InitializeWrite into Save new watermarks/Write/W...\n 2018-06-08 (08:02:26) Workflow config is missing a default resource spec.\n 2018-06-08 (08:02:26) Adding StepResource setup and teardown to workflow graph.\n 2018-06-08 (08:02:26) Adding workflow start and stop steps.\n 2018-06-08 (08:02:26) Assigning stage ids.\n 2018-06-08 (08:02:26) Executing wait step start25\n 2018-06-08 (08:02:26) Executing operation Save new watermarks/Write/WriteImpl/DoOnce/Read+Save new watermarks/Write/WriteI...\n 2018-06-08 (08:02:26) Executing operation Save new watermarks/Write/WriteImpl/GroupByKey/Create\n 2018-06-08 (08:02:26) Starting worker pool setup.\n 2018-06-08 (08:02:26) Executing operation Group watermarks/Create\n 2018-06-08 (08:02:26) Starting 1 workers in europe-west1-b...\n 2018-06-08 (08:02:27) Value \"Group watermarks/Session\" materialized.\n 2018-06-08 (08:02:27) Value \"Save new watermarks/Write/WriteImpl/GroupByKey/Session\" materialized.\n 2018-06-08 (08:02:27) Executing operation Begin pipeline with watermarks/Read+Get rows from CloudSQL tables+Write to BQ+Gr...\n 2018-06-08 (08:02:36) Autoscaling: Raised the number of workers to 0 based on the rate of progress in the currently runnin...\n 2018-06-08 (08:02:46) Autoscaling: Raised the number of workers to 1 based on the rate of progress in the currently runnin...\n 2018-06-08 (08:03:05) Workers have started successfully.\n 2018-06-08 (08:11:37) Cancel request is committed for workflow job: 2018-06-07_23_02_20-5917188751755240698.\n 2018-06-08 (08:11:38) Cleaning up.\n 2018-06-08 (08:11:38) Starting worker pool teardown.\n 2018-06-08 (08:11:38) Stopping worker pool...\n 2018-06-08 (08:12:30) Autoscaling: Reduced the number of workers to 0 based on the rate of progress in the currently runni...\n\nStack Traces:\nNo errors have been received in this time period.\n\n\nUpdate: Workaround Solution can be found in my answer below\n",
+    "question_score": 10,
+    "answer_text": "Workaround Solution:\nI finally found a workaround. I took the idea to connect via the public IP of the CloudSQL instance. For that you needed to allow connections to your CloudSQL instance from every IP:\n\nGo to the overview page of your CloudSQL instance in GCP\nClick on the Authorization tab\nClick on Add network and add 0.0.0.0/0 (!! this will allow every IP address to connect to your instance !!)\n\nTo add security to the process, I used SSL keys and only allowed SSL connections to the instance:\n\nClick on SSL tab\nClick on Create a new certificate to create a SSL certificate for your server\nClick on Create a client certificate to create a SSL certificate for you client\nClick on Allow only SSL connections to reject all none SSL connection attempts \n\nAfter that I stored the certificates in a Google Cloud Storage bucket and load\nthem before connecting within the Dataflow job, i.e.:\nimport psycopg2\nimport psycopg2.extensions\nimport os\nimport stat\nfrom google.cloud import storage\n\n# Function to wait for open connection when processing parallel\ndef wait(conn):\n    while 1:\n        state = conn.poll()\n        if state == psycopg2.extensions.POLL_OK:\n            break\n        elif state == psycopg2.extensions.POLL_WRITE:\n            pass\n            select.select([], [conn.fileno()], [])\n        elif state == psycopg2.extensions.POLL_READ:\n            pass\n            select.select([conn.fileno()], [], [])\n        else:\n            raise psycopg2.OperationalError(\"poll() returned %s\" % state)\n\n# Function which returns a connection which can be used for queries\ndef connect_to_db(host, hostaddr, dbname, user, password, sslmode = 'verify-full'):\n\n    # Get keys from GCS\n    client = storage.Client()\n\n    bucket = client.get_bucket(<YOUR_BUCKET_NAME>)\n\n    bucket.get_blob('PATH_TO/server-ca.pem').download_to_filename('server-ca.pem')\n    bucket.get_blob('PATH_TO/client-key.pem').download_to_filename('client-key.pem')\n    os.chmod(\"client-key.pem\", stat.S_IRWXU)\n    bucket.get_blob('PATH_TO/client-cert.pem').download_to_filename('client-cert.pem')\n\n    sslrootcert = 'server-ca.pem'\n    sslkey = 'client-key.pem'\n    sslcert = 'client-cert.pem'\n\n    con = psycopg2.connect(\n        host = host,\n        hostaddr = hostaddr,\n        dbname = dbname,\n        user = user,\n        password = password,\n        sslmode=sslmode,\n        sslrootcert = sslrootcert,\n        sslcert = sslcert,\n        sslkey = sslkey)\n    return con\n\nI then use these functions in a custom ParDo to perform queries.\nMinimal example:\nimport apache_beam as beam\n\nclass ReadSQLTableNames(beam.DoFn):\n    '''\n    parDo class to get all table names of a given cloudSQL database.\n    It will return each table name.\n    '''\n    def __init__(self, host, hostaddr, dbname, username, password):\n        super(ReadSQLTableNames, self).__init__()\n        self.host = host\n        self.hostaddr = hostaddr\n        self.dbname = dbname\n        self.username = username\n        self.password = password\n\n    def process(self, element):\n\n        # Connect do database\n        con = connect_to_db(host = self.host,\n            hostaddr = self.hostaddr,\n            dbname = self.dbname,\n            user = self.username,\n            password = self.password)\n        # Wait for free connection\n        wait_select(con)\n        # Create cursor to query data\n        cur = con.cursor(cursor_factory=RealDictCursor)\n\n        # Get all table names\n        cur.execute(\n        \"\"\"\n        SELECT\n        tablename as table\n        FROM pg_tables\n        WHERE schemaname = 'public'\n        \"\"\"\n        )\n        table_names = cur.fetchall()\n\n        cur.close()\n        con.close()\n        for table_name in table_names:\n            yield table_name[\"table\"]\n\nA part of the pipeline then could look like this:\n# Current workaround to query all tables: \n# Create a dummy initiator PCollection with one element\ninit = p        |'Begin pipeline with initiator' >> beam.Create(['All tables initializer'])\n\ntables = init   |'Get table names' >> beam.ParDo(ReadSQLTableNames(\n                                                host = known_args.host,\n                                                hostaddr = known_args.hostaddr,\n                                                dbname = known_args.db_name,\n                                                username = known_args.user,\n                                                password = known_args.password))\n\nI hope this solution helps others with similar problems\n",
+    "answer_id": 50832174,
+    "tags": [
+      "python",
+      "google-cloud-dataflow",
+      "google-cloud-sql",
+      "apache-beam",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 46473293,
+    "title": "Can I restrict access to a Google Cloud SQL instance to specific service account?",
+    "question_text": "I have multiple environments in Google Compute Engine (dev, staging, and production), each with its own Google Cloud SQL instance. The instances connect via Cloud SQL Proxy and authenticate with a credential file that is tied to a service account. I want to have a separate service account for each environment, which would be restricted to accessing the SQL instance specific to that environment. Currently, it appears that any service account with role Cloud SQL Client can access any Cloud SQL instance within the same project.\nI cannot find any way to restrict access on a Cloud SQL Instance to a specific service account. Is it possible, and if so, how? If not, is there a different way to achieve the goal of preventing a server in one environment from accessing a Cloud SQL instance in another environment?\nNOTE: this configuration is possible with Google Cloud Storage; one can assign a specific service account to have various permissions on each bucket, so that the dev service account cannot accidentally access Production files.\n",
+    "question_score": 10,
+    "answer_text": "As of the August 2021 release of Google Cloud SQL:\n\nYou can use IAM Conditions to define and enforce conditional, attribute-based access control for Google Cloud resources, including Cloud SQL instances\n\nSee the documentation for IAM Conditions for information about how to restrict a user or service account to specific Cloud SQL instances.\n",
+    "answer_id": 68925241,
+    "tags": [
+      "google-compute-engine",
+      "google-cloud-sql",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 45202401,
+    "title": "Cloud SQL Horizontal Scaling",
+    "question_text": "Is cloud spanner the only solution for horizontal scaling of mysql instances on the google cloud? Is there a way to scale in cloud sql?\n",
+    "question_score": 10,
+    "answer_text": "As Albert Cui stated, Cloud Spanner does not have a horizontally-scaling MySQL database behind it, but rather a different implementation that is a transactional, ACID relational database with strong consistency, accepts SQL (though it's not fully compliant with SQL), is globally distributed and scales horizontally.\nFor more information you can consult the Cloud Spanner documentation\nAbout Cloud SQL, you can scale read capacity horizontally with read replicas, and it can scale vertically (that is, increase the hardware capacity of the instance in which it runs) with no more effort than choosing an instance of a higher tier and only a couple of minutes of downtime. Keep in mind that it doesn't scale automatically, and it can't scale memory, CPU power or capacity independently, you need to choose from predefined instance tiers.\nAccording to this article by Google, you can scale Cloud SQL horizontally by using the MySQL implementation and ProxySQL. However, keep in mind that this goes beyond the Cloud SQL managed service.\nFor more information you can consult the Cloud SQL documentation\n",
+    "answer_id": 50867395,
+    "tags": [
+      "google-cloud-sql",
+      "gcloud",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 51391078,
+    "title": "Google Cloud SQL Database Delete Protection",
+    "question_text": "I would like the ability to protect against the deletion of a cloud SQL instance. This seems like a good step to take to avoid actions from an angry employee or a regretful click.\n",
+    "question_score": 10,
+    "answer_text": "Google added a deletion protection flag for Cloud SQL in August 2022.\nhttps://cloud.google.com/sql/docs/mysql/deletion-protection\n",
+    "answer_id": 73576746,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 43718390,
+    "title": "Postgres performance not increasing with increase in number of core",
+    "question_text": "I was trying out postgres google-cloud-sql and loaded a simple school schema \n CREATE TABLE school ( \n    id SERIAL NOT NULL PRIMARY KEY,\n    name TEXT NOT NULL\n);\n\nCREATE TABLE class ( \n    id SERIAL NOT NULL PRIMARY KEY,\n    name TEXT,\n    school_id INTEGER NOT NULL REFERENCES school\n);\n\nCREATE TABLE student ( \n    id SERIAL NOT NULL PRIMARY KEY,\n    name TEXT,\n    class_id INTEGER NOT NULL REFERENCES class\n);\n\n-- ALL id and foreign keys have indexs\n\nLoaded ~15 millions row in total with 1500 school, 500 class per school, 200 student per class.\nAfter that create a simple pgbench script\n\\setrandom sId1 1 20000000\n\\setrandom sId2 1 20000000\n\\setrandom sId3 1 20000000\n\nselect count(*) from school s \njoin class c on s.id=c.school_id \njoin student stu on c.id=stu.class_id where s.id=:sId1;\n\nselect count(*) from school s \njoin class c on s.id=c.school_id \njoin student stu on c.id=stu.class_id where s.id=:sId2;\n\nselect count(*) from school s \njoin class c on s.id=c.school_id \njoin student stu on c.id=stu.class_id where s.id=:sId3;\n\nNow running the the script with\npgbench -c 90 -f ./sql.sql  -n -t 1000\n\n2 cores, 7.5 GB, 90 client --\nOUTPUT:\nnumber of transactions actually processed: 90000/90000\ntps = 1519.690555 (including connections establishing)\ntps = 2320.408683 (excluding connections establishing\n\n26 cores, 30 GB, 90 client-\nnumber of transactions actually processed: 90000/90000\ntps = 1553.721286 (including connections establishing)\ntps = 2405.664795 (excluding connections establishing)\n\nQuestion:\nWhy do we have only 80 tps increase from 2 core to 26 cores ?\n",
+    "question_score": 10,
+    "answer_text": "I asked same question on the postgres irc. \nCommunity was sure that i was maxing out the client pgbench , they suggested to use -j4 in pgbench and tps increased to 23k per sec.\n",
+    "answer_id": 43862876,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 33787717,
+    "title": "Google Form data to store in cloud SQL database",
+    "question_text": "I'm new to Google Forms and Google Apps Script. I have ten Google Forms, and on submitting forms they populate a corresponding Google Sheet.\nNow, here is what I want, on submitting form I want that information to also be stored in the cloud SQL database. What steps will accomplish that?\n",
+    "question_score": 9,
+    "answer_text": "The normal data flow for a Google Form that is accepting responses and replicating them to a Spreadsheet looks like this:\n\nYou've got two opportunities for a Form Submission Trigger to replicate the form responses in your Cloud SQL database; you can either trigger from the Google Form Form submit event or the Google Sheets Form submit event.\nEither way, you will have a script that gets called for every form submission, and an event object that contains the response values. Your trigger function should use the JDBC to connect to the database - that link includes an intro that walks you through the highlights.\nExample\nSay we have a form asking two questions, \"Name\" and \"Age\". That would result in 3 columns in our spreadsheet; \"Timestamp\" plus one for each question.\nTo match that, we have a Cloud SQL database set up with the same three columns.\nA Google Sheets Form submit trigger function that wrote to a Cloud SQL database would look like this untested code:\n// Replace the variables in this block with real values.\nvar address = 'database_IP_address';\nvar user = 'user_name';\nvar userPwd = 'user_password';\nvar db = 'database_name';\n\nvar dbUrl = 'jdbc:mysql://' + address + '/' + db;\n\n// Receive form response and replicate to a row in SQL table\nfunction handleFormSubmit( event ) {\n  var conn = Jdbc.getConnection(dbUrl, user, userPwd);\n\n  var stmt = conn.prepareStatement('INSERT INTO entries '\n      + '(Timestamp, Name, Age) values (?, ?, ?)');\n  stmt.setString(1, event.namedValues['Timestamp']);\n  stmt.setString(2, event.namedValues['Name']);\n  stmt.setString(3, event.namedValues['Age']);\n  stmt.execute();\n}\n\n",
+    "answer_id": 33791522,
+    "tags": [
+      "google-apps-script",
+      "google-sheets",
+      "google-cloud-sql",
+      "google-forms"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52455507,
+    "title": "Connecting Sequelize to Google Cloud SQL",
+    "question_text": "does anyone know how to connect to Google Cloud SQL from Sequelize?\n  sequelize = new Sequelize(process.env.TEST_DB || 'postgres', 'blah', null, {\n    dialect: 'postgres',\n    operatorsAliases: Sequelize.Op,\n    host: process.env.DB_HOST || 'localhost',\n    define: {\n      underscored: true\n    },\n  });\n  connected = true;\n\n",
+    "question_score": 9,
+    "answer_text": "You can connect from Sequelize like from any other client tool or ORM. Getting the access correctly depends on where you are running your code. If you code runs outside GCP, you can follow the external app instructions on this page:\nhttps://cloud.google.com/sql/docs/postgres/connect-external-app.\nIf you are using proxy in your local computer, you set process.env.DB_HOST  to 127.0.0.1. You can find troubleshooting tips at https://cloud.google.com/sql/docs/postgres/sql-proxy#troubleshooting. \n",
+    "answer_id": 52455832,
+    "tags": [
+      "postgresql",
+      "deployment",
+      "sequelize.js",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 60489135,
+    "title": "How to restore single database from instance backup on GCP?",
+    "question_text": "I am a beginner GCP administrator. I have several applications running on one instance. Each application has its own database. I set up automatic instance backup via the GCP GUI.\nI would like to prepare for a possible failure of one of the applications, i.e. one database. I would like to prepare a procedure for restoring such a database, but in the GCP GUI there is no option to restore one database, I need to restore the entire instance, which I cannot due to the operation of other applications on this instance.\nI also read in the documentation that a backup cannot be exported.\nIs there any way to restore only one database from the entire instance backup?\nWill I have to write a MySQL script that will backup each database separately and save it to Cloud Storage?\n",
+    "question_score": 9,
+    "answer_text": "As of now there is no way to restore only one database from the entire instance backup. As you can check on the documentation the rest of the applications will also experience downtime (since the target instance will be unavailable for connections and existing connections will be lost).\nSince there is no built in method to restore only one database from the entire backup instance you are correct and writing a MySQL script to backup each database separately and use import and export operations (here is the relevant documentation regarding import and export operations in the Cloud SQL MySQL context).\nBut I would recommend you from an implementation point of view to use a separate Cloud SQL instance for each application, and then you could restore the database in case one particular application fails without causing downtime or issues on the rest of the applications.\n",
+    "answer_id": 60523953,
+    "tags": [
+      "mysql",
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 53200947,
+    "title": "pg_stat_statements_reset() permission denied on Google Cloud SQL PostrgreSQL",
+    "question_text": "Main Issue\nI'm unable to execute the function SELECT pg_stat_statements_reset(); in order to profile changes in query optimization due to insufficient permissions.\nThe error message reads:\npermission denied for function pg_stat_statements_reset\nI would like to know if there are any other ways to reset the pg_stats on Cloud SQL PostgreSQL?\nEnvironment\n\nPG version: PostgreSQL 9.6.6 on x86_64-pc-linux-gnu, compiled by gcc (Ubuntu 4.8.4-2ubuntu1~14.04.3) 4.8.4, 64-bit\nPlatform: Google Cloud SQL PostgreSQL\nUser: default postgres user with cloudsqlsuperuser role\n\nAttempted Steps\nI have found a previous answer on this topic which suggested that pg_stat_statements_reset() should work from the default postgres user created through the cloud console. However, the listed solution does not work, it returns the same permission denied error\nRelated Question\n",
+    "question_score": 9,
+    "answer_text": "Google Cloud SQL supports several modules for PostgreSQL to extend its functionality.\nOne of the extensions (modules) is: pg_stat_statements. It allows tracking  execution statistics of SQL statements executed by a server. To reset statistics function pg_stat_statements_reset() is used.\nBefore using extension (module), it has to be installed:\n\nConnect to the PostgreSQL instance from Cloud Shell using default user: postgres\n\ngcloud sql connect [INSTANCE_ID] --user=postgres\n\n\nWhen connected to the database, create extension pg_stat_statements\n\nCREATE EXTENSION pg_stat_statements\n\n\nExecute the function to reset statistics. By default, It can only be executed by superusers:\n\nSELECT pg_stat_statements_reset()\n\n\n(optional) Grant privilege for stats resetting to other users:\n\nGRANT EXECUTE ON FUNCTION pg_stat_statements_reset TO xuser;\n\n",
+    "answer_id": 55845979,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 35391120,
+    "title": "Run Alembic migrations on Google App Engine",
+    "question_text": "I have a Flask app that uses SQLAlchemy (Flask-SQLAlchemy) and Alembic (Flask-Migrate).  The app runs on Google App Engine. I want to use Google Cloud SQL.\nOn my machine, I run python manage.py db upgrade to run my migrations against my local database.  Since GAE does not allow arbitrary shell commands to be run, how do I run the migrations on it?\n",
+    "question_score": 9,
+    "answer_text": "\nWhitelist your local machine's IP: https://console.cloud.google.com/sql/instances/INSTANCENAME/access-control/authorization?project=PROJECTNAME\nCreate an user: https://console.cloud.google.com/sql/instances/INSTANCENAME/access-control/users?project=PROJECTNAME\nAssign an external IP address to the instance: https://console.cloud.google.com/sql/instances/INSTANCENAME/access-control/ip?project=PROJECTNAME\nUse the following SQLAlchemy connection URI: SQLALCHEMY_DATABASE_URI = 'mysql://user:pw@ip:3306/DBNAME'\nRemember to release the IP later as you are charged for every hour it's not used\n\n",
+    "answer_id": 36731280,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "flask",
+      "google-cloud-sql",
+      "alembic"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 44296697,
+    "title": "How to change the postgresql.conf parameter on Google Cloud SQL",
+    "question_text": "How to change the postgresql.conf parameter \"max_connections\" on Google Cloud SQL?\nWhen I exceed 100 connections I get the error: \"FATAL:  remaining connection slots are reserved for non-replication superuser connections\"\n",
+    "question_score": 9,
+    "answer_text": "Normally you would do it via CloudSQL flags API (or UI): https://cloud.google.com/sql/docs/postgres/flags\nHowever, max_connections is not a parameter we currently support. We (Postgres team in CloudSQL) are aware that low max_connections is a problem for some (many?) applications and will address issue in one of the next releases.\nPlease follow issue 37271935 on our public issue tracker for updates.\n",
+    "answer_id": 44312033,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 35153942,
+    "title": "How to run Django management commands against Google Cloud SQL",
+    "question_text": "Currently , I have deployed my django project on google app engine. I need to run python manage.py migrate command so that auth_user table should be created on my google cloud instance  . But don't know where to run this command. \n",
+    "question_score": 9,
+    "answer_text": "If I get it right, your app runs on App Engine (sandboxed environment) and uses Cloud SQL. \n1) Configure your database in settings.py as you can see below.\nif os.getenv('SERVER_SOFTWARE', '').startswith('Google App Engine'):\n    # Running on production App Engine, so use a Google Cloud SQL database.\n    DATABASES = {\n        'default': {\n            'ENGINE': 'django.db.backends.mysql',\n            'HOST': '/cloudsql/project-id:instance-name',\n            'NAME': 'database-name',\n            'USER': 'root',\n        }\n    }\nelif os.getenv('SETTINGS_MODE') == 'prod':\n    # Running in development, but want to access the Google Cloud SQL instance in production.\n    DATABASES = {\n        'default': {\n            'ENGINE': 'django.db.backends.mysql',\n            'INSTANCE': 'cloud-sql-instance-ip-address',\n            'NAME': 'database-name',\n            'USER': 'root',\n            'PASSWORD': 'password',\n        }\n    }\nelse:\n    # Running in development, so use a local MySQL database.\n    DATABASES = {\n        'default': {\n            'ENGINE': 'django.db.backends.mysql',\n            'NAME': 'database-name',\n            'USER': 'username',\n            'PASSWORD': 'password',\n        }\n    }\n\n2) Set environment variable SETTINGS_MODE to prod (or do not set if you want to access your local MySQL server).\n3) Run the below command from your machine.\n$ SETTINGS_MODE=prod python manage.py migrate\n\nYou can find more details in App Engine documentation - Management commands and Alternate development database and settings.\n",
+    "answer_id": 35173006,
+    "tags": [
+      "python",
+      "django",
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 72213501,
+    "title": "using pg_cron extension on Cloud SQL",
+    "question_text": "I am trying to use pg_cron to schedule calls on stored procedure on several DBs in a Postgres Cloud SQL instance.\nUnfortunately it looks like pg_cron can only be only created on postgres DB\nWhen I try to use pg_cron on a DB different than postgres I get this message :\nCREATE EXTENSION pg_cron;\n \nERROR: can only create extension in database postgres\nDetail: Jobs must be scheduled from the database configured in \ncron.database_name, since the pg_cron background worker reads job \ndescriptions from this database. Hint: Add cron.database_name = \n'mydb' in postgresql.conf to use the current database. \nWhere: PL/pgSQL function inline_code_block line 4 at RAISE \n\nQuery = CREATE EXTENSION pg_cron;\n\n... I don't think I have access to postgresql.conf in Cloud SQL ... is there another way ?\nMaybe I could use postgres_fdw to achieve my goal ?\nThank you,\n",
+    "question_score": 9,
+    "answer_text": "There's no need to edit any files. All you have to do is set the cloudsql.enable_pg_cron flag (see guide) and then create the extension in the postgres database.\nYou need to log onto the postgres database rather than the one you're using for your app. For me that's just replacing the name of my app database with 'postgres' e.g.\npsql -U<username> -h<host ip> -p<port> postgres\n\nThen simply run the create extension command and the cron.job table appears.  Here's one I did a few minutes ago in our cloudsql database.  I'm using the cloudsql proxy to access the remote db:\n127.0.0.1:2345 admin@postgres=> create extension pg_cron;\nCREATE EXTENSION\nTime: 268.376 ms\n127.0.0.1:2345 admin@postgres=> select * from cron.job;\n jobid | schedule | command | nodename | nodeport | database | username | active | jobname \n\n-------+----------+---------+----------+----------+----------+----------+--------+---------\n(0 rows)\n\nTime: 157.447 ms\n\nBe careful to specify the correct target database when setting the schedule otherwise it will think that you want the job to run in the postgres database.  The documentation has this example (but it's easily missed)\n-- Vacuum every Sunday at 4:00am (GMT) in a database other than the one pg_cron is installed in\nSELECT cron.schedule_in_database('weekly-vacuum', '0 4 * * 0', 'VACUUM', 'some_other_database');\n\n",
+    "answer_id": 72867290,
+    "tags": [
+      "postgresql",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "pg-cron"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 35192441,
+    "title": "How to connect to your Cloud SQL instance with a kubernetes service?",
+    "question_text": "I'm creating a container with a connection to a cloudsql database, when I run the image with kubernetes It does not have an external IP that I can use to allow the new image to connect to the database. But as this is part of the init configuration I can't wait to know what is the public IP to add to the whitelist databases.\nI know that are ways to connect a database through services in the same cluster, but I can't figure out how to connect with the cloudsql provided by google.\n",
+    "question_score": 9,
+    "answer_text": "There are two ways to solve that:\nThe first option is to use a cloudsql proxy using the instructions available in: https://cloud.google.com/sql/docs/sql-proxy \nIn your docker image you need to ensure that fuse is available in your installation, in wasn't my case (using a ubuntu:trusty-20160119 as base image). If you need to able that, then use the following steps in your Dockerfile:\n# install fusermount\n# RUN apt-get install build-essential -y\n# RUN wget https://github.com/libfuse/libfuse/releases/download/fuse_2_9_5/fuse-2.9.5.tar.gz\n# RUN tar -xzvf fuse-2.9.5.tar.gz\n# RUN cd fuse-2.9.5 && ./configure && make -j8 && make install\n\nThen at the startup of your container you must create a script that open the socket as described in https://cloud.google.com/sql/docs/sql-proxy#example_proxy_invocations_and_connection_strings.\nThe second way is just to allow the ips from the nodes that support the kubernetes cluster in the whitelist for the cloudsql. \nI prefer the first option, because it works in any machine I deploy the image and I don't need to care about to add or remove ips if I need to deliver more nodes in the kubernetes cluster.\n",
+    "answer_id": 35354474,
+    "tags": [
+      "kubernetes",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 40829545,
+    "title": "Can&#39;t connect to Cloud SQL using PyMySQL",
+    "question_text": "I'm trying to connect to Cloud SQL from a Python application (using PyMySQL 0.7.9) running on top of Google App Engine.\nMy connection string looks like this (credentials are fake of course):\npymysql.connect(unix_socket='/cloudsql/gae_project_name:cloudsql_instance_name', \n                user='user', password='', db='database_name')\n\nThe error message I receive is:\nOperationalError: (2003, \"Can't connect to MySQL server on 'localhost' ([Errno 97] Address family not supported by protocol)\")\nIt's like PyMySQL doesn't recognize that I'm trying to connect through a Unix socket and tries the default value for the host argument instead (which I presume is localhost)\nI am able to connect with MySQLdb with the same connection string.\n",
+    "question_score": 9,
+    "answer_text": "Apparently, PyMySQL is not currently supported on the Google App Engine Standard environment, which only runs Python 2.7 (as of June 2018). This is from the maintainers of the GCP python project:\n\nI can confirm that pymysql is not supported in the python27 runtime. However, for most use cases, it's possible to use pymysql locally and mysqldb in production by using a try: / except ImportError: to import one or the other conditionally. As they share the same interface, you can use import as to make the two different libraries share the same name for ease of use in your code.\n\nSee this Github thread for details\n",
+    "answer_id": 50791469,
+    "tags": [
+      "python",
+      "google-cloud-sql",
+      "google-app-engine-python",
+      "pymysql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 52106397,
+    "title": "no connection pool with primary found",
+    "question_text": "I am using Rails and am experiencing a connection pool error very randomly and it does not target any single endpoint specifically. I can hit endpoints about 70% of the time without getting this error. The database is PostgreSQL running on Google Cloud. Here's the main stuff of the error I'm getting:\n#<ActiveRecord::ConnectionNotEstablished: ActiveRecord::ConnectionNotEstablished>\n/usr/local/bundle/gems/activerecord-5.1.5/lib/active_record/connection_handling.rb:112:in `connection_pool'\n\nActiveRecord::ConnectionNotEstablished (No connection pool with 'primary' found.):\n\nGemfile:\nsource 'https://rubygems.org'\n\ngit_source(:github) do |repo_name|\n  repo_name = \"#{repo_name}/#{repo_name}\" unless repo_name.include?(\"/\")\n  \"https://github.com/#{repo_name}.git\"\nend\n\n\ngem 'rails', '~> 5.1.5'\ngem 'pg', '>= 0.18', '< 2.0'\ngem 'puma', '~> 3.7'\ngem 'bcrypt', '~> 3.1.7'\ngem 'jwt', '~> 1.5'\ngem 'simple_command', '~> 0.0.9'\ngem 'swagger-blocks', '~> 2.0.2'\ngem 'active_model_serializers', '~> 0.10.2'\ngem 'kaminari'\ngem 'google-cloud-storage', '~> 1.10.0'\ngem 'mini_magick', '~> 4.8.0'\ngem 'carrierwave', '~> 1.2.0'\ngem 'fog-google', '~> 1.3.0'\ngem 'geocoder', '~> 1.4.7'\ngem 'paper_trail', '~> 9.2.0'\ngem 'paper_trail-association_tracking'\ngem 'full-name-splitter', '~> 0.1.2'\ngem 'pg_search'\ngem 'mailgun-ruby', '~>1.1.6'\n\n\n gem 'rack-cors'\n\ngroup :development, :test, :staging, :dev do\n  gem 'byebug', platforms: [:mri, :mingw, :x64_mingw]\n  gem 'rspec-rails', '~> 3.7'\n  gem 'factory_bot_rails'\n  gem 'dotenv-rails'\n  gem 'pry-rails'\n  gem 'stackprof'\n  gem 'flamegraph'\n  gem 'rack-mini-profiler'\n  gem 'bullet'\n  gem 'seed_dump'\nend\n\ngroup :development do\n  gem 'listen', '>= 3.0.5', '< 3.2'\n  gem 'spring'\n  gem 'spring-watcher-listen', '~> 2.0.0'\nend\n\n gem\n    gem 'tzinfo-data', platforms: [:mingw, :mswin, :x64_mingw, :jruby]\n    gem 'devise', '~> 4.4.3'\n    gem 'activeadmin', github: 'activeadmin'\n    gem 'inherited_resources', git: 'https://github.com/activeadmin/inherited_resources'\n\nDatabase.yml:\ndefault: &default\n  adapter: postgresql\n  encoding: unicode\n  pool: <%= ENV.fetch(\"RAILS_MAX_THREADS\") { 5 } %>\n\ndevelopment:\n  <<: *default\n  database: rails_development\n\ndev:\n  <<: *default\n  database: <%= ENV['DB_NAME'] %>\n  username: <%= ENV['DB_USER'] %>\n  password: <%= ENV['DB_PASSWORD'] %>\n  host: <%= ENV['DB_HOST'] %>\ntest:\n  <<: *default\n  database: rails_test\n\nproduction:\n  <<: *default\n  database: <%= ENV['DB_NAME'] %>\n  username: <%= ENV['DB_USER'] %>\n  password: <%= ENV['DB_PASSWORD'] %>\n  host: <%= ENV['DB_HOST'] %>\n\nstaging:\n  <<: *default\n  database: <%= ENV['DB_NAME'] %>\n  username: <%= ENV['DB_USER'] %>\n  password: <%= ENV['DB_PASSWORD'] %>\n  host: <%= ENV['DB_HOST'] %>\n\nWe're using:\nRuby 2.5.0\nRails 5.1.5\nWith Postgresql on Googles CloudSQL\n",
+    "question_score": 9,
+    "answer_text": "First:\n$ gem uninstall sqlite\n\nthen in gemfile change it for:\ngem 'sqlite3', '~> 1.3.6' \n\nand:\n$ bundle install \n\n$ rake db:migrate\n\nand restart server.\nShould works :)\n",
+    "answer_id": 55303218,
+    "tags": [
+      "ruby-on-rails",
+      "ruby",
+      "postgresql",
+      "google-cloud-sql",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 39221261,
+    "title": "Triggers cloud sql 2nd generation",
+    "question_text": "I am trying to populate a 2nd gen cloud sql instance (v5.7) with a database dump currently running on 1st gen cloud SQL. It has some triggers:\n    /*!50003 CREATE*/ /*!50017 DEFINER=`root`@`%`*/ /*!50003 TRIGGER `resourcetypetransaction_AFTER_INSERT` AFTER INSERT ON `resourcetypetransaction` FOR EACH ROW\n  BEGIN\n    INSERT INTO `resourcetypetransactionlog` SELECT *\n                                             FROM `resourcetypetransaction`\n                                             WHERE id = NEW.id;\n  END */;;\n\nThe result when trying to insert the database to 2nd gen is:\nshinkansen:sql ameyer$ cat gae_2016-08-30T08\\:21\\:33.sql | mysql -u root -pxxxx -h xxxx napoleon;\nmysql: [Warning] Using a password on the command line interface can be insecure.\nERROR 1419 (HY000) at line 1067: You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)\n\nIs there a way to enable triggers like this on 2nd gen?\nCheers,\nAndres\n",
+    "question_score": 8,
+    "answer_text": "Because some triggers can produce inconsistent results when replication is enabled, they are not allowed in the default configuration.\nYou have two options:\n\nIf you do not care about replication or being able to do point in time recovery, you can disable Binary Logs.\nOtherwise, if you are sure that your trigger is safe you can edit your instance and set the log_bin_trust_function_creators flag to true under advanced options. To be safe, the trigger must guarantee that it would generate the same effect on both the master and the replica(s). You can find an explanation and an example of an unsafe trigger in the following post: https://dba.stackexchange.com/questions/73447/why-when-does-creating-a-mysql-trigger-require-super-privileges\n\n",
+    "answer_id": 39242323,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 71480852,
+    "title": "CloudSQL Proxy on GKE : Service vs Sidecar",
+    "question_text": "Does anyone know the pros and cons for installing the CloudSQL-Proxy (that allows us to connect securely to CloudSQL) on a Kubernetes cluster as a service as opposed to making it a sidecar against the application container?\nI know that it is mostly used as a sidecar. I have used it as both (in non-production environments), but I never understood why sidecar is more preferable to service. Can someone enlighten me please?\n",
+    "question_score": 8,
+    "answer_text": "The sidecar pattern is preferred because it is the easiest and more secure option. Traffic to the Cloud SQL Auth proxy is not encrypted or authenticated, and relies on the user to restrict access to the proxy (typically be running local host).\nWhen you run the Cloud SQL proxy, you are essentially saying \"I am user X and I'm authorized to connect to the database\". When you run it as a service, anyone that connects to that database is connecting authorized as \"user X\".\nYou can see this warning in the Cloud SQL proxy example running as a service in k8s, or watch this video on Connecting to Cloud SQL from Kubernetes which explains the reason as well.\n",
+    "answer_id": 71499983,
+    "tags": [
+      "kubernetes",
+      "google-kubernetes-engine",
+      "google-cloud-sql",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 70024078,
+    "title": "Connecting to Cloud SQL from Cloud Run via cloud-sql-proxy with IAM login enabled",
+    "question_text": "I would like to connect to a Cloud SQL instance from Cloud Run, using a service account. The connection used to be created within the VPC and we would just provide a connection string with a user and a password to our PostgreSQL client. But now we want the authentication to be managed by Google Cloud IAM, with the service account associated with the Cloud Run service.\nOn my machine, I can use the enable_iam_login argument to use my own service account. The command to run the Cloud SQL proxy would look like this:\n./cloud_sql_proxy -dir=/cloudsql -instances=[PROJECT-ID]:[REGION]:[INSTANCE] \\\n-enable_iam_login -credential_file=${HOME}/.config/gcloud/application_default_credentials.json\n\nThe problem is that I can't seem to find a way to use the IAM authentication method to run the Cloud SQL Proxy from Cloud Run, I can just provide an instance name. Has anyone face this problem before?\n",
+    "question_score": 8,
+    "answer_text": "Unfortunately, there isn't a way to configure Cloud Run's use of the Cloud SQL proxy to do this for you.\nIf you are using Java, Python, or Go, there are language specific connectors you can use from Cloud Run. These all have the option to use IAM DB AuthN as part of them.\n",
+    "answer_id": 70026369,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-run",
+      "google-cloud-iam",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 12391501,
+    "title": "Access Google Cloud SQL from Apps Script",
+    "question_text": "I want to know if there is a way using Apps Script to connect to my Google Cloud SQL DB to execute a query. \nI've read many posts and it seems that the only way to access to the DB Cloud SQL is to use the App Engine.\nAnyone know a solution?\nThank you\n",
+    "question_score": 8,
+    "answer_text": "Yes its obviously possible to connect apps script with Google Cloud SQL through JDBC.\nConnection to Google Cloud SQL instance From Google Apps Script :\nGoogle Apps Script has the ability to make connections to databases via JDBC with the Jdbc Service.\nAuthorization :\nIn order to connect to an instance the user must be a member of the associated Google APIs Console project. Optionally, a user name and password can be specified to apply more fine-grained permissions. To learn more about access control, see access control documentation\nAccessing Google Cloud SQL Databases:\nWe can connect to these databases in Apps Script, using the special method getCloudSqlConnection. This method works the same way as getConnection, but only accepts Google Cloud SQL connection strings.\nvar conn = Jdbc.getCloudSqlConnection(\"jdbc:google:rdbms://instance_name/database_name\");\n\nOnce connected you can use the same code you would use to work against any MySQL database.\nWriting to a Database :\nThis code will insert a record in person table in database\nfunction insert() {\n  var fname=\"First Name\"\n  var lname=\"Last Name\"\n  var conn = Jdbc.getCloudSqlConnection(\"jdbc:google:rdbms://instance_name/database_name\");\n  var stmt = conn.createStatement()\n  var query=\"insert into person(FNAME,LNAME) values('\"+fname+\"','\"+lname+\"')\"\n  stmt.execute(query)\n  stmt.close()\n  conn.close()\n }\n\nReading from a Database:\nThis code will read from database.\nfunction read() {\n  var conn = Jdbc.getCloudSqlConnection(\"jdbc:google:rdbms://instance_name/database_name\");\n  var stmt = conn.createStatement()\n  var query=\"select FNAME, LNAME from person\"\n  var rs= stmt.executeQuery(query)\n  while(rs.next()){\n    Logger.log(\"First Name : \"+rs.getString(1)+\" , \"+\"Last Name : \"+rs.getString(2))\n  }\n  rs.close()\n  stmt.close()\n  conn.close()\n }\n\n",
+    "answer_id": 17801896,
+    "tags": [
+      "google-apps-script",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 24087535,
+    "title": "How do I connect to Google Cloud SQL using SSH",
+    "question_text": "How do I connect to Google Cloud Platform, specifically Cloud SQL, using SSH? I\u2019m using Tera Term and can\u2019t seem to get in. Maybe I\u2019m just using the wrong host, port, password or configuration settings. I\u2019ve tried several combinations.\nI can connect to my Google Cloud SQL instance using MySQL workbench, so I\u2019m pretty sure I\u2019ve configured the Cloud SQL Access Controls correctly.\n",
+    "question_score": 8,
+    "answer_text": "Cloud SQL provides a managed MySQL endpoint and not a virtual machine in which you can SSH into.\n",
+    "answer_id": 24094107,
+    "tags": [
+      "google-app-engine",
+      "ssh",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 22302536,
+    "title": "Google Cloud SQL Pricing",
+    "question_text": "I am an avid user of Amazon AWS but I am not sure about the RDS as compared to Google's Cloud SQL. In this site - it is mentioned that Per Use Billing Plan exists.\nHow is that calculated? It is mentioned 'charged for periods of continuous use, rounded up to the nearest hour'.\nHow does it go? If there are no visitors to my site there are no charges, right? What if I say I have 100 continuous users for 30 days. Will I still be billed $0.025 per hour (excluding the network usage charges)?\nHow do I upload my present SQL database to Google Cloud service? Is it the same way as Amazon using Oracle Workbench?\nThank you\n",
+    "question_score": 8,
+    "answer_text": "Using the per use billing, if your database isn't access for 15 minutes then it is taken offline and you are only charged for data storage ($0.24 per GB per month). Its brought back online the next time it's accessed, which typically takes around a second for a D1 instance. The number of users doesn't affect the charge: you are charged for the database instance, not the user.\nMore details here\nhttps://developers.google.com/cloud-sql/faq#how_usage_calculated\nMore information on importing data here:\nhttps://developers.google.com/cloud-sql/docs/import-export\n",
+    "answer_id": 22308980,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 55803015,
+    "title": "Google Cloud SQL PG11 : could not resize shared memory segment",
+    "question_text": "I recently upgraded a Postgres 9.6 instance to 11.1 on Google Cloud SQL.  Since then I've begun to notice a large number of the following error across multiple queries:\n\norg.postgresql.util.PSQLException: ERROR: could not resize shared\n  memory segment \"/PostgreSQL.78044234\" to 2097152 bytes: No space left\n  on device\n\nFrom what I've read, this is probably due to changes that came in PG10, and the typical solution involves increasing the instance's shared memory.  To my knowledge this isn't possible on Google Cloud SQL though.  I've also tried adjusting work_mem with no positive effect.\nThis may not matter, but for completeness, the instance is configured with 30 gigs of RAM, 120 gigs of SSD hd space and 8 CPU's.  I'd assume that Google would provide an appropriate shared memory setting for those specs, but perhaps not? Any ideas?\nUPDATE\nSetting the database flag random_page_cost to 1 appears to have reduced the impact the issue.  This isn't a full solution though so would still love to get a proper fix if one is out there.\nCredit goes to this blog post for the idea.\nUPDATE 2\nThe original issue report was closed and a new internal issue that isnt viewable by the public was created. According to a GCP Account Manager's email reply however, a fix was rolled out by Google on 8/11/2019. \n",
+    "question_score": 8,
+    "answer_text": "This worked for me, I think google needs to change a flag on how they're starting the postgres container on their end that we can't influence inside postgres.\nhttps://www.postgresql.org/message-id/CAEepm%3D2wXSfmS601nUVCftJKRPF%3DPRX%2BDYZxMeT8M2WwLSanVQ%40mail.gmail.com\n\nBingo.  Somehow your container tech is limiting shared memory.  That\n  error is working as designed.  You could figure out how to fix the\n  mount options, or you could disable parallelism with\n  max_parallel_workers_per_gather = 0.\n\nshow max_parallel_workers_per_gather;\n-- 2\n-- Run your query\n-- Query fails\nalter user ${MY_PROD_USER} set max_parallel_workers_per_gather=0;\n-- Run query again -- query should work\nalter user ${MY_PROD_USER} set max_parallel_workers_per_gather=2;\n-- -- Run query again -- fails\n\n",
+    "answer_id": 55832315,
+    "tags": [
+      "postgresql",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 53448509,
+    "title": "How to create CloudSQL Proxy credentials as secrets on GKE",
+    "question_text": "I've followed the steps at https://cloud.google.com/sql/docs/mysql/connect-kubernetes-engine to set up MySQL user accounts and service accounts. I've downloaded the JSON file containing my credentials.\nMy issue is that in the code I copied from the site:\n- name: cloudsql-proxy\n  image: gcr.io/cloudsql-docker/gce-proxy:1.11\n  command: [\"/cloud_sql_proxy\",\n            \"-instances=<INSTANCE_CONNECTION_NAME>=tcp:3306\",\n            \"-credential_file=/secrets/cloudsql/credentials.json\"]\n  securityContext:\n    runAsUser: 2  # non-root user\n    allowPrivilegeEscalation: false\n  volumeMounts:\n    - name: cloudsql-instance-credentials\n      mountPath: /secrets/cloudsql\n      readOnly: true\n\nthe path /secrets/cloudsql/credentials.json is specified and I have no idea where it's coming from.\nI think I'm supposed to create the credentials as a secret via \nkubectl create secret generic cloudsql-instance-credentials --from-file=k8s\\secrets\\my-credentials.json\nBut after that I have no idea what to do. How does this secret become the path /secrets/cloudsql/credentials.json?\n",
+    "question_score": 8,
+    "answer_text": "you have to add a volume entry under the spec like so:\n  volumes:\n    - name: cloudsql-instance-credentials\n      secret:\n        defaultMode: 420\n        secretName: cloudsql-instance-credentials\n\nNote: This belongs to the deployment spec not the container spec.\nEdit: Further Information can be found here: https://kubernetes.io/docs/tasks/inject-data-application/distribute-credentials-secure/#create-a-pod-that-has-access-to-the-secret-data-through-a-volume thanks shalvah for pointing that out.\n",
+    "answer_id": 53448542,
+    "tags": [
+      "kubernetes",
+      "google-cloud-sql",
+      "google-kubernetes-engine",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 20615433,
+    "title": "App engine fails to connect to Google cloud sql",
+    "question_text": "My Google app engine application fails to connect to Google cloud sql instance with this error:\n'PDOException' with message 'SQLSTATE[HY000] [2002] No connection could be made because the target machine actively refused it.\n\nI've checked the documentation and followed instructions closely. I added the app as an authorised application and set the root password using the cloud console. I also gave the instace an ip address and can connect to it from Workbench on the local development machine. Using workbench, I added a user and configured permissions. But I'm still unable to connect to it from the dev version of the app (same ip as workbench) or the deployed app.\nHere's my connection line:\n$conn = new PDO('mysql:unix_socket=/cloudsql/****:****;charset=utf8', 'the_username', 'its_password');\n\nthis question appears to be similar to this problem. However, even after setting up a new user and granting permissions I'm still unable to connect. Any idea where I went wrong?\nThanks\n",
+    "question_score": 8,
+    "answer_text": "Note that setting the root passwords only applies the connections coming over IP. The connections from App Engines show to the MySQL server as coming from localhost. So make sure the password for 'root@localhost' is the one you configured in the code.\nA quick way to check the state of the passwords is to connect over IP and issue the following query:\nmysql> SELECT user,host,password FROM mysql.user;\n+-------+-----------+-------------------------------------------+\n| user  | host      | password                                  |\n+-------+-----------+-------------------------------------------+\n| root  | localhost |                                           |\n| root  | 127.0.0.1 |                                           |\n| root  | ::1       |                                           |\n|       | localhost |                                           |\n| root  | %         | *3D56A309CD04FA2EEF181462E59011F075C89548 |\n| admin | 127.0.0.1 |                                           |\n+-------+-----------+-------------------------------------------+\n6 rows in set (0.11 sec)\n\nmysql> SELECT password('xxx');\n+-------------------------------------------+\n| password('xxx')                           |\n+-------------------------------------------+\n| *3D56A309CD04FA2EEF181462E59011F075C89548 |\n+-------------------------------------------+\n1 row in set (0.11 sec)\n\nmysql>\n\nThe above shows how an instance shows up after setting the root password for connections over IP ('root@%') to 'xxx'. Note that the password for 'root@localhost' is blank so connections from App Engine still do not require any passwords.\n",
+    "answer_id": 20617013,
+    "tags": [
+      "php",
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 44610215,
+    "title": "gcloud SQL postgres - FATAL: remaining connection slots are reserved for non-replication superuser connections",
+    "question_text": "I am seing those errors in cloud sql Postgres logs.\nIts a small 1 cpu, 4Gb of ram instance yet this is a bit troublesome.\nI do not see any max_connections in the customizable flags that could allow me to bypass this error.\nThe app is a simple Django service with very little queries and load not even exposed to the public.\nThe immediate solution is for me to start using db connection pooling with pgbouncer or a Django app but that adds up a bit of complexity.\n max_connections \n-----------------\n 100\n\nDo we have a way to increase this number?\nPS: After digging a bit it seems to come from the use of gevent workers with gunicorn. It was stable < 20 connections before that.\nNevertheless, in case of traffic surge it would be good to know if max_connections can be controlled. \n",
+    "question_score": 8,
+    "answer_text": "Use CONN_MAX_AGE: 0 when using gevent.\n",
+    "answer_id": 44610352,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 15338092,
+    "title": "The request to API call datastore_v3.Put() was too large",
+    "question_text": "I am using google cloud sql with appengine.\nI am getting com.google.apphosting.api.ApiProxy$RequestTooLargeException: The request to API call datastore_v3.Put() was too large. despite I am not using the Datasotre API.\nI think according to the docs https://developers.google.com/appengine/docs/java/cloud-sql/developers-guide#access_limits that the data-size limit is 16MB served in 60 seconds.\nMy data size is around 1 MB and my response is definitely  less than 1 minute. If I try with smaller data, everything works correctly.\nSo, why is the exception thrown ? what is the problem ?\nIs it a bug in google app engine? or is there a size-limitation , where is it documented ? or what ?\n",
+    "question_score": 8,
+    "answer_text": "This happens because of GAE sessions, which under the hood use GAE Datastore to save session objects. This exception is thrown if more than 1Mb data is stored in session.\n",
+    "answer_id": 15359387,
+    "tags": [
+      "java",
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 62799353,
+    "title": "Can I run an sql file on my Google Cloud Sql instance using the gcloud sql command",
+    "question_text": "I have an sql file that creates my mysql database and all my users and tables.\nI am trying to figure out of there is a way I can automate using this sql file to initialize the database on my Google Cloud sql instance.\nSo far, the only way I have been able to determine, is that I use the gcloud sql connect command, and then just copy and paste the contents of the sql file into the mysql prompt.\nThere has got to be a better way though. Looking through the gcloud sql docs, I have not been able to find one. Am I missing something?\n",
+    "question_score": 8,
+    "answer_text": "gcloud sql is oriented towards managing the Cloud SQL instance.\nOnce you've created an instance, you may use any regular MySQL tool to interact with the instance including creating tables.\nFor example, see: https://cloud.google.com/sql/docs/mysql/connect-admin-proxy\nI encourage you to use Google's Cloud SQL proxy to connect to the remote instance, see: https://cloud.google.com/sql/docs/mysql/quickstart-proxy-test\n",
+    "answer_id": 62799988,
+    "tags": [
+      "mysql",
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "gcloud"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 26207326,
+    "title": "Getting Django 1.7 to work on Google App Engine",
+    "question_text": "Can anyone help to point us to instructions on how to get Django >1.5 working on Google App Engine? I have seen a number of people claim they have Django 1.6 working. We'd like to get 1.6 or 1.7 running. I have searched here for instructions on how to set this up. No luck so far.\nUpdate:\nIn our development machine we have Django 1.7 installed (both /user/local and on virtualenv). However, if we modify GAE yaml to use Django 1.7 we get the following error messages:\ngoogle.appengine.api.yaml_errors.EventError: django version \"1.7\" is not supported, use one of: \"1.2\", \"1.3\", \"1.4\", \"1.5\" or \"latest\" (\"latest\" recommended for development only)   in \"./app.yaml\",\n\nThe version 1.9.12 GoogleAppEngine sdk install in our /Applications/GoogleAppEngineLauncher.app/Contents/Resources/GoogleAppEngine-default.bundle/Contents/Resources/google_appengine/lib directory shows the following Django versions listed:\n\ndjango-0.96 django-1.2 django-1.3 django-1.4 django-1.5\n\nMy question is related to how to get our development environment setup correctly for Django 1.7 on Google App Engine and how to make sure we successfully deploy our app with Django 1.7 when we deploy to Google App Engine in production. How do we get the Django 1.7 to deploy on GAE when we deploy our app?\n",
+    "question_score": 7,
+    "answer_text": "\nYou can use any pure Python third party libraries in your Google App Engine application. In order to use a third party library, simply include the files in your application's directory, and they will be uploaded with your application when you deploy it to our system. You can import the files as you would any other Python files with your application.\n\nI have application using Django 1.7 this way and everything is working fine. However, sometimes you may need to sort of hack something due to the App Engine limitations and its specifics. But it depends on your use cases.\nI would also suggest to use virtual environment for your project. Install each library that is not supported by App Engine directly via pip and then create a symlink in your application directory pointing to the given library.\nThis way you can keep all required packages in a file (e.g. requirements.txt) that can be stored in SCM system (e.g. Git) along with your source files and other team members can quite easily replicate your working environment. \nProvided that you use virtual environment and install all needed libraries (Django, ...) via pip, here is the directory layout that should work for you.\n\nvirtual-env-root\n\n\n.Python\nbin\ninclude\nlib\napp-engine-project-root\n\n\napp.yaml\ndjango-project-root\ndjango-app-root\nsymlink-to-django -> lib/python2.7/site-packages/django\nsymlink-to-another-lib -> lib/python2.7/site-packages/...\n\n\n\nSuch a layout can be easily deployed with the below command.\n$ appcfg.py update app-engine-project-root\n\nOr tested with App Engine development server.\n$ dev_appserver.py app-engine-project-root\n\nUPDATE\nSince App Engine Python SDK version 1.9.15 you can use the vendoring mechanism to set up third party libraries. You do not have to create symlinks in your application directory pointing to the Python lib folder anymore. \nCreate lib directory directly in your application root and tell your app how to find libraries in this directory by means of appengine_config.py file.\nfrom google.appengine.ext import vendor\n\n# Add any libraries installed in the \"lib\" folder.\nvendor.add('lib')\n\nNew directory layout follows.\n\nvirtual-env-root\n\n\n.Python\nbin\ninclude\nlib\napp-engine-project-root\n\n\nlib\napp.yaml\nappengine_config.py\ndjango-project-root\ndjango-app-root\n\n\n\nUse pip with the -t lib flag to install libraries in this directory.\n$ pip install -t lib [lib-name]\n\nOr\n$ pip install -t lib -r requirements.txt\n\n",
+    "answer_id": 26212173,
+    "tags": [
+      "python",
+      "django",
+      "google-app-engine",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 24351906,
+    "title": "Change region in google sql cloud",
+    "question_text": "My current region for the Google SQL cloud is now in the USA.\nI want to change the region to Europe.\n",
+    "question_score": 7,
+    "answer_text": "Once created, a Cloud SQL instance cannot be moved between regions. You can create a new instance, export the old one and import it into the new one.\n",
+    "answer_id": 24352485,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 20955950,
+    "title": "google-cloud-sql - max_allowed_packet",
+    "question_text": "I was moving a database to using Google Cloud SQL which previously had a max_allowed_packet of 20M.\nCurrently the Google Cloud SQL default for max_allowed_packet is 1M.\nIs there any way to increase this variable to 20M? I have already tried the following:\nset global max_allowed_packet = 20971520;\n\nWhich returns:\n\nError Code: 1621. SESSION variable 'max_allowed_packet' is read-only. Use SET GLOBAL to assign the value\n\nand then:\nset global max_allowed_packet = 20971520;\n\nThis returns the error:\n\nError Code: 1227. Access denied; you need (at least one of) the SUPER privilege(s) for this operation\n\nThank you in advance for your help!\n",
+    "question_score": 7,
+    "answer_text": "You can now set it yourself by editing the instance in Developer Console.\nAll the settable flags are documented here: https://cloud.google.com/sql/docs/mysql-flags\n",
+    "answer_id": 20964304,
+    "tags": [
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 47359508,
+    "title": "Can&#39;t create Trigger on MySql table within Google Cloud",
+    "question_text": "CREATE TRIGGER trigger_LocationType_Insert\nBEFORE UPDATE ON LocationType\nFOR EACH ROW\nSET NEW.NAME = ''\n\nReturns this error:\n[HY000][1419] You do not have the SUPER privilege and binary logging is enabled (you *might* want to use the less safe log_bin_trust_function_creators variable)\nI know this is because even the root user \"has all privileges except SUPER and FILE.\"\nhttps://cloud.google.com/sql/docs/mysql/users\nAnd I think that if I could \"Set log_bin_trust_function_creators to 1\" then it would work (this user does have CREATE TRIGGER permission). However, I don't see how to do that in the Google Cloud SQL console or from a sql statement.\nHow do you create a TRIGGER then within this environment?\n",
+    "question_score": 7,
+    "answer_text": "This page described how to change MySQL configuration options for a Google Cloud instance: https://cloud.google.com/sql/docs/mysql/flags\n\nSelect the instance to open its Instance Overview page.\nThe database flags that have been set are listed under the Database flags section.\n\nYou have to use their UI to change global variables, because you can't use SET GLOBAL without SUPER privilege.\nThe log_bin_trust_function_creators option is listed among the supported configuration options you can change in the UI on the page I linked to above.\nTo read more about this error, see https://dev.mysql.com/doc/refman/5.7/en/stored-programs-logging.html\n",
+    "answer_id": 47360921,
+    "tags": [
+      "mysql",
+      "triggers",
+      "google-cloud-sql",
+      "user-permissions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-sql",
+    "question_id": 43769260,
+    "title": "How do I use Read Replicas?",
+    "question_text": "I've read all the docs on the Google Cloud SQL site, and I now understand how to created and manage Read Replicas, but I have not seen any information about how to use them,\n\nDoes Google automatically load-balance connections between all instances?\nDo I have to manually connect to a specific Read Replica to avoid hitting the Master?  If so, do I have to manage reconnecting on replica failure myself?\n\n",
+    "question_score": 7,
+    "answer_text": "Does Google automatically load-balance connections between all instances?\nNo, it doesn't. Each instance is independent. You can connect to replicas and use them to read while using the master to read/write, but you need to design that logic into your application\nDo I have to manually connect to a specific Read Replica to avoid hitting the Master? If so, do I have to manage reconnecting on replica failure myself?\nYes, you have to connect to a specific read replica. Right now you can't even save and reuse the instance IP like you can do with compute engine instances (sigh, I hope they fix this soon....).\nThere is now a failover replica option that you can use so you don't need to connect to the read replica yourself, but it only activates on failure, it is not a load balancer.\n",
+    "answer_id": 46597176,
+    "tags": [
+      "google-cloud-platform",
+      "load-balancing",
+      "google-cloud-sql"
+    ]
+  }
+]

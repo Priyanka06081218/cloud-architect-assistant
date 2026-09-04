@@ -1,0 +1,144 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 71414009,
+    "title": "How to add environment variables to Azure Container App",
+    "question_text": "I cannot find a way to add environment values to Azure Container App in the portal.\nHow can I add within Azure Portal?\n",
+    "question_score": 14,
+    "answer_text": "Azure Container App is in Preview and currently, not all settings are available in the Portal.  You can use the CLI to add env variables:\naz containerapp update -n MyContainerapp -g MyResourceGroup -v myenvvar=foo,anotherenvvar=bar\n\nRefer to the CLI doc:\naz containerapp --help\n\n",
+    "answer_id": 71414190,
+    "tags": [
+      "azure",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 71185859,
+    "title": "How do I diagnose a failed Azure Container App revision?",
+    "question_text": "I'm currently working through some Azure Container App quick starts. I've just attempted to create one that's Dapr enabled with storage account state store. It has a provision status of failed but seemingly no other information. I'm not aware of how to access any logs from the container and there's nothing in the Log Analytics workspace. The others examples I've tested have worked so far so I think it's related to the Dapr config.\nIs there a way to attach to the container and see what's happening? Or anywhere I can find more detail on what error is being thrown?\n",
+    "question_score": 14,
+    "answer_text": "Here is what sequence of actions helped me sort out what was going on in my case:\n\nOpen Azure Container App  (Screenshot 1)\nGo to Revision management (Screenshot 1)\nFind out which revision fails and click on its name. The Details panel should pop to the right. (Screenshot 1)\nClick \"View details\" next to \"System logs\". The Logs screen will open. (Screenshot 1)\nScroll to the bottom and search for the log that describes what went wrong. (Screenshot 2)\nIn my case the issue description was \"Container was terminated with error code '1'\". I googled it online and found out the following \"Exit Code 1: Indicates failure due to application error\". Which means that I had an error in the code. For you, the message in the logs might be different. So pay attention. (Screenshot 2)\n\n\nHere's a good article of Container Image Exit Codes: https://betterprogramming.pub/understanding-docker-container-exit-codes-5ee79a1d58f6\n\n\n\n",
+    "answer_id": 75290028,
+    "tags": [
+      "azure",
+      "dapr",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 73750192,
+    "title": "Stop an Azure ContainerApp?",
+    "question_text": "I have an Azure ContainerApp deployed with a single revision, and I'd like to stop it - but not delete it and have to re-deploy it.  I see the image in the registry, and there are options via the portal to deploy it to an AppService or ContainerInstance, but not to a ContainerApp.\nI also have looked through the az CLI, specifically az containerapp, but see no way to stop a running instance.  I can set the scale to 0-1, but it still runs.\nAm I missing something?  Stopping an instance seems like a pretty normal thing to do...\nEDIT - Setting all revisions to inactive doesn't seem to be allowed.  See images below.\n\n\n",
+    "question_score": 12,
+    "answer_text": "Update: there is now a proper way to stop, see the answer by HQT\n\nYou can deactivate a revision to shut down the containers. If you deactivate all active revisions, you will effectively stop your containerapp.\nhttps://learn.microsoft.com/en-us/azure/container-apps/application-lifecycle-management\n\nOnce a revision is no longer needed, you can deactivate a revision with the option to reactivate later. During deactivation, containers in the revision are shut down.\n\nWhen you need it again, you can use activate to get new replicas.\naz containerapp revision deactivate --resource-group\n                                    --revision\n                                    [--name]\n\naz containerapp revision activate --resource-group\n                                  --revision\n                                  [--name]\n\nIf you visit the containerapp url after deactivating all revisions, you will receive an error:\n\nError 403 - This Container App is stopped.\n\n",
+    "answer_id": 73753572,
+    "tags": [
+      "azure",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 74237694,
+    "title": "Azure container app, unable to pull from private registry",
+    "question_text": "I have just created an Azure Container App and I am trying to link it to a private repository on docker.io. It works if I make it pull a public image but not if it's private, even though I specified all the information. I have also used the automatic \"continuous deployment\" with github (the azure portal basically did everything, which one would assume would work), I entered the same information ( docker.io, username and password and the image   tag, all working when I test in console ), the generated github action is able to build and push to docker registry, proving the user and password are good, but it doesn't want to update the container app either.\nHere is the latest error I had trying to do it through the github action:\nThe following field(s) are either invalid or missing. Invalid value: \"docker.io/pasc32/companio:latest\": GET https:: UNAUTHORIZED: authentication required; [map[Action:pull Class: Name:pasc32/companio Type:repository]]: template.containers.test.image.\nWhen I try to do it directly from the portal, it'll add a notification at the top, which will turn forever, if I refresh the page nothing's change and the container is back to how it was before, no trace of the notification in the activity log either.\n\nDoes anyone have an idea of what the issue it ?\nThank!\n",
+    "question_score": 9,
+    "answer_text": "This is a known issue and container apps team is working on it.\nAs a workaround, use registry.hub.docker.com as the server value instead of docker.io.\n",
+    "answer_id": 74239780,
+    "tags": [
+      "azure",
+      "docker",
+      "docker-registry",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 72362826,
+    "title": "Azure Container Apps Restarts every 30 seconds",
+    "question_text": "I have an Azure Container App that's based on the hosted BackgroundService model.  It's essentially just a long running console app that overrides the BackgroundService.ExecuteAsync method and waits for the stop signal (via the passed cancellation token).  When I run locally in Docker, it's perfect - everything runs as expected.  When I deploy as an Azure Container App, it deploys and runs - although I manually had to set the scale minimum to 1 to get it to run at all - but it restarts every 30 secs or so which is obviously not ideal.  My guess is that the Azure Container Apps docker host is somehow checking my instance for health and isn't satisfied so tries to restart it?  Just a guess.  What am I missing?\nusing FR911.DataAccess.Repository;\nusing FR911.Infrastructure.Commands;\nusing FR911.Utils;\nusing FR911.Utils.Extensions;\nusing SimpleInjector;\n\nIHost host = Host.CreateDefaultBuilder(args)\n    .ConfigureServices(services =>\n    {\n        services.AddFR911Log4NetConfig();        \n        services.AddTransient<ICommandProcessor, CommandProcessor>();\n        Container container = new Container();\n        container.Register(typeof(ICommandHandler<,>), new List<Type>()\n            {\n                //typeof(CacheSyncCommandHandler),\n            });\n\n#if DEBUG\n        container.Verify();\n#endif\n\n        services.AddSingleton<Container>(container);\n        services.AddHostedService<Worker>();\n    })\n    .Build();\n\nawait host.RunAsync();\n\n    public class Worker : BackgroundService\n    {\n        private readonly ILogger<Worker> _logger;\n        private ICommandProcessor _commandProcessor;\n\n        public Worker(ILogger<Worker> logger, ICommandProcessor cmdProcessor)\n        {\n            _logger = logger;            \n            _commandProcessor = cmdProcessor;\n        }\n        \n        protected override async Task ExecuteAsync(CancellationToken stoppingToken)\n        {\n            _logger.LogInformation(\"Worker starting at: {time}\", DateTimeOffset.Now);\n\n            DateTime? lastGC = null;\n            while (!stoppingToken.IsCancellationRequested)\n            {\n                _logger.LogInformation(\"Worker running at: {time}\", DateTimeOffset.Now);\n                await Task.Delay(1000, stoppingToken);\n            }\n            _logger.LogInformation(\"Worker stopping at: {time}\", DateTimeOffset.Now);\n        }\n    }\n\n24 May 2022 12:10:46.5732022-05-24 12:10:46,248 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker starting at: 05/24/2022 12:10:46 +00:00\n24 May 2022 12:10:46.5732022-05-24 12:10:46,249 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:46 +00:00\n24 May 2022 12:10:46.5732022-05-24 12:10:46,251 Microsoft.Hosting.Lifetime fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Application started. Press Ctrl+C to shut down.\n24 May 2022 12:10:46.5732022-05-24 12:10:46,252 Microsoft.Hosting.Lifetime fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Hosting environment: Production\n24 May 2022 12:10:46.5732022-05-24 12:10:46,336 Microsoft.Hosting.Lifetime fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Content root path: /app\n24 May 2022 12:10:47.6402022-05-24 12:10:47,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:47 +00:00\n24 May 2022 12:10:48.6402022-05-24 12:10:48,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:48 +00:00\n24 May 2022 12:10:49.6392022-05-24 12:10:49,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:49 +00:00\n24 May 2022 12:10:50.6432022-05-24 12:10:50,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:50 +00:00\n24 May 2022 12:10:51.6422022-05-24 12:10:51,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:51 +00:00\n24 May 2022 12:10:52.6412022-05-24 12:10:52,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:52 +00:00\n24 May 2022 12:10:53.6622022-05-24 12:10:53,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:53 +00:00\n24 May 2022 12:10:54.6402022-05-24 12:10:54,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:54 +00:00\n24 May 2022 12:10:55.6382022-05-24 12:10:55,636 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:55 +00:00\n24 May 2022 12:10:56.6392022-05-24 12:10:56,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:56 +00:00\n24 May 2022 12:10:57.6402022-05-24 12:10:57,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:57 +00:00\n24 May 2022 12:10:58.6402022-05-24 12:10:58,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:58 +00:00\n24 May 2022 12:10:59.6402022-05-24 12:10:59,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:10:59 +00:00\n24 May 2022 12:11:00.6402022-05-24 12:11:00,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:00 +00:00\n24 May 2022 12:11:01.6432022-05-24 12:11:01,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:01 +00:00\n24 May 2022 12:11:02.6392022-05-24 12:11:02,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:02 +00:00\n24 May 2022 12:11:03.6402022-05-24 12:11:03,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:03 +00:00\n24 May 2022 12:11:04.6412022-05-24 12:11:04,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:04 +00:00\n24 May 2022 12:11:05.6492022-05-24 12:11:05,636 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:05 +00:00\n24 May 2022 12:11:06.6642022-05-24 12:11:06,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:06 +00:00\n24 May 2022 12:11:07.6392022-05-24 12:11:07,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:07 +00:00\n24 May 2022 12:11:08.6402022-05-24 12:11:08,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:08 +00:00\n24 May 2022 12:11:09.6402022-05-24 12:11:09,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:09 +00:00\n24 May 2022 12:11:10.6412022-05-24 12:11:10,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:10 +00:00\n24 May 2022 12:11:11.6392022-05-24 12:11:11,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:11 +00:00\n24 May 2022 12:11:12.6402022-05-24 12:11:12,637 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:12 +00:00\n24 May 2022 12:11:13.6402022-05-24 12:11:13,638 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:13 +00:00\n24 May 2022 12:11:14.6392022-05-24 12:11:14,636 FR911.Worker.Worker fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Worker running at: 05/24/2022 12:11:14 +00:00\n24 May 2022 12:11:14.9312022-05-24 12:11:14,930 Microsoft.Hosting.Lifetime fr911worker-app-20--vki2kmn-cf5bff474-5w6mh INFO Application is shutting down...\n\n",
+    "question_score": 8,
+    "answer_text": "I'm an Engineering Manager in Container Apps.\nYour Container App was being restarted because it was failing the readiness probes.\nIf your Container App\u2019s HTTP ingress is set to \u2018Enabled\u2019, the platform will try to ping it on the specified Target port (80 by default). If the platform can\u2019t successfully ping it, it will be considered 'unhealthy' and will be restarted. Please refer to Health probes in Azure Container Apps to learn about the default health probes and how to specify your own settings.\nIf your Container App is not listening in the specified ingress port (for example, if your app is processing messages from a queue and not expecting external http requests) set HTTP ingress to \u2018Disabled\u2019. When HTTP ingress is set to \u2018Disabled\u2019, health probes won't be configured, and your app won't be pinged.\nIf your Container App is listening on the specified Targe port, but it requires a longer startup time, you can define a longer initial delay and/or longer period between pings.\nAlso, make sure that the Target port specified in the HTTP configuration is the same that is EXPOSEd in the dockerfile of your Container App\n",
+    "answer_id": 72411172,
+    "tags": [
+      "azure-container-instances",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 72705471,
+    "title": "How to reference secrets in Azure Container Apps?",
+    "question_text": "I've created a secret for my Azure Container App by adding the secret from the portal.\nBut how do I reference it inside my code, such as for a database connection string?\nThe section on using secrets says only:\n\nApplication secrets are referenced via the secretref property. Secret values are mapped to application-level secrets where the secretref value matches the secret name declared at the application level.\n\nI should mention my container app is not a .NET app -- it's a Node.js service. Where is this secretref property to be found? I've checked environment variables in the running container and don't see the secret there.\n",
+    "question_score": 6,
+    "answer_text": "Naturally, I posted this and figured it out. The secrets are exposed by environment variables. I missed the syntax in the azure CLI example that did reference secretref, and Codo clarified how to do this via the CLI below -- but if you happen to be configuring secrets through the portal:\n\nIn the left nav, click Secrets and create the secret in the portal.\nIn the left nav, click \"Containers\" under the Revisions section.\nPick the container where you want the secret published.\nAt the top, click \"Edit and Deploy\"\nIn the \"Container Image\" section select your image.\nIn \"Edit a container\" skip down to Environment Variables and click \"Add\"\nEnter a name for the env var.\nUnder \"source\", click \"Reference a secret\" then pick your secret.\n\nCreate the revision and you should be good to go. The application code can reference the environment variable to access the secret.\n",
+    "answer_id": 72705637,
+    "tags": [
+      "azure",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 75918183,
+    "title": "Is there any way to increase the Azure Container App memory limit past 4GB?",
+    "question_text": "I like the Azure container app service, but we are struggling with the 4GB limit per container.\nIs there any way to increase this limit without switching to container instances?\n",
+    "question_score": 6,
+    "answer_text": "You can use a dedicated workload profile:\n\nhttps://learn.microsoft.com/en-us/azure/container-apps/workload-profiles-overview\n\nThis should allow you to go up to 32 cores and 256 GB.\n",
+    "answer_id": 75924767,
+    "tags": [
+      "azure",
+      "azure-container-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 74804714,
+    "title": "How can I add a custom domain to Azure container app via bicep?",
+    "question_text": "I have a bicep template that creates several container apps. They shall have a custom sub domain in my private DNS zone. However, I have the problem that this leads to a circular dependency: To add the CName and verification TXT record to the DNS zone, I need the FQDN and verification from the container app. On the other hand, the deployment of the container app validates the existance of these records and fails if they are not there.\nA workaround I currently use involves a boolean template parameter that must be false on the first run:\nparam register_custom_domains bool = false\n\nresource container_app 'Microsoft.App/containerapps@2022-03-01' = {\n  // ...\n  properties: {\n    configuration: {\n      ingress: {\n        customDomains: register_custom_domains ? [\n          {\n            name: 'name'\n            certificateId: certifcate.id\n            bindingType: 'SniEnabled'\n          }\n        ] : null \n      }\n    }\n  }\n}\n\n\nBut this naturally requires to deploy twice. Is there a better way?\n",
+    "question_score": 6,
+    "answer_text": "There is a solution that works in one pass. It is based on the fact that the verification string is the same for the container app environment and the individual containers. And since the containers will get an default domain name that is composed of the container name and the container environments defaultDomain, the CNAME and TXT records can be created before the containers.\nHere is a step-by-step description to register the container app named my_container as subdomain.my-domain.com:\n\nCreate container app environment with SSL certificate:\n\nresource container_environment 'Microsoft.App/managedEnvironments@2022-06-01-preview' = {\n  name: 'cae'\n  // ...\n\n  resource ssl_certificate 'certificates@2022-03-01' = {\n    name: 'my-certificate'\n    // ...\n  }\n}\n\n\nCreate CNAME and TXT records in DNS zone. In my case, since the DNS zone is in another resource group, I had to use a module but this is omitted here.\n\nresource dns_zone 'Microsoft.Network/dnsZones@2018-05-01' existing = {\n  name: 'my-domain.com'\n\n  resource cname 'CNAME@2018-05-01' = {\n    name: 'subdomain'\n    properties: {\n      TTL: 3600\n      CNAMERecord: {\n        cname: '${container_name}.${container_environment.properties.defaultDomain}'\n      }\n    }\n  }\n  resource verification 'TXT@2018-05-01' = {\n    name: 'asuid.subdomain'\n    properties: {\n      TTL: 3600\n      TXTRecords: [\n        {\n          value: [container_environment.properties.customDomainConfiguration.customDomainVerificationId]\n        }\n      ]\n    }\n  }\n}\n\n\nCreate container with custom domain. Here is is important to specify the dependsOn because the bicep compiler cannot know that the domain records are required.\n\nresource container_app 'Microsoft.App/containerapps@2022-03-01' = {\n  dependsOn: [extend_dns_zone_module]\n  name: 'my_container'\n  properties: {\n    // ...\n    configuration: {\n      // ...\n      ingress: {\n        // ...\n        customDomains: [\n          {\n            name: 'subdomain.my-domain.com'\n            certificateId: container_environment::ssl_certificate.id\n            bindingType: 'SniEnabled'\n          } \n        ]\n      }\n   }\n}\n\n",
+    "answer_id": 74851812,
+    "tags": [
+      "azure",
+      "azure-bicep",
+      "azure-container-apps",
+      "azure-dns"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-container-apps",
+    "question_id": 79546696,
+    "title": "ImagePullFailure for Azure Container App/Registry. IAM failing, admin user required?",
+    "question_text": "I've set up a container registry that contains an image. I have a container app that uses the image and I have it working, but only when \"Admin user\" is checked in the registry's access keys. If I disable that checkbox, the app no longer works and I get an exception stating \"ImagePullFailure\". I followed a stackoverflow answer that explained how to get around this using IAM, but it doesn't seem to be working. Below is a screenshot showing the role assigned:\n\nI've also followed a MS article explaining the same thing, and I even tried user managed identities too, but it still won't work. Does anyone have any ideas for why this might not be working? It seems like it's bad practice to leave the admin setting on, so I'm trying to avoid it. Thanks.\n",
+    "question_score": 5,
+    "answer_text": "Initially, I kept the Docker image in the Azure Container Registry. I then created a user-assigned managed identity and assigned the Acr Pull role in the Azure Container Registry by navigating to IAM, clicking 'Add Role Assignment', selecting the user-assigned managed identity, and saved.\n\nI have not enabled the admin user under Access Keys in Azure Container Registry.\n\nAfter that, I opened my existing container app, navigated to Settings, selected Identity, and added the user-managed identity that I created.\n\nAfter that, I selected Containers for the container app under Application. In Properties, I set the Image Source to Azure Container Registry and selected Managed Identity. Then, I provided the image name, registry, and image tag\n\n\n",
+    "answer_id": 79548214,
+    "tags": [
+      "azure",
+      "azure-container-registry",
+      "azure-container-apps",
+      "identity-management"
+    ]
+  }
+]

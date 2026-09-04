@@ -1,0 +1,1377 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 43195143,
+    "title": "Is there a way to export a BigQuery table&#39;s schema as JSON?",
+    "question_text": "A BigQuery table has schema which can be viewed in the web UI, updated, or used to load data with the bq tool as a JSON file. However, I can't find a way to dump this schema from an existing table to a JSON file (preferably from the command-line). Is that possible?\n",
+    "question_score": 131,
+    "answer_text": "\na way to dump schema from an existing table to a JSON file (preferably from the command-line). Is that possible?\n\ntry below   \nbq show bigquery-public-data:samples.wikipedia  \n\nYou can use \u2013format flag to prettify output\n--format: none|json|prettyjson|csv|sparse|pretty: \nFormat for command output. Options include:    \nnone:       ...\npretty:     formatted table output  \nsparse:     simpler table output  \nprettyjson: easy-to-read JSON format  \njson:       maximally compact JSON  \ncsv:        csv format with header   \n\nThe first three are intended to be human-readable, and the latter three are\nfor passing to another program. If no format is selected, one will be chosen\nbased on the command run.  \nRealized I provided partial answer :o)   \nBelow does what PO wanted   \nbq show --format=prettyjson bigquery-public-data:samples.wikipedia | jq '.schema.fields' \n\n",
+    "answer_id": 43195210,
+    "tags": [
+      "json",
+      "google-bigquery",
+      "gcloud"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 23375456,
+    "title": "Random Sampling in Google BigQuery",
+    "question_text": "I just discovered that the RAND() function, while undocumented, works in BigQuery. I was able to generate a (seemingly) random sample of 10 words from the Shakespeare dataset using:\nSELECT word FROM\n(SELECT rand() as random,word FROM [publicdata:samples.shakespeare] ORDER BY random)\nLIMIT 10\n\nMy question is: Are there any disadvantages to using this approach instead of the HASH() method defined in the \"Advanced examples\" section of the reference manual? https://developers.google.com/bigquery/query-reference\n",
+    "question_score": 94,
+    "answer_text": "For stratified sampling, check https://stackoverflow.com/a/52901452/132438\n\nGood job finding it :). I requested the function recently, but it hasn't made it to documentation yet.\nI would say the advantage of RAND() is that the results will vary, while HASH() will keep giving you the same results for the same values (not guaranteed over time, but you get the idea).\nIn case you want the variability that RAND() brings while still getting consistent results - you can seed it with an integer, as in RAND(3).\nNotice though that the example you pasted is doing a full sort of the random values - for sufficiently big inputs this approach won't scale.\nA scalable approach, to get around 10 random rows:\nSELECT word\nFROM [publicdata:samples.shakespeare]\nWHERE RAND() < 10/164656\n\n(where 10 is the approximate number of results I want to get, and 164656 the number of rows that table has)\n\nstandardSQL update:\n#standardSQL\nSELECT word\nFROM `publicdata.samples.shakespeare`\nWHERE RAND() < 10/164656\n\nor even:\n#standardSQL\nSELECT word\nFROM `publicdata.samples.shakespeare`\nWHERE RAND() < 10/(SELECT COUNT(*) FROM `publicdata.samples.shakespeare`)\n\n",
+    "answer_id": 23376403,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 35159967,
+    "title": "Setting GOOGLE_APPLICATION_CREDENTIALS for BigQuery Python CLI",
+    "question_text": "I'm trying to connect to Google BigQuery through the BigQuery API, using Python.\nI'm following this page here:\nhttps://cloud.google.com/bigquery/bigquery-api-quickstart\nMy code is as follows:\nimport os\nimport argparse\n\nfrom apiclient.discovery import build\nfrom apiclient.errors import HttpError\nfrom oauth2client.client import GoogleCredentials\n\nGOOGLE_APPLICATION_CREDENTIALS = './google-creds.json'\n\ndef main(project_id):\n    # Grab the application's default credentials from the environment.\n    credentials = GoogleCredentials.get_application_default()\n    print(credentials)\n    # Construct the service object for interacting with the BigQuery API.\n    bigquery_service = build('bigquery', 'v2', credentials=credentials)\n\n    try:\n        query_request = bigquery_service.jobs()\n        query_data = {\n            'query': (\n                'SELECT TOP(corpus, 10) as title, '\n                'COUNT(*) as unique_words '\n                'FROM [publicdata:samples.shakespeare];')\n        }\n\n        query_response = query_request.query(\n            projectId=project_id,\n            body=query_data).execute()\n\n        print('Query Results:')\n        for row in query_response['rows']:\n            print('\\t'.join(field['v'] for field in row['f']))\n\n    except HttpError as err:\n        print('Error: {}'.format(err.content))\n        raise err\n\n\nif __name__ == '__main__':\n    parser = argparse.ArgumentParser(\n        description=__doc__,\n        formatter_class=argparse.RawDescriptionHelpFormatter)\n    parser.add_argument('project_id', help='Your Google Cloud Project ID.')\n\n    args = parser.parse_args()\n\n    main(args.project_id)\n\nHowever, when I run this code through the terminal, I get the following error:\n\noauth2client.client.ApplicationDefaultCredentialsError: The Application Default Credentials are not available. They are available if running in Google Compute Engine. Otherwise, the environment variable GOOGLE_APPLICATION_CREDENTIALS must be defined pointing to a file defining the credentials. See https://developers.google.com/accounts/docs/application-default-credentials for more information.\n\nAs you can see in the code, I've tried to set the GOOGLE_APPLICATION_CREDENTIALS as per the link in the error. However, the error persists. Does anyone know what the issue is?\n",
+    "question_score": 88,
+    "answer_text": "First - Thanks for the code - this provided to be very useful.\nI would also suggest adding setting the environmental variable directly in your code - as not to set it for every environment you work on.\nyou can use the following code:\nimport os\nos.environ[\"GOOGLE_APPLICATION_CREDENTIALS\"] = \"path_to_your_.json_credential_file\"\n\nI found this useful when switching between different projects that require different credentials.\n",
+    "answer_id": 45862383,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 43085896,
+    "title": "Update or Delete tables with streaming buffer in BigQuery?",
+    "question_text": "I'm getting this following error when trying to delete records from a table created through GCP Console and updated with GCP BigQuery Node.js table insert function. \nUPDATE or DELETE DML statements are not supported over table stackdriver-360-150317:my_dataset.users with streaming buffer\nThe table was created without streaming features. And from what I'm reading in documentation Tables that have been written to recently via BigQuery Streaming (tabledata.insertall) cannot be modified using UPDATE or DELETE statements.\nDoes it mean that once a record has been inserted with this function into a table, there's no way to delete records? At all? If that's the case, does it mean that table needs to be deleted and recreated from scratch? If that's not the case. Can you please suggest a workaround to avoid this issue?\nThanks!\n\nIncluding new error message for SEO: \"UPDATE or DELETE statement over table ... would affect rows in the streaming buffer, which is not supported\" -- Fh\n",
+    "question_score": 81,
+    "answer_text": "To check if the table has a streaming buffer, check the tables.get response for a section named streamingBuffer or, when streaming to a partitioned table, data in the streaming buffer has a NULL value for the _PARTITIONTIME pseudo column, so even with a simple WHERE query can be checked.\nStreamed data is available for real-time analysis within a few seconds of the first streaming insertion into a table but it can take up to 90 minutes to become available for copy/export and other operations. You probably have to wait up to 90 minutes so all buffer is persisted on the cluster. You can use queries to see if the streaming buffer is empty or not like you mentioned.\nIf you use load job to create the table, you won't have streaming buffer, but probably you streamed some values to it.\n\nNote the answer below to work with tables that have ongoing streaming buffers. Just use a WHERE to filter out the latest minutes of data and your queries will work. -- Fh\n",
+    "answer_id": 43086239,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 36675521,
+    "title": "Delete duplicate rows from a BigQuery table",
+    "question_text": "I have a table with >1M rows of data and 20+ columns.\nWithin my table (tableX) I have identified duplicate records (~80k) in one particular column (troubleColumn).\nIf possible I would like to retain the original table name and remove the duplicate records from my problematic column otherwise I could create a new table (tableXfinal) with the same schema but without the duplicates. \nI am not proficient in SQL or any other programming language so please excuse my ignorance. \ndelete from Accidents.CleanedFilledCombined \nwhere Fixed_Accident_Index \nin(select Fixed_Accident_Index from Accidents.CleanedFilledCombined \ngroup by Fixed_Accident_Index \nhaving count(Fixed_Accident_Index) >1);\n\n",
+    "question_score": 79,
+    "answer_text": "You can remove duplicates by running a query that rewrites your table (you can use the same table as the destination, or you can create a new table, verify that it has what you want, and then copy it over the old table).\nA query that should work is here:\nSELECT *\nFROM (\n  SELECT\n      *,\n      ROW_NUMBER()\n          OVER (PARTITION BY Fixed_Accident_Index)\n          row_number\n  FROM Accidents.CleanedFilledCombined\n)\nWHERE row_number = 1\n\n",
+    "answer_id": 36686205,
+    "tags": [
+      "distinct",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 47713945,
+    "title": "BigQuery - Datetime vs Timestamp",
+    "question_text": "I looked on the documentation for google big query data types, checking the differences between TimeStamp to Datetime data types.\nAs I understand the main difference is:\n\nUnlike Timestamps, a DATETIME object does not refer to an absolute instance in time. Instead, it is the civil time, or the time that a user would see on a watch or calendar.\n\nSo when should I use Timestamp/Datetime?\nThanks\n",
+    "question_score": 68,
+    "answer_text": "In most cases you will want to use the timestamp data type. It refers to an absolute point in time. BigQuery interprets any timezone information and represents the time internally as a UTC timestamp.\nVery rarely would you use a datetime data type, which is a date and a time but no time zone. The example I like to give is that you'd use a datetime to represent pi day, 2017, since it occurs at 2017-03-14 15:09:26.535898 in each time zone separately.\n",
+    "answer_id": 47724366,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 29759628,
+    "title": "Setting Big Query variables like mysql",
+    "question_text": "what is the bigquery equivalent to mysql variables like?\nSET @fromdate = '2014-01-01 00:00:00',  -- dates for after 2013\n@todate='2015-01-01 00:00:00',\n\n@bfromdate = '2005-01-01 00:00:00', -- dates for before 2013\n@btodate = '2005-01-01 00:00:00',\n\n@achfromdate  = '2013-01-01 00:00:00', -- dates for ACH without submit time in 2013\n@achtodate  = '2013-01-01 00:00:00',\n\n@currency=\"USD\";\n\n",
+    "question_score": 63,
+    "answer_text": "You can now use variables in BigQuery. To run the statements that you provided, you need to use DECLARE:\nDECLARE fromdate TIMESTAMP DEFAULT '2014-01-01 00:00:00';  -- dates for after 2013\nDECLARE todate TIMESTAMP DEFAULT '2015-01-01 00:00:00';\n\nDECLARE bfromdate TIMESTAMP DEFAULT '2005-01-01 00:00:00'; -- dates for before 2013\nDECLARE btodate TIMESTAMP DEFAULT '2005-01-01 00:00:00';\n\nDECLARE achfromdate TIMESTAMP DEFAULT '2013-01-01 00:00:00'; -- dates for ACH without submit time in 2013\nDECLARE achtodate TIMESTAMP DEFAULT '2013-01-01 00:00:00';\n\nDECLARE currency STRING DEFAULT \"USD\";\n\nYou can use variables in statements after declaring them, e.g.:\nDECLARE fromdate TIMESTAMP DEFAULT '2014-01-01 00:00:00';  -- dates for after 2013\nDECLARE todate TIMESTAMP DEFAULT '2015-01-01 00:00:00';\n\nSELECT FORMAT('From %t to %t', fromdate, todate);\n\nSee also the scripting documentation.\n",
+    "answer_id": 58227996,
+    "tags": [
+      "mysql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 47670451,
+    "title": "SQL array flattening: Why doesn&#39;t CROSS JOIN UNNEST join every nested value with every row?",
+    "question_text": "This question isn't about solving a particular problem, it's about understanding what's actually happening behind the scenes in a common SQL idiom used to flatten arrays.  There's some magic behind the scenes and I want to peek behind the curtain of syntactic sugar and see what's going on.\nLet's consider the following table t1 :\n\nNow let's assume we have a function called FLATTEN that takes a column of type array and unpacks each of the arrays in that column so that we're left with one row for each value in each array -- if we run SELECT FLATTEN(numbers_array) AS flattened_numbers FROM t1, we'd expect the following, which we'll call t2\n\nIn SQL, the CROSS JOIN combines rows from two tables by combining each row from the first table with each row from the second table. So if we run SELECT id, flattened.flattened_numbers from t1 CROSS JOIN flattened, we get\n\nNow flatten is just an imaginary function, and as you can see it's not very useful to combine it with a CROSS JOIN, because each of the original values of the id column gets mixed with flattened_numbers from each of the original rows.  Everything gets mixed up because we don't have a WHERE clause that selects only the rows of the CROSS JOIN that we want.\nThe pattern people actually use to flatten arrays looks like this:\nSELECT id, flattened_numbers FROM t1 CROSS JOIN UNNEST(sequences.some_numbers) AS flattened_numbers, which produces\n\nBut I don't understand why the CROSS JOIN UNNEST pattern actually works.  Because the CROSS JOIN doesn't include a WHERE clause, I would expect it behave just like the FLATTEN function I outlined above, where every unnested value gets combined with every row from t1.\nCan someone 'unpack' what's actually going on in the CROSS JOIN UNNEST pattern that ensures that each row is only joined with it's own nested values (and not with the nested values from other rows)?\n",
+    "question_score": 63,
+    "answer_text": "The best way to think about this is by looking at what happens on a row-by-row basis. Setting up some input data, we have:\nWITH t1 AS (\n  SELECT 1 AS id, [0, 1] AS numbers_array UNION ALL\n  SELECT 2, [2, 4, 5]\n)\n...\n\n(I'm using a third element for the second row to make things more interesting). If we just select from it, we get output that looks like this:\nWITH t1 AS (\n  SELECT 1 AS id, [0, 1] AS numbers_array UNION ALL\n  SELECT 2, [2, 4, 5]\n)\nSELECT * FROM t1;\n+----+---------------+\n| id | numbers_array |\n+----+---------------+\n| 1  | [0, 1]        |\n| 2  | [2, 4, 5]     |\n+----+---------------+\n\nNow let's talk about unnesting. The UNNEST function takes an array and returns a value table of the array's element type. Whereas most BigQuery tables are SQL tables defined as a collection of columns, a value table has rows of some value type. For numbers_array, UNNEST(numbers_array) returns a value table whose value type is INT64, since numbers_array is an array with an element type of INT64. This value table contains all of the elements in numbers_array for the current row from t1.\nFor the row with an id of 1, the contents of the value table returned by UNNEST(numbers_array) are:\n+-----+\n| f0_ |\n+-----+\n| 0   |\n| 1   |\n+-----+\n\nThis is the same as what we get with the following query:\nSELECT * FROM UNNEST([0, 1]);\n\nUNNEST([0, 1]) in this case means \"create a value table from the INT64 values 0 and 1\".\nSimilarly, for the row with an id of 2, the contents of the value table returned by UNNEST(numbers_array) are:\n+-----+\n| f0_ |\n+-----+\n| 2   |\n| 4   |\n| 5   |\n+-----+\n\nNow let's talk about how CROSS JOIN fits into the picture. In most cases, you use CROSS JOIN between two uncorrelated tables. In other words, the contents of the table on the right of the CROSS JOIN are not defined by the current contents of the table on the left.\nIn the case of arrays and UNNEST, however, the contents of the value table produced by UNNEST(numbers_array) change depending on the current row of t1. When we join the two tables, we get the cross product of the current row from t1 with all of the rows from UNNEST(numbers_array). For example:\nWITH t1 AS (\n  SELECT 1 AS id, [0, 1] AS numbers_array UNION ALL\n  SELECT 2, [2, 4, 5]\n)\nSELECT id, number\nFROM t1\nCROSS JOIN UNNEST(numbers_array) AS number;\n+----+--------+\n| id | number |\n+----+--------+\n| 1  | 0      |\n| 1  | 1      |\n| 2  | 2      |\n| 2  | 4      |\n| 2  | 5      |\n+----+--------+\n\nnumbers_array has two elements in the first row and three elements in the second, so we get 2 + 3 = 5 rows in the result of the query.\nTo answer the question about how this differs from flattening the numbers_array and then performing a CROSS JOIN, let's look at the results of this query:\nWITH t1 AS (\n  SELECT 1 AS id, [0, 1] AS numbers_array UNION ALL\n  SELECT 2, [2, 4, 5]\n), t2 AS (\n  SELECT number\n  FROM t1\n  CROSS JOIN UNNEST(numbers_array) AS number\n)\nSELECT number\nFROM t2;\n+--------+\n| number |\n+--------+\n| 0      |\n| 1      |\n| 2      |\n| 4      |\n| 5      |\n+--------+\n\nIn this case, t2 is is a SQL table with a column named number with those values. If we perform a CROSS JOIN between t1 and t2, we get a true cross product of all rows:\nWITH t1 AS (\n  SELECT 1 AS id, [0, 1] AS numbers_array UNION ALL\n  SELECT 2, [2, 4, 5]\n), t2 AS (\n  SELECT number\n  FROM t1\n  CROSS JOIN UNNEST(numbers_array) AS number\n)\nSELECT id, numbers_array, number\nFROM t1\nCROSS JOIN t2;\n+----+---------------+--------+\n| id | numbers_array | number |\n+----+---------------+--------+\n| 1  | [0, 1]        | 0      |\n| 1  | [0, 1]        | 1      |\n| 1  | [0, 1]        | 2      |\n| 1  | [0, 1]        | 4      |\n| 1  | [0, 1]        | 5      |\n| 2  | [2, 4, 5]     | 0      |\n| 2  | [2, 4, 5]     | 1      |\n| 2  | [2, 4, 5]     | 2      |\n| 2  | [2, 4, 5]     | 4      |\n| 2  | [2, 4, 5]     | 5      |\n+----+---------------+--------+\n\nSo what's the difference between this and the previous query with CROSS JOIN UNNEST(numbers_array)? In this case, the contents of t2 don't change for each row from t1. For the first row in t1, there are five rows in t2. For the second row in t1, there are five rows in t2. As a result, the CROSS JOIN between the two of them returns 5 + 5 = 10 rows in total.\n",
+    "answer_id": 47680472,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44328277,
+    "title": "How to Auth to Google Cloud using Service Account in Python?",
+    "question_text": "I'm trying to make a project that will upload Google Storage JSON file to BigQuery (just automate something that is done manually now), and I'd like to use a 'service account' for this as my script is going to be run on daily basis.\nAfter reading everything I can found about using service account, I'm still struggling to authenticate.\nHere is what i've done so far:\n\nCreated JSON key file for service account\nInstalled client libraries: pip install --upgrade google-cloud-bigquery\nInstalled Google Cloud SDK according to: https://cloud.google.com/sdk/docs/\nRun export GOOGLE_APPLICATION_CREDENTIALS=<path_to_service_account_file> with key path specified correctly\n\nNow I'm trying to run the following python script:\nfrom google.cloud import bigquery\nbigquery_client = bigquery.Client()\n\nBut I get this error:\n\ngoogle.auth.exceptions.DefaultCredentialsError: Could not automatically determine credentials. Please set GOOGLE_APPLICATION_CREDENTIALS or\nexplicitly create credential and re-run the application. For more\ninformation, please see\nhttps://developers.google.com/accounts/docs/application-default-credentials.\n\nI'm quite new to both Python and the Google Cloud API so possbily missed something. Can someone point out where/what was wrong in my steps above or point me to clear instruction for dummys about setting up and running simple script with BigQuery using service account?\n",
+    "question_score": 59,
+    "answer_text": "I usually set this variable in the python script itself, something like:\nimport os\nfrom google.cloud.bigquery.client import Client\n\nos.environ['GOOGLE_APPLICATION_CREDENTIALS'] = 'path_to_json_file'\nbq_client = Client()\n\n",
+    "answer_id": 44332122,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-bigquery",
+      "oauth-2.0",
+      "service-accounts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 42938662,
+    "title": "Google BigQuery There are no primary key or unique constraints, how do you prevent duplicated records being inserted?",
+    "question_text": "Google BigQuery has no primary key or unique constraints. As such, we cannot use traditional SQL options such as insert ignore or insert on duplicate key update.\nIf I have to call delete first (based on unique key in my own system) and then insert to prevent duplicate records being inserted into BigQuery, wouldn't that that be too inefficient? I would assume that insert is the cheapest operation, no query, just append data. For each insert if I have to call delete, it will be too inefficient and cost us extra money.\nSo, how can I prevent duplicate records being inserted into Google BigQuery without costly delete queries?\n",
+    "question_score": 54,
+    "answer_text": "So let's clear some facts up in the first place.\nBigquery is a managed data warehouse suitable for large datasets, and it's complementary to a traditional database, rather than a replacement.\nUp until early 2020 there was only a maximum of 96 DML (update,delete) operations on a table per day. That low limited forced you to think of BQ as a data lake. That limit has been removed but it demonstrates that the early design of the system was oriented around \"append-only\".\nSo, on BigQuery, you actually let all data in, and favor an append-only design. That means that by design you have a database that holds a new row for every update. Hence if you want to use the latest data, you need to pick the last row and use that.\nWe actually leverage insights from every new update we add to the same row. For example, we can detect how long it took for the end-user to choose his/her country at signup flow. Because we have a dropdown of countries, it took some time until he/she scrolled to the right country, and metrics show this, because we ended up in BQ with two rows, one prior country selected, and one after country selected and based on time selection we were able to optimize the process. Now on our country drop-down we have first 5 most recent/frequent countries listed, so those users no longer need to scroll and pick a country; it's faster.\n",
+    "answer_id": 42944926,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 10604135,
+    "title": "Google BigQuery Delete Rows?",
+    "question_text": "Anyone know of any plans to add support for delete parts of data from a table in Google Bigquery?  The issue we have right now is we are using it for analytics of data points we collect over time.  We want to run the queries over the last X days of data, however after the last X days of data we no longer need to store the data in BigQuery.  \nThe only way currently we can think of to delete the data would be to delete the entire table of data, then recreate it and load it with X number of days of data.  This would though require us to store our data in daily CSV files too, which isn't optimal.  \nAny recommendations on how to handle this issue or if there is a delete rows query coming in the near future?\n",
+    "question_score": 52,
+    "answer_text": "2016 update: BigQuery can delete and update rows now -- Fh\nhttps://cloud.google.com/bigquery/docs/reference/standard-sql/dml-syntax\n\nThanks for describing your use case. BigQuery is append-only by design. We currently don't support deleting single rows or a batch of rows from an existing dataset. \nCurrently, to implement a \"rotating\" log system you must either:\n1. Create a new table each day (and delete older tables if that is necessary)\n2. Append your data to a table and query by time/date\nI would actually recommend creating a new table for each day. Since BigQuery charges by amount of data queried over, this would be most economical for you, rather than having to query over entire massive datasets every time.\nBy the way - how are you currently collecting your data?\n",
+    "answer_id": 10604356,
+    "tags": [
+      "google-bigquery",
+      "sql-delete",
+      "delete-row"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 11338670,
+    "title": "Bigquery query to find the column names of a table",
+    "question_text": "I need a query to find column names of a table (table metadata) in Bigquery, like the following query in SQL:\nSELECT column_name,data_type,data_length,data_precision,nullable FROM all_tab_cols where table_name ='EMP';\n\n",
+    "question_score": 50,
+    "answer_text": "Update: This is now possible! See the INFORMATION SCHEMA docs and the answers below.\nAnswer, circa 2012:\nIt's not currently possible to retrieve table metadata (i.e. column names and types) via a query, though this isn't the first time it's been requested.\nIs there a reason you need to do this as a query? Table metadata is available via the tables API.\n",
+    "answer_id": 11339408,
+    "tags": [
+      "sql",
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 12482637,
+    "title": "BigQuery converting to a different timezone",
+    "question_text": "I am storing data in unixtimestamp on google big query.  However, when the user will ask for a report, she will need the filtering and grouping of data by her local timezone.\nThe data is stored in GMT.  The user may wish to see the data in EST.  The report may ask the data to be grouped by date.  \nI don't see the timezone conversion function here: \nDoes anyone know how I can do this in bigquery?  i.e. how do i group by after converting the timestamp to a different timezone?\n",
+    "question_score": 49,
+    "answer_text": "2016 update: Look answers below, BigQuery now provides timestamp and timezone methods.\n\nYou are right - BigQuery doesn't provide any timestamp conversion methods.\nIn this case, I suggest that you run your GROUP BY based on dimensions of the GMT/UTC timestamp field, and then convert and display the result in the local timezone in your code.\n",
+    "answer_id": 12482905,
+    "tags": [
+      "datetime",
+      "timezone",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 42584478,
+    "title": "How to exclude NULLs from ARRAY so query won&#39;t fail",
+    "question_text": "ARRAY_AGG aggregate function includes NULLs in the arrays it builds. When such arrays are part of query result, query fails with error: \n\nArray cannot have a null element; error in writing field\n\ni.e. the following query demonstrates it:\n#standardSQL\nSELECT ARRAY_AGG(x) FROM UNNEST([1,NULL,2,3]) x\n\nHow can we solve it ?\n",
+    "question_score": 48,
+    "answer_text": "Glad you asked! BigQuery supports IGNORE NULLS and RESPECT NULLS modifiers in some of the aggregate functions, including ARRAY_AGG, so your query becomes\n#standardSQL\nSELECT ARRAY_AGG(x IGNORE NULLS) FROM UNNEST([1,NULL,2,3]) x\n\nand it passes producing [1,2,3]. More details are in the documentation.\n",
+    "answer_id": 42584489,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 48177241,
+    "title": "Google BQ - how to upsert existing data in tables?",
+    "question_text": "I'm using Python client library for loading data in BigQuery tables. I need to update some changed rows in those tables. But I couldn't figure out how to correctly update them? I want some similar UPSERT function - insert row only if its not exists, otherwise - update existing row.\nIs it the right way to use a special field with checksum in tables (and compare sum in loading process)? If there is a good idea, how to solve this with Python client? (As I know, it can't update existing data)\nPlease explain me, what's the best practice?\n",
+    "question_score": 46,
+    "answer_text": "BigQuery is by design append-only preferred. That means that you better let duplicate rows from the same entity in the table and write your queries to always read most recent row.\nUpdating rows as you know in transactional tables possible with limitations. Your project can make up to 1,500 table operations per table per day. That's very limited and their purpose is totally different. 1 operation can touch multiple rows, but still 1500 operation per table per day. So if you want individual updates to rows, that's not working out as it limits to 1500 rows per day.\nSince BQ is used as data lake, you should just stream new rows every time the user eg: updates their profile. You will end up having from 20 saves 20 rows for the same user. Later you can rematerilize your table to have unique rows by removing duplicate data.\nSee the most question for the later: BigQuery - DELETE statement to remove duplicates\nupdate:\nBigQuery now allows unlimited DML operations on a table. cloud.google.com/bigquery/quotas#standard_tables \u2013\n",
+    "answer_id": 48177344,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 27537720,
+    "title": "How can I undelete a BigQuery table?",
+    "question_text": "I've accidentally deleted one of my BigQuery tables. Is it possible to get it back? The API doesn't seem to support undelete.\n",
+    "question_score": 46,
+    "answer_text": "Undelete in BigQuery is possible via table copy and snapshot decorators. That is, you can copy a snapshot of the table from before the table was deleted.\nBigQuery used to have restrictions on undeletes, but over time, those have been removed.\nHere is an example using bq, but you can do the same thing with the BigQuery Web UI.\nFirst let's create a dummy bigquery dataset and table that we're going to delete:\n$ bq mk -d dataset1\nDataset 'helixdata2:dataset1' successfully created.\n$ bq query --destination_table=dataset1.table1 \"SELECT 17 as a\"\nWaiting on bqjob_ra0dedbee5cb4228_0000014a5af133d6_1 ... (0s) \nCurrent status: DONE   \n+----+\n| a  |\n+----+\n| 17 |\n+----+\n\nNow, grab the current unix timestamp from a time when the table was alive.\n$ date +%s\n1418864998\n\nNote that this time is in seconds, we'll need miliseconds.\nRemove the table 'accidentally'\n$ bq rm dataset1.table1\nrm: remove table 'helixdata2:dataset1.table1'? (y/N) y\n\nNow we can undelete the table by copying a snapshot:\n$ bq cp dataset1.table1@1418864998000 dataset1.temp\nWaiting on bqjob_r4d8174e2e41ae73_0000014a5af2a028_1 ... (0s) \n    Current status: DONE    \nTables 'helixdata2:dataset1.table1@1418864998000' successfully copied to     \n    'helixdata2:dataset1.temp'\n\n(note we multiplied the time by 1000 since we want milliseconds)\nThis copied an old snapshot of the table to dataset1.temp. Let's copy it back to the old location and then remove the temp table.\n$ bq cp dataset1.temp dataset1.table1\nWaiting on bqjob_r3c0bb9302fb81d59_0000014a5af2dc7b_1 ... (0s) \n    Current status: DONE    \nTables 'helixdata2:dataset1.temp' successfully copied to \n    'helixdata2:dataset1.table1'\n$ bq rm dataset1.temp\nrm: remove table 'helixdata2:dataset1.temp'? (y/N) y\n\nNow let's verify that the table has been restored:\n$ bq query \"select * from dataset1.table1\"\nWaiting on bqjob_r5967bea49ed9e97f_0000014a5af34dec_1 ... (0s) \n    Current status: DONE   \n+----+\n| a  |\n+----+\n| 17 |\n+----+\n\n",
+    "answer_id": 27537721,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 48886761,
+    "title": "Efficiently write a Pandas dataframe to Google BigQuery",
+    "question_text": "I'm trying to upload a pandas.DataFrame to Google Big Query using the pandas.DataFrame.to_gbq() function documented here. The problem is that to_gbq() takes 2.3 minutes while uploading directly to Google Cloud Storage takes less than a minute. I'm planning to upload a bunch of dataframes (~32) each one with a similar size, so I want to know what is the faster alternative.\nThis is the script that I'm using:\ndataframe.to_gbq('my_dataset.my_table', \n                 'my_project_id',\n                 chunksize=None, # I have tried with several chunk sizes, it runs faster when it's one big chunk (at least for me)\n                 if_exists='append',\n                 verbose=False\n                 )\n\ndataframe.to_csv(str(month) + '_file.csv') # the file size its 37.3 MB, this takes almost 2 seconds \n# manually upload the file into GCS GUI\nprint(dataframe.shape)\n(363364, 21)\n\nMy question is, what is faster?\n\nUpload Dataframe using pandas.DataFrame.to_gbq() function\nSaving Dataframe as CSV and then upload it as a file to BigQuery using the Python API\nSaving Dataframe as CSV and then upload the file to Google Cloud Storage using this procedure and then reading it from BigQuery\n\nUpdate:\nAlternative 1 seems faster than Alternative 2 , (using pd.DataFrame.to_csv() and load_data_from_file() 17.9 secs more in average with 3 loops):\ndef load_data_from_file(dataset_id, table_id, source_file_name):\n    bigquery_client = bigquery.Client()\n    dataset_ref = bigquery_client.dataset(dataset_id)\n    table_ref = dataset_ref.table(table_id)\n    \n    with open(source_file_name, 'rb') as source_file:\n        # This example uses CSV, but you can use other formats.\n        # See https://cloud.google.com/bigquery/loading-data\n        job_config = bigquery.LoadJobConfig()\n        job_config.source_format = 'text/csv'\n        job_config.autodetect=True\n        job = bigquery_client.load_table_from_file(\n            source_file, table_ref, job_config=job_config)\n\n    job.result()  # Waits for job to complete\n\n    print('Loaded {} rows into {}:{}.'.format(\n        job.output_rows, dataset_id, table_id))\n\n",
+    "question_score": 45,
+    "answer_text": "I did the comparison for alternative 1 and 3 in Datalab using the following code:\nfrom datalab.context import Context\nimport datalab.storage as storage\nimport datalab.bigquery as bq\nimport pandas as pd\nfrom pandas import DataFrame\nimport time\n\n# Dataframe to write\nmy_data = [{1,2,3}]\nfor i in range(0,100000):\n    my_data.append({1,2,3})\nnot_so_simple_dataframe = pd.DataFrame(data=my_data,columns=['a','b','c'])\n\n#Alternative 1\nstart = time.time()\nnot_so_simple_dataframe.to_gbq('TestDataSet.TestTable', \n                 Context.default().project_id,\n                 chunksize=10000, \n                 if_exists='append',\n                 verbose=False\n                 )\nend = time.time()\nprint(\"time alternative 1 \" + str(end - start))\n\n#Alternative 3\nstart = time.time()\nsample_bucket_name = Context.default().project_id + '-datalab-example'\nsample_bucket_path = 'gs://' + sample_bucket_name\nsample_bucket_object = sample_bucket_path + '/Hello.txt'\nbigquery_dataset_name = 'TestDataSet'\nbigquery_table_name = 'TestTable'\n\n# Define storage bucket\nsample_bucket = storage.Bucket(sample_bucket_name)\n\n# Create or overwrite the existing table if it exists\ntable_schema = bq.Schema.from_dataframe(not_so_simple_dataframe)\n\n# Write the DataFrame to GCS (Google Cloud Storage)\n%storage write --variable not_so_simple_dataframe --object $sample_bucket_object\n\n# Write the DataFrame to a BigQuery table\ntable.insert_data(not_so_simple_dataframe)\nend = time.time()\nprint(\"time alternative 3 \" + str(end - start))\n\nand here are the results for n =  {10000,100000,1000000}:\nn       alternative_1  alternative_3\n10000   30.72s         8.14s\n100000  162.43s        70.64s\n1000000 1473.57s       688.59s\n\nJudging from the results, alternative 3 is faster than alternative 1. \n",
+    "answer_id": 49033607,
+    "tags": [
+      "python",
+      "pandas",
+      "google-bigquery",
+      "google-cloud-storage",
+      "google-cloud-python"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 26272514,
+    "title": "How to Pivot table in BigQuery",
+    "question_text": "I am using Google Big Query, and I am trying to get a pivoted result out from public sample data set.\nA simple query to an existing table is:\nSELECT * \nFROM publicdata:samples.shakespeare\nLIMIT 10;\n\nThis query returns following result set.\n\nNow what I am trying to do is, get the results from the table in such way that if the word is brave, select \"BRAVE\" as column_1 and if the word is attended, select \"ATTENDED\" as column_2, and aggregate the word count for these 2.\nHere is the query that I am using.\nSELECT\n(CASE WHEN word = 'brave' THEN 'BRAVE' ELSE '' END) AS column_1,\n(CASE WHEN word = 'attended' THEN 'ATTENDED' ELSE '' END) AS column_2,\nSUM (word_count)\nFROM publicdata:samples.shakespeare\nWHERE (word = 'brave' OR word = 'attended')\nGROUP BY column_1, column_2\nLIMIT 10;\n\nBut, this query returns the data\n\nWhat I was looking for is\n\nI know this pivot for this data set does not make sense. But I am just taking this as an example to explain the problem. It will be great if you can put in some directions for me.\nEDITED: I also referred to How to simulate a pivot table with BigQuery? and it seems it also has the same issue I mentioned here.\n",
+    "question_score": 42,
+    "answer_text": "Update 2020:\nJust call fhoffa.x.pivot(), as detailed in this post:\n\nhttps://medium.com/@hoffa/easy-pivot-in-bigquery-one-step-5a1f13c6c710\n\nFor the 2019 example, for example:\nCREATE OR REPLACE VIEW `fh-bigquery.temp.a` AS (\n SELECT * EXCEPT(SensorName), REGEXP_REPLACE(SensorName, r'.*/', '') SensorName\n FROM `data-sensing-lab.io_sensor_data.moscone_io13`\n);\n\nCALL fhoffa.x.pivot(\n  'fh-bigquery.temp.a'\n  , 'fh-bigquery.temp.delete_pivotted' # destination table\n  , ['MoteName', 'TIMESTAMP_TRUNC(Timestamp, HOUR) AS hour'] # row_ids\n  , 'SensorName' # pivot_col_name\n  , 'Data' # pivot_col_value\n  , 8 # max_columns\n  , 'AVG' # aggregation\n  , 'LIMIT 10' # optional_limit\n);\n\nUpdate 2019:\nSince this is a popular question, let me update to #standardSQL and a more general case of pivoting. In this case we have multiple rows, and each sensor looks at a different type of property. To pivot it, we would do something like:\n#standardSQL\nSELECT MoteName\n  , TIMESTAMP_TRUNC(Timestamp, hour) hour\n  , AVG(IF(SensorName LIKE '%altitude', Data, null)) altitude\n  , AVG(IF(SensorName LIKE '%light', Data, null)) light\n  , AVG(IF(SensorName LIKE '%mic', Data, null)) mic\n  , AVG(IF(SensorName LIKE '%temperature', Data, null)) temperature\nFROM `data-sensing-lab.io_sensor_data.moscone_io13`\nWHERE MoteName = 'XBee_40670F5F'\nGROUP BY 1, 2\n\n\nAs an alternative to AVG() you can try MAX(), ANY_VALUE(), etc.\n\nPreviously:\nI'm not sure what you are trying to do, but:\nSELECT NTH(1, words) WITHIN RECORD column_1, NTH(2, words) WITHIN RECORD column_2, f0_\nFROM (\n  SELECT NEST(word) words, SUM(c)  \n  FROM (\n    SELECT word, SUM(word_count) c\n    FROM publicdata:samples.shakespeare\n    WHERE word in ('brave', 'attended')\n    GROUP BY 1\n  )\n)\n\n\nUPDATE: Same results, simpler query:\nSELECT NTH(1, word) column_1, NTH(2, word) column_2, SUM(c)\nFROM (\n    SELECT word, SUM(word_count) c\n    FROM publicdata:samples.shakespeare\n    WHERE word in ('brave', 'attended')\n    GROUP BY 1\n)\n\n",
+    "answer_id": 26291831,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 51311774,
+    "title": "efficient way to compare two tables in bigquery",
+    "question_text": "I am interested in comparing, whether two tables contain the same data.\nI could do it like this:\n#standardSQL\nSELECT\n    key1, key2\nFROM\n(\n    SELECT \n    table1.key1,\n    table1.key2,\n    table1.column1 - table2.column1 as col1,\n    table1.col2 - table2.col2 as col2\n    FROM\n        `table1` AS table1\n    LEFT JOIN\n        `table2` AS table2\n    ON\n        table1.key1 = table2.key1\n    AND\n        table1.key2 = table2.key2\n)\nWHERE \n    col1 != 0\nOR\n    col2 != 0\n\nBut when I want to compare all numerical columns, this is kind of hard, especially if I want to do it for multiple table combinations.\nTherefore my question: Is someone aware of a possibility to iterate over all numerical columns and restrict the result set to those keys where any of these differences where not zero?\n",
+    "question_score": 38,
+    "answer_text": "\nFirst, I want to bring up issues with your original query     \n\nThe main issues are 1) using LEFT JOIN ; 2) using col != 0      \nBelow is how it should be modified to really capture ALL differences from both tables\nRun your original query and below one  - and hopefully you will see the difference   \n#standardSQL\nSELECT key1, key2\nFROM\n(\n    SELECT \n    IFNULL(table1.key1, table2.key1) key1,\n    IFNULL(table1.key2, table2.key2) key2,\n    table1.column1 - table2.column1 AS col1,\n    table1.col2 - table2.col2 AS col2\n    FROM `table1` AS table1\n    FULL OUTER JOIN `table2` AS table2\n    ON table1.key1 = table2.key1\n    AND table1.key2 = table2.key2\n)\nWHERE IFNULL(col1, 1) != 0\nOR    IFNULL(col2, 1) != 0\n\nor you can just try to run your original and above version against dummy data  to see the difference     \n#standardSQL\nWITH `table1` AS (\n  SELECT 1 key1, 1 key2, 1 column1, 2 col2 UNION ALL\n  SELECT 2, 2, 3, 4 UNION ALL\n  SELECT 3, 3, 5, 6\n), `table2` AS (\n  SELECT 1 key1, 1 key2, 1 column1, 29 col2 UNION ALL\n  SELECT 2, 2, 3, 4 UNION ALL\n  SELECT 4, 4, 7, 8\n)\nSELECT key1, key2\nFROM\n(\n    SELECT \n    IFNULL(table1.key1, table2.key1) key1,\n    IFNULL(table1.key2, table2.key2) key2,\n    table1.column1 - table2.column1 AS col1,\n    table1.col2 - table2.col2 AS col2\n    FROM `table1` AS table1\n    FULL OUTER JOIN `table2` AS table2\n    ON table1.key1 = table2.key1\n    AND table1.key2 = table2.key2\n)\nWHERE IFNULL(col1, 1) != 0\nOR    IFNULL(col2, 1) != 0   \n\n\nSecondly, below will highly simplify your overall query        \n\n#standardSQL\nSELECT \n  IFNULL(table1.key1, table2.key1) key1,\n  IFNULL(table1.key2, table2.key2) key2\nFROM `table1` AS table1\nFULL OUTER JOIN `table2` AS table2\nON table1.key1 = table2.key1\nAND table1.key2 = table2.key2\nWHERE TO_JSON_STRING(table1) != TO_JSON_STRING(table2)  \n\nYou can test it with the same dummy data example as above\nNote: in this solution you don't need to pick specific columns - it just compare all columns! but if you need to compare only specific columns - you still will need to cherry-pick them like in below example   \n#standardSQL\nSELECT \n  IFNULL(table1.key1, table2.key1) key1,\n  IFNULL(table1.key2, table2.key2) key2\nFROM `table1` AS table1\nFULL OUTER JOIN `table2` AS table2\nON table1.key1 = table2.key1\nAND table1.key2 = table2.key2\nWHERE TO_JSON_STRING((table1.column1, table1.col2)) != TO_JSON_STRING((table2.column1, table2.col2))\n\n",
+    "answer_id": 51312371,
+    "tags": [
+      "sql",
+      "ansi-sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 38993877,
+    "title": "How to convert a non-partitioned BigQuery table to partitioned?",
+    "question_text": "In June the BQ team announced support for date-partitioned tables. But the guide is missing how to migrate old non-partitioned tables into the new style.\nI am looking for a way to update several or if not all tables to the new style.\nAlso outside of DAY type partitioned what other options are available? Does the BQ UI show this, as I wasn't able to create such a new partitioned table from the BQ Web UI.\n",
+    "question_score": 38,
+    "answer_text": "\nfrom Pavan\u2019s answer: Please note that this approach will charge you the scan cost of the source table for the query as many times as you query it.\n\n  from Pentium10 comments: So suppose I have several years of data, I need to prepare different query for each day and run all of it, and suppose I have 1000 days in history, I need to pay 1000 times the full query price from the source table?\n\n\nAs we can see - the main problem here is on having full scan for each and every day. The rest is less of a problem and can be easily scripted out in any client of the choice\nSo, below is to - How to partition table while avoid full table scan for each and every day?\nBelow step-by-step shows the approach  \nIt is generic enough to extend/apply to anyone real use-case - meantime I am using bigquery-public-data.noaa_gsod.gsod2017 and I am limiting \"exercise\" to just 10 days to keep it readable   \nStep 1 \u2013 Create Pivot table\nIn this step we\na) compress each row\u2019s content into record/array\nand\nb) put them all into respective \u201ddaily\u201d column  \n#standardSQL\nSELECT\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170101' THEN r END) AS day20170101,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170102' THEN r END) AS day20170102,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170103' THEN r END) AS day20170103,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170104' THEN r END) AS day20170104,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170105' THEN r END) AS day20170105,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170106' THEN r END) AS day20170106,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170107' THEN r END) AS day20170107,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170108' THEN r END) AS day20170108,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170109' THEN r END) AS day20170109,\n  ARRAY_CONCAT_AGG(CASE WHEN d = 'day20170110' THEN r END) AS day20170110\nFROM (\n  SELECT d, r, ROW_NUMBER() OVER(PARTITION BY d) AS line\n  FROM (\n    SELECT \n      stn, CONCAT('day', year, mo, da) AS d, ARRAY_AGG(t) AS r\n    FROM `bigquery-public-data.noaa_gsod.gsod2017` AS t \n    GROUP BY stn, d\n  ) \n)\nGROUP BY line  \n\nRun above query in Web UI with pivot_table (or whatever name is preferred) as a destination\nAs we can see - here we will get table with 10 columns \u2013 one column for one day and schema of each column is a copy of schema of original table:  \n\nStep 2 \u2013 Processing partitions one-by-one ONLY scanning respective column (no full table scan) \u2013 inserting into respective partition \n#standardSQL\nSELECT r.*\nFROM pivot_table, UNNEST(day20170101) AS r\n\nRun above query from Web UI with destination table named mytable$20160101\nYou can run same for next day  \n#standardSQL\nSELECT r.*\nFROM pivot_table, UNNEST(day20170102) AS r\n\nNow you should have destination table as mytable$20160102 and so on  \n\nYou should be able to automate/script this step with any client of your choice\nThere are many variations of how you can use above approach - it is up to your creativity\nNote: BigQuery allows up to 10000 columns in table, so 365 columns for respective days of one year is definitely not a problem here :o)\nUnless there is a limitation on how far back you can go with new partitions \u2013 I heard (but didn\u2019t have chance to check yet) there is now no more than 90 days back\n\nUpdate   \n\nPlease note: \nAbove version has a little extra logic of packing all aggregated cells into as least final number of rows as possible.   \nROW_NUMBER() OVER(PARTITION BY d) AS line\nand then\nGROUP BY line\nalong with\nARRAY_CONCAT_AGG(\u2026)\ndoes this      \nThis works well when row size in your original table is not that big so final combined row size still will be within rows size limit that BigQuery has (which I believe is 10 MB as of now)\nIf your source table already has row size close to that limit \u2013 use below adjusted version   \nIn this version \u2013 grouping is removed such that each row has only value for one column\n#standardSQL\nSELECT\n    CASE WHEN d = 'day20170101' THEN r END AS day20170101,\n    CASE WHEN d = 'day20170102' THEN r END AS day20170102,\n    CASE WHEN d = 'day20170103' THEN r END AS day20170103,\n    CASE WHEN d = 'day20170104' THEN r END AS day20170104,\n    CASE WHEN d = 'day20170105' THEN r END AS day20170105,\n    CASE WHEN d = 'day20170106' THEN r END AS day20170106,\n    CASE WHEN d = 'day20170107' THEN r END AS day20170107,\n    CASE WHEN d = 'day20170108' THEN r END AS day20170108,\n    CASE WHEN d = 'day20170109' THEN r END AS day20170109,\n    CASE WHEN d = 'day20170110' THEN r END AS day20170110\nFROM (\n    SELECT \n        stn, CONCAT('day', year, mo, da) AS d, ARRAY_AGG(t) AS r\n    FROM `bigquery-public-data.noaa_gsod.gsod2017` AS t \n    GROUP BY stn, d\n)\nWHERE d BETWEEN 'day20170101' AND 'day20170110'\n\nAs you can see now  -  pivot table (sparce_pivot_table) is sparse enough (same 21.5 MB but now 114,089 rows vs. 11,584 rows in pivot_table) so it has average row size of 190B vs 1.9KB in initial version. Which is obviously about 10 times less as per number of columns in the example.\nSo before using this approach some math needs to be done to project/estimate what and how can be done!  \n\nStill: each cell in pivot table is sort of JSON representation of whole row in original table. It is such as it holds not just values as it was for rows in original table but also has a schema in it     \n\nAs such it is quite verbose - thus the size of cell can be multiple times bigger than original size [which limits the usage of this approach ... unless you get even more creative :o) ... which is still plenty of areas here to apply :o) ]   \n",
+    "answer_id": 43130999,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44781767,
+    "title": "BigQuery Date-Partitioned Views",
+    "question_text": "BigQuery allows you to create date-partitioned tables:\nhttps://cloud.google.com/bigquery/docs/creating-partitioned-tables\nI'd like to be able to create views on top of date-partitioned tables and ideally still reap the performance benefits. Everything I've read suggests that this isn't possible?\nHas anyone had any luck otherwise?\n",
+    "question_score": 38,
+    "answer_text": "Define your view to expose the partitioning pseudocolumn, like this:\nSELECT *, EXTRACT(DATE FROM _PARTITIONTIME) AS date\nFROM Date partitioned table;\n\nNow if you query the view using a filter on date, it will restrict the partitions that are read.\n",
+    "answer_id": 44781855,
+    "tags": [
+      "sql",
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 72511979,
+    "title": "ValueError: install DBtypes to use this function",
+    "question_text": "I'm using BigQuery for the first time.\nclient.list_rows(table, max_results = 5).to_dataframe();\n\nWhenever I use to_dataframe() it raises this error:\n\nValueError: Please install the 'db-dtypes' package to use this function.\n\nI found this similar problem (almost exactly the same), but I can't understand how to implement their proposed solution.\n",
+    "question_score": 37,
+    "answer_text": "I was able to replicate your use case as shown below.\n\nEasiest solution is to pip install db-dtypes as mentioned by @MattDMo.\nOr you can specify previous version of google-cloud-bigquery by creating a requirements.txt with below contents:\ngoogle-cloud-bigquery==2.34.3\n\nAnd then pip install by using command as shown below:\npip install -r /path/to/requirements.txt\n\nOutput of my sample replication:\n\n",
+    "answer_id": 72514645,
+    "tags": [
+      "python",
+      "google-bigquery",
+      "valueerror",
+      "modulenotfounderror"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 54053998,
+    "title": "Copy table structure alone in Bigquery",
+    "question_text": "In Google's Big query, is there a way to clone (copy the structure alone) a table without data? \nbq cp doesn't seem to have an option to copy structure without data. \nAnd Create table as Select (CTAS) with filter such as \"1=2\" does create the table without data. But, it doesn't copy the partitioning/clustering properties. \n",
+    "question_score": 35,
+    "answer_text": "If you want to clone structure of table along with partitioning/clustering properties w/o having need in knowing what exactly those partitioning/clustering properties - follow below steps:  \nStep 1: just copy your_table to new table - let's say your_table_copy. This will obviously copy whole table including all properties (including such like descriptions, partition's expiration etc. - which is very simple to miss if you will try to set them manually) and data. Note: copy is cost free operation   \nStep 2: To get rid of data in newly created table - run below query statement   \nSELECT * FROM `project.dataset.your_table_copy` LIMIT 0    \n\nwhile running above make sure you set project.dataset.your_table_copy as destination table with 'Overwrite Table' as 'Write Preference'.  Note: this is also cost free step (because of LIMIT 0)\nYou can easily do both above steps from within Web UI or Command Line or API or any client of your choice  - whatever you are most comfortable with\n",
+    "answer_id": 54055280,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 52100812,
+    "title": "BigQuery - Where can I find the error stream?",
+    "question_text": "I have uploaded a CSV file with 300K rows from GCS to BigQuery, and received the following error:\n\nWhere can I find the error stream?\nI've changed the create table configuration to allow 4000 errors and it worked, so it must be a problem with the 3894 rows in the message, but this error message does not tell me much about which rows or why.\nThanks\n",
+    "question_score": 35,
+    "answer_text": "I'm finally managed to see the error stream by running the following command in the terminal:\nbq --format=prettyjson show -j <JobID>\n\nIt returns a JSON with more details.\nIn my case it was:\n\"message\": \"Error while reading data, error message: Could not parse '16.66666666666667' as int for field Course_Percentage (position 46) starting at location 1717164\"\n\n",
+    "answer_id": 52187554,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 52360162,
+    "title": "BIGQUERY SELECT list expression references column CHANNEL_ID which is neither grouped nor aggregated at [10:13]",
+    "question_text": "I am facing this error:\n\nBIGQUERY SELECT list expression references column CHANNEL_ID which is\n  neither grouped nor aggregated at [10:13]\n\nI don't know why it's caused,Can someone explain it to me?\nHere are my codes:\nSELECT \n    t0.CHANNEL_ID,\n    t1.CHANNEL_DISPLAY_NAME\nFROM\n    (SELECT\n         TIMESTAMP_TRUNC(_PARTITIONTIME, MONTH) as `DATE`,\n         CHANNEL_ID\n     FROM \n         `pops-204909.yt_kids.p_content_owner_basic_a3_yt_kids`   \n     WHERE \n         DATE(_PARTITIONTIME) between \"2017-08-01\" and \"2017-08-31\"\n     GROUP BY \n         `DATE`) t0\nLEFT JOIN\n    (SELECT\n         TIMESTAMP_TRUNC(_PARTITIONTIME, MONTH) as `DATE`,\n         CHANNEL_DISPLAY_NAME\n     FROM \n         `pops-204909.yt_kids.p_content_owner_ad_revenue_raw_a1_yt_kids`\n     WHERE \n         DATE(_PARTITIONTIME) between \"2017-08-01\" and \"2017-08-31\"\n     GROUP BY \n         `DATE`) t1 ON t0.DATE = t1.DATE\n\n",
+    "question_score": 35,
+    "answer_text": "When you use GROUP BY - all expressions in the respective SELECT list must be either those which are in the GROUP BY or should be with AGGREGATION function - like MIN, MAX etc. See more about GROUP BY clause\nSo in your case both sub-queries are missing respectively CHANNEL_ID and CHANNEL_DISPLAY_NAME in the respective GROUP BY. Or depends on your logic they should come with some aggregation function.\nNote: Above explains the error you see. Rather than this - you query makes no much sense to me even if you will fix that specific error - but I hope you have something in mind :o)\n",
+    "answer_id": 52360204,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 45579692,
+    "title": "percentile functions with GROUPBY in BigQuery",
+    "question_text": "In my CENSUS table, I'd like to group by State, and for each State get the median county population and the number of counties.\nIn psql, redshift, and snowflake, I can do this:\npsql=> SELECT state, count(county), PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY \"population2000\") AS median FROM CENSUS GROUP BY state;\n        state         | count |  median\n----------------------+-------+----------\n Alabama              |    67 |    36583\n Alaska               |    24 |   7296.5\n Arizona              |    15 |   116320\n Arkansas             |    75 |    20229\n...\n\nI'm trying to find a nice way to do this in standard BigQuery. I've noticed that there's undocumented percentile_cont analytical function available, but I have to do some major hacks to get it to do what I want.\nI'd like to be able to do the same sort thing with what I've gathered are the correct arguments:\nSELECT\n  state,\n  COUNT(county),\n  PERCENTILE_CONT(population2000,\n    0.5) OVER () AS `medPop`\nFROM\n  CENSUS\nGROUP BY\n  state;\n\nbut this query yields the error\nSELECT list expression references column population2000 which is neither grouped nor aggregated at\n\nI can get the answer I want, but I'd be very disappointed if this is the recommended way to do what I want to do:\nSELECT\n  MAX(nCounties) AS nCounties,\n  state,\n  MAX(medPop) AS medPop\nFROM (\n  SELECT\n    nCounties,\n    T1.state,\n    (PERCENTILE_CONT(population2000,\n        0.5) OVER (PARTITION BY T1.state)) AS `medPop`\n  FROM\n    census T1\n  LEFT OUTER JOIN (\n    SELECT\n      COUNT(county) AS `nCounties`,\n      state\n    FROM\n      census\n    GROUP BY\n      state) T2\n  ON\n    T1.state = T2.state) T3\nGROUP BY\n  state\n\nIs there a better way to do what I want to do? Also, is the PERCENTILE_CONT function ever going to be documented?\nThanks for reading!\n",
+    "question_score": 34,
+    "answer_text": "Thanks for your interest. PERCENTILE_CONT is under development, and we will publish the documentation once it is GA. We will support it as analytic function first, and we plan to support it as aggregate function (allowing GROUP BY) later. Between these 2 releases, a simpler workaround would be\nSELECT\n  state,\n  ANY_VALUE(nCounties) AS nCounties,\n  ANY_VALUE(medPop) AS medPop\nFROM (\n  SELECT\n    state,\n    COUNT(county) OVER (PARTITION BY state) AS nCounties,\n    PERCENTILE_CONT(population2000,\n      0.5) OVER (PARTITION BY state) AS medPop\n  FROM\n    CENSUS)\nGROUP BY\n  state\n\n",
+    "answer_id": 45579962,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 51395256,
+    "title": "Error: Not found: Dataset my-project-name:domain_public was not found in location US",
+    "question_text": "I need to make a query for a dataset provided by a public project. I created my own project and added their dataset to my project. There is a table named: domain_public. When I make query to this table I get this error:\n Query Failed\nError: Not found: Dataset my-project-name:domain_public was not found in location US\nJob ID: my-project-name:US.bquijob_xxxx\n\nI am from non-US country. What is the issue and how to fix it please?\nEDIT 1:\nI change the processing location to asia-northeast1 (I am based in Singapore) but the same error:\nError: Not found: Dataset censys-my-projectname:domain_public was not found in location asia-northeast1 \n\nHere is a view of my project and the public project censys-io:\n\nPlease advise.\nEDIT 2:\nThe query I used to type is based on censys tutorial is:\n#standardsql\nSELECT domain, alexa_rank\nFROM domain_public.current\nWHERE p443.https.tls.cipher_suite = 'some_cipher_suite_goes_here';\n\nWhen I changed the FROM clause to:\nFROM `censys-io.domain_public.current`\n\nAnd the last line to:\nWHERE p443.https.tls.cipher_suite.name = 'some_cipher_suite_goes_here';\n\nIt worked. Shall I understand that I should always include the projectname.dataset.table (if I'm using the correct terms) and point the typo the Censys? Or is this special case to this project for some reason?\n",
+    "question_score": 34,
+    "answer_text": "The problem turned out to be due to wrong table name in the FROM clause.\nThe right FROM clause should be:\nFROM `censys-io.domain_public.current`\n\nWhile I was typing:\nFROM domain_public.current\n\nSo the project name is required in the FROM and `` are required because of - in the project name.\n",
+    "answer_id": 51438562,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 45243489,
+    "title": "BigQuery: Aggregate multiple fields into array",
+    "question_text": "I have some data where for each ID I want to aggregate two or more fields into an array, and I want them to match in terms of order.\nSo for example if I have the following data:\n\nI want to turn it into this:\n\nAlternatively, something like this would also be fine:\n\nSo firstly, if I were to use a query like this, would it do what I want or does it not guarantee that the two fields pull through in the same order (i.e. that the corresponding values in Value_1 and Value_2 may not match)?\nSELECT\n  ID,\n  ARRAY_AGG (\n    Value_1\n  ) AS Value_1,\n  ARRAY_AGG (\n    Value_2\n  ) AS Value_2\n\nFROM\n  table\n\nGROUP BY\n  ID\n\nIf not, how can I go about doing this?\n",
+    "question_score": 33,
+    "answer_text": "Use ARRAY_AGG with STRUCT if you want to pair the values together. For example,\nSELECT\n  ID,\n  ARRAY_AGG (\n    STRUCT(Value_1, Value_2)\n  ) AS Values\nFROM\n  table\nGROUP BY\n  ID;\n\n",
+    "answer_id": 45243506,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 23945784,
+    "title": "How to Manage Google API Errors in Python",
+    "question_text": "I'm currently doing a lot of stuff with BigQuery, and am using a lot of try... except.... It looks like just about every error I get back from BigQuery is a apiclient.errors.HttpError, but with different strings attached to them, i.e.:\n<HttpError 409 when requesting https://www.googleapis.com/bigquery/v2/projects/some_id/datasets/some_dataset/tables?alt=json returned \"Already Exists: Table some_id:some_dataset.some_table\">\n<HttpError 404 when requesting https://www.googleapis.com/bigquery/v2/projects/some_id/jobs/sdfgsdfg?alt=json returned \"Not Found: Job some_id:sdfgsdfg\">\namong many others. Right now the only way I see to handle these is to run regexs on the error messages, but this is messy and definitely not ideal. Is there a better way?\n",
+    "question_score": 33,
+    "answer_text": "BigQuery is a REST API, the errors it uses follow standard HTTP error conventions.\nIn python, an HttpError has a resp.status field that returns the HTTP status code.\nAs you show above, 409 is 'conflict', 404 is 'not found'.\nFor example:\nfrom googleapiclient.errors import HttpError\ntry:\n   ...\nexcept HttpError as err:\n  # If the error is a rate limit or connection error,\n  # wait and try again.\n  if err.resp.status in [403, 500, 503]:\n    time.sleep(5)\n  else: raise\n\nThe response is also a json object, an even better way is to parse the json and read the error reason field:\nif err.resp.get('content-type', '').startswith('application/json'):\n    reason = json.loads(err.content).get('error').get('errors')[0].get('reason')\n\nThis can be:\nnotFound, duplicate, accessDenied, invalidQuery, backendError, resourcesExceeded, invalid, quotaExceeded, rateLimitExceeded, timeout, etc.\n",
+    "answer_id": 23962706,
+    "tags": [
+      "python",
+      "google-api",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44918108,
+    "title": "Google BigQuery, I lost null row when using &#39;unnest&#39; function",
+    "question_text": "#StandardSQL\nWITH tableA AS (\nSELECT [\"T001\", \"T002\", \"T003\"] AS T_id, [1, 5] AS L_id\nUNION ALL\nSELECT [\"T008\", \"T009\"] AS T_id, NULL AS L_id\n)\n\nSELECT * FROM tableA, UNNEST(L_id) AS unnest\n\nWhen I executed this code, I expected the result such as that below.\nRowNumber  T-id            L-id  unnest\n1          T001,T002,T003  1,5   1\n2          T001,T002,T003  1,5   5\n3          T004,T005       NULL  NULL\n\nBut I get this result instead:\nRowNumber  T-id            L-id  unnest\n1          T001,T002,T003  1,5   1\n2          T001,T002,T003  1,5   5\n\nI lost the third row.\nThen, I saw the official Google documentation, which states the following:\nUNNEST treats NULL as follows.\n \u30fbNULL and empty ARRAY generate zero rows.\n \u30fbAn ARRAY containing NULL generates a row containing a NULL value.\n\nBut I don't want to lose my null row.\nHow can I keep the null row?\nPlease tell me the solution...\n",
+    "question_score": 32,
+    "answer_text": "Instead of CROSS JOIN, use LEFT JOIN. This will return a row with nulls for an empty array. You may also be interested in the working with arrays topic from the documentation.\n#StandardSQL\nWITH tableA AS (\n  SELECT [\"T001\", \"T002\", \"T003\"] AS T_id, [1, 5] AS L_id\n  UNION ALL\n  SELECT [\"T008\", \"T009\"] AS T_id, NULL AS L_id\n)\nSELECT * FROM tableA\nLEFT JOIN UNNEST(L_id) AS value;\n\n",
+    "answer_id": 44927437,
+    "tags": [
+      "sql",
+      "null",
+      "google-bigquery",
+      "unnest"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 30221670,
+    "title": "Truncate a table in GBQ",
+    "question_text": "I am trying to truncate an existing table in GBQ but the below command fails when I run it. Is there any specific command or syntax to do that. I looked into GBQ documentation but no luck.\nTRUNCATE TABLE [dw_test.test];\n\n",
+    "question_score": 31,
+    "answer_text": "EDIT (Nov 2020): BigQuery now supports other verbs, check other answers for newer solutions.\nBigQuery doesn't support TRUNCATE as part of a query string.  The only DDL/DML verb that BQ supports is SELECT.\nOne option is to run a job with WRITE_TRUNCATE write disposition (link is for the query job parameter, but it's supported on all job types with a destination table).  This will truncate all data already in the table and replace it with the results of the job.\nIf you don't want to replace the contents with other data or start a job, your best option is probably to delete and recreate the table with the same schema.\n",
+    "answer_id": 30221967,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 54789526,
+    "title": "What is the difference between NUMERIC and FLOAT in BigQuery?",
+    "question_text": "I read the docs:\nhttps://cloud.google.com/bigquery/docs/reference/standard-sql/data-types\nhttps://cloud.google.com/bigquery/pricing#data\nI know that FLOAT is 8 bytes while NUMERIC is 16 bytes\nIs that the only difference? \nThe docs says that NUMERIC can range -99999999999999999999999999999.999999999 to 99999999999999999999999999999.999999999 but it doesn't specify the range for FLOAT.\n",
+    "question_score": 31,
+    "answer_text": "I like the current answers. I want to add this as a proof of why NUMERIC is necessary:\nSELECT \n  4.35 * 100 a_float\n  , CAST(4.35 AS NUMERIC) * 100 a_numeric\n\n\nThis is not a bug - this is exactly how the IEEE defines floats should be handled. Meanwhile NUMERIC exhibits behavior closer to what humans expect.\nFor another proof of NUMERIC usefulness, this answer shows how NUMERIC can handle numbers too big for JavaScript to normally handle.\nBefore you blame BigQuery for this problem, you can check that most other programming languages will do the same. Python, for example:\n\n",
+    "answer_id": 54795278,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 51300674,
+    "title": "Converting JSON into newline delimited JSON in Python",
+    "question_text": "My goal is to convert JSON file into a format that can uploaded from Cloud Storage into BigQuery (as described here) with Python.\nI have tried using newlineJSON package for the conversion but receives the following error.\nJSONDecodeError: Expecting value or ']': line 2 column 1 (char 5)\n\nDoes anyone have the solution to this?\nHere is the sample JSON code:\n[{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n    ...\n    \"keyN\": \"valueN\"\n},\n{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n    ...\n    \"keyN\": \"valueN\"\n},\n{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n    ...\n    \"keyN\": \"valueN\"\n}\n]\n\nAnd here's the existing python script:\nwith nlj.open(url_samplejson, json_lib = \"simplejson\") as src_:\n    with nlj.open(url_convertedjson, \"w\") as dst_:\n        for line_ in src_:\n            dst_.write(line_)\n\n",
+    "question_score": 30,
+    "answer_text": "The answer with jq is really useful, but if you still want to do it with Python (as it seems from the question), you can do it with built-in json module.\nimport json\nfrom io import StringIO\nin_json = StringIO(\"\"\"[{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n\n    \"keyN\": \"valueN\"\n},\n{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n\n    \"keyN\": \"valueN\"\n},\n{\n    \"key01\": \"value01\",\n    \"key02\": \"value02\",\n\n    \"keyN\": \"valueN\"\n}\n]\"\"\")\n\nresult = [json.dumps(record) for record in json.load(in_json)]  # the only significant line to convert the JSON to the desired format\n\nprint('\\n'.join(result))\n\n{\"key01\": \"value01\", \"key02\": \"value02\", \"keyN\": \"valueN\"}\n{\"key01\": \"value01\", \"key02\": \"value02\", \"keyN\": \"valueN\"}\n{\"key01\": \"value01\", \"key02\": \"value02\", \"keyN\": \"valueN\"}\n\n* I'm using StringIO and print here just to make a sample easier to test locally.\nAs an alternative, you can use Python jq binding to combine it with the other answer. \n",
+    "answer_id": 51301673,
+    "tags": [
+      "python",
+      "json",
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 16609219,
+    "title": "BigQuery COUNT(DISTINCT value) vs COUNT(value)",
+    "question_text": "I found a glitch/bug in bigquery.\nWe got a table based on Bank Statistic data under the\nstarschema.net:clouddb:bank.Banks_token\nIf i run the following query:\nSELECT count(*) as totalrow,\ncount(DISTINCT BankId ) as bankidcnt\nFROM bank.Banks_token;\n\nAnd i get the following result:\nRow totalrow    bankidcnt    \n1   9513    9903    \n\nMy problem is that if i have 9513row how could i get 9903row, which is 390row more than the rowcount in the table.\n",
+    "question_score": 30,
+    "answer_text": "In BigQuery, COUNT DISTINCT is a statistical approximation for all results greater than 1000.\nYou can provide an optional second argument to give the threshold at which approximations are used. So if you use COUNT(DISTINCT BankId, 10000) in your example, you should see the exact result (since the actual amount of rows is less than 10000). Note, however, that using a larger threshold can be costly in terms of performance.\nSee the complete documentation here:\nhttps://developers.google.com/bigquery/docs/query-reference#aggfunctions\n\nUPDATE 2017:\nWith BigQuery #standardSQL COUNT(DISTINCT) is always exact. For approximate results use APPROX_COUNT_DISTINCT(). Why would anyone use approx results? See this article.\n",
+    "answer_id": 16631211,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 38306016,
+    "title": "Populating a table with all dates in a given range in Google BigQuery",
+    "question_text": "Is there any convenient way to populate a table with all dates in a given range in Google BigQuery? What I need are all dates from 2015-06-01 till CURRENT_DATE(), so something like this:\n+------------+\n| date       |\n+------------+\n| 2015-06-01 |\n| 2015-06-02 |\n| 2015-06-03 |\n| ...        |\n| 2016-07-11 |\n+------------+\n\nOptimally, the next step would be to also get all weeks between the two dates, i.e.:\n+---------+\n| week    |\n+---------+\n| 2015-23 |\n| 2015-24 |\n| 2015-25 |\n| ...     |\n| 2016-28 |\n+---------+\n\nI've been fiddling around with the following answers I found, but I can't get them to work, mostly because core functions aren't supported and I can't find proper ways to replace them.\nEasiest way to populate a temp table with dates between and including 2 date parameters\nGenerate Dates between date ranges\nYour help is very much appreciated!\nBest,\nMax\n",
+    "question_score": 30,
+    "answer_text": "\nall dates from 2015-06-01 till CURRENT_DATE()\n\nSELECT DATE(DATE_ADD(TIMESTAMP(\"2015-06-01\"), pos - 1, \"DAY\")) AS DAY\nFROM (\n     SELECT ROW_NUMBER() OVER() AS pos, *\n     FROM (FLATTEN((\n     SELECT SPLIT(RPAD('', 1 + DATEDIFF(TIMESTAMP(CURRENT_DATE()), TIMESTAMP(\"2015-06-01\")), '.'),'') AS h\n     FROM (SELECT NULL)),h\n)))\n\n\nall weeks between the two dates\n\nSELECT YEAR(DAY) AS y, WEEK(DAY) AS w\nFROM (\n  SELECT DATE(DATE_ADD(TIMESTAMP(\"2015-06-01\"), pos - 1, \"DAY\")) AS DAY\n  FROM (\n       SELECT ROW_NUMBER() OVER() AS pos, *\n       FROM (FLATTEN((\n       SELECT SPLIT(RPAD('', 1 + DATEDIFF(TIMESTAMP(CURRENT_DATE()), TIMESTAMP(\"2015-06-01\")), '.'),'') AS h\n       FROM (SELECT NULL)),h\n  )))\n)\nGROUP BY y, w\n\n",
+    "answer_id": 38307858,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 35109451,
+    "title": "How to access \u201cSaved Queries\u201d programmatically?",
+    "question_text": "In BigQuery Web UI, there is a \u201cSaved Queries\u201d Section.\nIs there way to access (read/write) those programmatically?\nAny API? \n",
+    "question_score": 30,
+    "answer_text": "Nope. It's a UI-only feature with a private interface.\nUpdate 2021: We recommend using scripts to save and share queries.\nhttps://cloud.google.com/blog/products/data-analytics/command-and-control-now-easier-in-bigquery-with-scripting-and-stored-procedures\nUpdate 2025: The feature referenced in this question is \"Classic saved queries\", which are deprecated. See the following documentation for info about Dataform-based saved queries now available in BigQuery Studio.\nhttps://cloud.google.com/bigquery/docs/saved-queries-introduction\nYou can also use routines (scripts and stored procedures) as a way to share SQL code assets between users.\n",
+    "answer_id": 35111413,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44288261,
+    "title": "Get the Last Modified date for all BigQuery tables in a BigQuery Project",
+    "question_text": "I have several databases within a BigQuery project which are populated by various jobs engines and applications. I would like to maintain a dashboard of all of the Last Modified dates for every table within our project to monitor job failures.\n\nAre there any command line or SQL commands which could provide this list of Last Modified dates?\n",
+    "question_score": 29,
+    "answer_text": "For a SQL command you could try this one:\n#standardSQL\nSELECT *, TIMESTAMP_MILLIS(last_modified_time)\nFROM `dataset.__TABLES__` where table_id = 'table_id'\n\nI recommend you though to see if you can log these errors at the application level. By doing so you can also understand why something didn't work as expected.\nIf you are already using GCP you can make use of Stackdriver (it works on AWS as well), we started using it in our projects and I recommend giving it a try (we tested for python applications though, not sure how the tool performs on other clients but it might be quite similar).\n",
+    "answer_id": 44290543,
+    "tags": [
+      "sql",
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 31840686,
+    "title": "Is it possible to use json key instead of p12 key for service account credentials?",
+    "question_text": "I am using \"Google.Apis.Bigquery.v2 Client Library\" with C#.\nI am authorizing to Google BigQuery using \"Service Account\" (see http://www.afterlogic.com/mailbee-net/docs/OAuth2GoogleServiceAccounts.html). To create the X509 certificate I use the p12 key from the Google Developers Console. However, right now the json key is the default. Can I use it instead the p12 key?\nI have the following code:\n    string serviceAccountEmail = \"xxxx@developer.gserviceaccount.com\";\n\nX509Certificate2 certificate;\nusing (Stream stream = new FileStream(@\"C:\\key.p12\", FileMode.Open, FileAccess.Read, FileShare.Read))\n{\n    using (MemoryStream ms = new MemoryStream())\n    {\n        stream.CopyTo(ms);\n        certificate = new X509Certificate2(ms.ToArray(), \"notasecret\", X509KeyStorageFlags.Exportable);\n    }\n}\n\n// Create credentials\nServiceAccountCredential credential = new ServiceAccountCredential(\n    new ServiceAccountCredential.Initializer(serviceAccountEmail)\n    {\n        Scopes = new[] {\n        BigqueryService.Scope.Bigquery,\n        BigqueryService.Scope.CloudPlatform,\n    },\n    }.FromCertificate(certificate));\n\n// Create the service\nBaseClientService.Initializer initializer = new BaseClientService.Initializer()\n{\n    HttpClientInitializer = credential,\n    ApplicationName = \"My Application\",\n    GZipEnabled = true,\n};\n\nBigqueryService service = new BigqueryService(initializer);\nvar projects = service.Projects.List().Execute();\n\n",
+    "question_score": 29,
+    "answer_text": "It is now possible (I used v 1.13.1.0 of Google APIs).\nExample for BigQuery:\nGoogleCredential credential;\nusing (Stream stream = new FileStream(@\"C:\\mykey.json\", FileMode.Open, FileAccess.Read, FileShare.Read))\n{\n    credential = GoogleCredential.FromStream(stream);\n}\n\nstring[] scopes = new string[] {\n    BigqueryService.Scope.Bigquery,\n    BigqueryService.Scope.CloudPlatform, \n};\ncredential = credential.CreateScoped(scopes);\n\nBaseClientService.Initializer initializer = new BaseClientService.Initializer()\n{\n    HttpClientInitializer = (IConfigurableHttpClientInitializer)credential,\n    ApplicationName = \"My Application\",\n    GZipEnabled = true,\n};\nBigqueryService service = new BigqueryService(initializer);\n\nExample for Google Sheets:\nGoogleCredential credential;\nusing (Stream stream = new FileStream(@\"mykey.json\", FileMode.Open, FileAccess.Read, FileShare.Read))\n{\n    credential = GoogleCredential.FromStream(stream);\n}\ncredential = credential.CreateScoped(new[] { \n    \"https://spreadsheets.google.com/feeds\", \n    \"https://docs.google.com/feeds\" });\n\nstring bearer;\ntry\n{\n    Task<string> task = ((ITokenAccess)credential).GetAccessTokenForRequestAsync();\n    task.Wait();\n    bearer = task.Result;\n}\ncatch (AggregateException ex)\n{\n    throw ex.InnerException;\n}\n\nGDataRequestFactory requestFactory = new GDataRequestFactory(\"My Application\");\nrequestFactory.CustomHeaders.Add(string.Format(CultureInfo.InvariantCulture, \"Authorization: Bearer {0}\", bearer));\n\nSpreadsheetsService service = new SpreadsheetsService(\"My Application\");\nservice.RequestFactory = requestFactory;\n\n",
+    "answer_id": 37887618,
+    "tags": [
+      "c#",
+      "google-bigquery",
+      "google-sheets-api",
+      "google-api-dotnet-client"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 37861500,
+    "title": "BigQuery: convert epoch to TIMESTAMP",
+    "question_text": "I'm trying to range-join two tables, like so\nSELECT *\nFROM main_table h\nINNER JOIN\n    test.delay_pairs d\nON\n    d.interval_start_time_utc < h.visitStartTime\n    AND h.visitStartTime < d.interval_end_time_utc\n\nwhere h.visitStartTime is an INT64 epoch and d.interval_start_time_utc and d.interval_end_time_utc are proper TIMESTAMPs.\nThe above fails with\nNo matching signature for operator < for argument types: TIMESTAMP, INT64. Supported signature: ANY < ANY\n\nNeither wrapping h.visitStartTime in TIMESTAMP() nor CAST(d.interval_start_time_utc AS INT64) work. How do I make the two comparable in BigQuery's Standard SQL dialect?\n",
+    "question_score": 28,
+    "answer_text": "You can use timestamp conversion functions like TIMESTAMP_SECONDS, TIMESTAMP_MILLIS, TIMESTAMP_MICROS\nfor example, assuming your h.visitStartTime is microseconds since the unix epoch\nSELECT *\nFROM main_table h\nINNER JOIN test.delay_pairs d\nON d.interval_start_time_utc < TIMESTAMP_MICROS(h.visitStartTime)\nAND TIMESTAMP_MICROS(h.visitStartTime) < d.interval_end_time_utc  \n\n",
+    "answer_id": 37863758,
+    "tags": [
+      "google-bigquery",
+      "timestamp",
+      "epoch"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44131248,
+    "title": "Google BigQuery: how to create a new column with SQL",
+    "question_text": "I would like to add an column to an already existing table without using legacy SQL.\nThe basic SQL syntax for this is:\nALTER TABLE table_name\nADD column_name datatype;\n\nI formatted the query for Google BigQuery:\nALTER TABLE `projectID.datasetID.fooTable`\nADD (barColumn date);\n\nBut than the syntax is incorrect with this error:\nError: Syntax error: Expected \".\" or keyword SET but got identifier \"ADD\" at [1:63]\n\nSo how do I format the SQL properly for Google BigQuery?\n",
+    "question_score": 28,
+    "answer_text": "Support for ALTER TABLE ADD COLUMN was released on 2020-10-14 per BigQuery Release Notes.\nSo the statement as originally proposed should now work with minimal modification:\nALTER TABLE `projectID.datasetID.fooTable`\nADD COLUMN barColumn DATE;\n\n",
+    "answer_id": 64598010,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 45040472,
+    "title": "Avoid correlated subqueries error in BigQuery",
+    "question_text": "I have a simple query to obtain the currency rate in use at the time a transaction was created:\nSELECT t.orderid, t.date, \n (SELECT rate FROM sources.currency_rates r WHERE currencyid=1 AND \nr.date>=t.date  ORDER BY date LIMIT 1) rate\nFROM sources.transactions t\n\nThis triggers an error:\nError: Correlated subqueries that reference other tables are not \nsupported unless they can be de-correlated, such as by transforming \nthem into an efficient JOIN.' \n\nI've tried with several types of joins and named subqueries, but none seem to work. What is the best way to accomplish this? Seems like a very common scenario that should be quite straightforward to implement in BQ's Standard Sql.\n",
+    "question_score": 28,
+    "answer_text": "Below is for BigQuery Standard SQL  \n#standardSQL\nSELECT \n  t.orderid AS orderid, \n  t.date AS date, \n  ARRAY_AGG(r.rate ORDER BY r.date LIMIT 1)[SAFE_OFFSET(0)] AS rate\nFROM `sources.transactions` AS t\nJOIN `sources.currency_rates` AS r\nON currencyid = 1 \nAND r.date >= t.date\nGROUP BY orderid, date\n\n",
+    "answer_id": 45041970,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 10644993,
+    "title": "Support UNION function in BigQuery SQL",
+    "question_text": "BigQuery does not seem to have support for UNION yet:\nhttps://developers.google.com/bigquery/docs/query-reference\n(I don't mean unioning tables together for the source. It has that.)\nIs it coming soon?\n",
+    "question_score": 27,
+    "answer_text": "If you want UNION so that you can combine query results, you can use subselects\nin BigQuery:\nSELECT foo, bar \nFROM\n  (SELECT integer(id) AS foo, string(title) AS bar \n   FROM publicdata:samples.wikipedia limit 10),\n  (SELECT integer(year) AS foo, string(state) AS bar \n   FROM publicdata:samples.natality limit 10);\n\nThis is almost exactly equivalent to the SQL\nSELECT id AS foo, title AS bar \nFROM publicdata:samples.wikipedia limit 10\nUNION ALL\nSELECT year AS foo, state AS bar \nFROM publicdata:samples.natality limit 10;\n\n(note that if want SQL UNION and not UNION ALL this won't work)\nAlternately, you could run two queries and append the result.\n",
+    "answer_id": 10645603,
+    "tags": [
+      "sql",
+      "google-bigquery",
+      "union"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 34890339,
+    "title": "How to extract all the keys in a JSON object with BigQuery",
+    "question_text": "BigQuery has facilities to parse JSON in real-time interactive queries: Just store the JSON encoded object as a string, and query in real time, with functions like JSON_EXTRACT_SCALAR.\nHowever, I can't find a way to discover all the keys (properties) in these objects. \nCan I use a UDF for this?\n",
+    "question_score": 27,
+    "answer_text": "Here's something that uses Standard SQL:\nCREATE TEMP FUNCTION jsonObjectKeys(input STRING)\nRETURNS Array<String>\nLANGUAGE js AS \"\"\"\n  return Object.keys(JSON.parse(input));\n\"\"\";\nWITH keys AS (\n  SELECT\n    jsonObjectKeys(myColumn) AS keys\n  FROM\n    myProject.myTable\n  WHERE myColumn IS NOT NULL\n)\nSELECT\n  DISTINCT k\nFROM keys\nCROSS JOIN UNNEST(keys.keys) AS k\nORDER BY k\n\n",
+    "answer_id": 59490036,
+    "tags": [
+      "json",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 42989922,
+    "title": "How do I find elements in an array in BigQuery",
+    "question_text": "I am trying to search for a row that has certain key value pairs in an array. A row in my BigQuery table would look something like this.\n{\n  \"ip\": \"192.168.1.200\",\n  \"cookie\" [\n    {\n      \"key\": \"apple\",\n      \"value\": \"red\"\n    },\n    {\n      \"key\": \"orange\",\n      \"value\": \"orange\"\n    },\n    {\n      \"key\": \"grape\",\n      \"value\": \"purple\"\n    }\n  ]\n}\n\nI thought about using implicit UNNEST or CROSS JOIN like the following, but it didn't work because unnesting it would just create multiple different rows.\nSELECT ip\nFROM table t, t.cookie c\nWHERE (c.key = \"grape\" AND c.value =\"purple\") AND (c.key = \"orange\" AND c.value =\"orange\")\n\nThis link is really close to what I want to do, except they are using legacy SQL and not standardSQL\n",
+    "question_score": 27,
+    "answer_text": "#standardSQL\nSELECT ip\nFROM yourTable \nWHERE (\n  SELECT COUNT(1) \n  FROM UNNEST(cookie) AS pair \n  WHERE pair IN (('grape', 'purple'),  ('orange', 'orange'))\n) >= 2\n\nyou can test it with below dummy data   \n#standardSQL\nWITH yourTable AS (\n  SELECT '192.168.1.1' AS ip, [('apple', 'red'), ('orange', 'orange'), ('grape', 'purple')] AS cookie UNION ALL\n  SELECT '192.168.1.2', [('abc', 'xyz')]\n)\nSELECT ip\nFROM yourTable \nWHERE (\n  SELECT COUNT(1) \n  FROM UNNEST(cookie) AS pair \n  WHERE pair IN (('grape', 'purple'),  ('orange', 'orange'))\n) >= 2\n\nIn case if you need output ip if at least one pair is in array  - you need to change >= 2 to >=1 in WHERE clause\n",
+    "answer_id": 42990125,
+    "tags": [
+      "sql",
+      "arrays",
+      "json",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 12433639,
+    "title": "How to use Service Accounts with gsutil, for uploading to CS + BigQuery",
+    "question_text": "How do I upload data to Google BigQuery with gsutil, by using a Service Account I created in the Google APIs Console?\nFirst I'm trying to upload data to Cloud Storage using gsutil, as that seems to be the recommended model. Everything works fine with gmail user approval, but it does not allow me to use a service account.\nIt seems I can use the Python API to get an access token using signed JWT credentials, but I would prefer using a command-line tool like gsutil with support for resumable uploads etc.\nEDIT: I would like to use gsutil in a cron to upload files to Cloud Storage every night and then import them to BigQuery.\nAny help or directions to go would be appreciated.\n",
+    "question_score": 26,
+    "answer_text": "Google Cloud Storage just released a new version (3.26) of gsutil that supports service accounts (as well as a number of other features and bug fixes). If you already have gsutil installed you can get this version by running:\ngsutil update\nIn brief, you can configure a service account by running:\ngsutil config -e\nSee gsutil help config for more details about using the config command.\nSee gsutil help creds for information about the different flavors of credentials (and different use cases) that gsutil supports.\nMike Schwartz, Google Cloud Storage Team\n",
+    "answer_id": 15646928,
+    "tags": [
+      "google-api",
+      "google-bigquery",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 39374004,
+    "title": "How to convert Timestamp to Date Data Type in Google Bigquery",
+    "question_text": "I am trying to convert Timestamp data type columns to Date datatype using:\nbq query -q  --destination_table=NEW_DATE_TABLE --replace \"SELECT DATE(CURR_DT) AS CURR_DT from TEST.DATE_TABLE\"\nThe new table shows the column as STRING rather than date. Is there a way to convert timestamp to date data type.\nRequested Screenshot\n",
+    "question_score": 26,
+    "answer_text": "If you use Standard SQL, you can do the following:\nSELECT * REPLACE(EXTRACT(DATE FROM curr_dt)) AS curr_dt FROM test.date_table\n\nIf curr_dt is repeated field, then the solution will look the following:\nSELECT * REPLACE(\n  ARRAY(\n    SELECT EXTRACT(DATE FROM curr_dt) FROM t.curr_dt\n  ) AS curr_dt)\nFROM test.date_table t\n\n",
+    "answer_id": 39374418,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 60894798,
+    "title": "ImportError: cannot import name &#39;bigquery&#39;",
+    "question_text": "This must be a super trivial issue, but i've updated my windows virtual machine with;\npip install --upgrade google-cloud-storage\n\nHowever, when I run the script I still receive the following error;\nTraceback (most recent call last):\n  File \"file.py\", line 6, in <module>\n    from google.cloud import bigquery, storage\nImportError: cannot import name 'bigquery'\n\nAny suggestions or workarounds?\nThanks,\nNeel R\n",
+    "question_score": 25,
+    "answer_text": "From a fresh setup of the VM;\nFailed - pip3 install --upgrade google-cloud\nWorked - pip3 install --upgrade google-cloud-bigquery\nWorked - pip3 install --upgrade google-cloud-storage\nIt appears that individual product solutions should be installed instead of the generic google-cloud.\nIf you're still stuck, this helped!\n",
+    "answer_id": 60895009,
+    "tags": [
+      "python",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 33229273,
+    "title": "BigQuery - NULL values",
+    "question_text": "I want to make calculation among columns, which contains null values\nx1     x2\n9      0.0\n5      1.2\n12     null\n10     null\n\nIf calculation\nx1 + (x1*x2)\n\nis made, it results in\n9, 6, null, null\n\nCan someone suggest, how null values can be handled, so the result will be\n9, 6, 12, 10\n\nI was trying ifelse, if value is null, then use 1\nIF(x1 = null, 0, x1)\n\nbut the results is still with null values.\nThank you!\n",
+    "question_score": 25,
+    "answer_text": "Use IFNULL(expr, 0) - this will come back as 0 if expr is null.\nIn general, instead of doing something=null do something IS null.\n",
+    "answer_id": 33229693,
+    "tags": [
+      "null",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 28731102,
+    "title": "BigQuery - Check if table already exists",
+    "question_text": "I have a dataset in BigQuery. This dataset contains multiple tables. \nI am doing the following steps programmatically using the BigQuery API:\n\nQuerying the tables in the dataset - Since my response is too large, I am enabling allowLargeResults parameter and diverting my response to a destination table.\nI am then exporting the data from the destination table to a GCS bucket.\n\nRequirements:\n\nSuppose my process fails at Step 2, I would like to re-run this step.\nBut before I re-run, I would like to check/verify that the specific destination table named 'xyz' already exists in the dataset. \nIf it exists, I would like to re-run step 2.\nIf it does not exist, I would like to do foo.\n\nHow can I do this?\nThanks in advance.\n",
+    "question_score": 25,
+    "answer_text": "Here is a python snippet that will tell whether a table exists (deleting it in the process--careful!):\ndef doesTableExist(project_id, dataset_id, table_id):\n  bq.tables().delete(\n      projectId=project_id, \n      datasetId=dataset_id,\n      tableId=table_id).execute()\n  return False\n\nAlternately, if you'd prefer not deleting the table in the process, you could try:\ndef doesTableExist(project_id, dataset_id, table_id):\n  try:\n    bq.tables().get(\n        projectId=project_id, \n        datasetId=dataset_id,\n        tableId=table_id).execute()\n    return True\n  except HttpError, err\n    if err.resp.status <> 404:\n       raise\n    return False\n\nIf you want to know where bq came from, you can call build_bq_client from here: http://code.google.com/p/bigquery-e2e/source/browse/samples/ch12/auth.py\nIn general, if you're using this to test whether you should run a job that will modify the table, it can be a good idea to just do the job anyway, and use WRITE_TRUNCATE as a write disposition.\nAnother approach can be to create a predictable job id, and retry the job with that id. If the job already exists, the job already ran (you might want to double check to make sure the job didn't fail, however).\n",
+    "answer_id": 28732684,
+    "tags": [
+      "google-api",
+      "export",
+      "google-bigquery",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 34437572,
+    "title": "Google Bigtable vs BigQuery for storing large number of events",
+    "question_text": "Background\nWe'd like to store our immutable events in a (preferably) managed service. Average size of one event is less than 1 Kb and we have between 1-5 events per second. The main reason for storing these events is to be able to replay them (perhaps using table scanning) once we create future services that might be interested in these events. Since we're in the Google Cloud we're obviously looking at Google's services as first choice. \nI suspect that Bigtable would be a good fit for this but according to the price calculator it'll cost us more than 1400 USD per month (which to us is a big deal): \n\nLooking at something like BigQuery renders a price of 3 USD per month (if I'm not missing something essential):\n\nEven though a schema-less database would be better suited for us we would be fine with essentially storing our events as a blob with some metadata.\nQuestions\nCould we use BigQuery for this instead of Bigtable to reduce costs? For example BigQuery has something called streaming inserts which to me seems like something we could use. Is there anything that'll bite us in the short or long term that I might not be aware of if going down this route?\n",
+    "question_score": 25,
+    "answer_text": "Bigtable is great for large (>= 1TB) mutable data sets.  It has low latency under load and is managed by Google.  In your case, I think you're on the right track with BigQuery.\n",
+    "answer_id": 34438728,
+    "tags": [
+      "google-app-engine",
+      "google-bigquery",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 42429093,
+    "title": "Why is BigQuery so slow on non-large data sizes?",
+    "question_text": "We have found BigQuery to work great on data sets larger than 100M rows, where the 'initialization time' doesn't really come into effect (or is negligible compared to the rest of the query).\nHowever, on anything under that, the performance is quite slow and poor, which makes it (1) ill-suited to working in an interactive BI tool; and (2) inferior to other products, such as Redshift or even ElasticSearch where the data size is under 100M rows. Actually, we had an engineer at our organization that was evaluating a technology for doing queries on data sizes between 1M and 100M rows for an analytics product that has about 1000 users, and his feedback was that he could not believe how slow BigQuery was.\nWithout a defense of the BigQuery product, I was wondering if there were any plans on improving:\n\nThe speed of BigQuery -- especially its initialization time -- on queries of non-massive data sets?\nWill BigQuery ever be able to deliver sub-second response times on 'regular' queries (such as a simple aggregation group by) on datasets under a certain size?\n\n",
+    "question_score": 25,
+    "answer_text": "It's time spent on metadata/initiation, but actual execution time is very small. We have work in progress that will address this, but some of the changes are complicated and will take a while.\nYou can imagine that in its infancy, BigQuery could have central systems for managing jobs, metadata, etc. in a manner that performed very well for all N0 entities using the service. Once you get to N1 entities, however, it may be necessary to rearchitect some things to make them have as little latency as possible. For notification about new features--which is also where we would announce API improvements related to start-up latency--keep an eye on our release notes, which you can also subscribe to as an RSS feed.\n",
+    "answer_id": 42531066,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 41997005,
+    "title": "BigQuery - Concatenate multiple rows into a single row",
+    "question_text": "I have a BigQuery table with 2 columns:\nid|name\n1|John\n1|Tom\n1|Bob\n2|Jack\n2|Tim\n\nExpected output: Concatenate names grouped by id\nid|Text\n1|John,Tom,Bob\n2|Jack,Tim\n\n",
+    "question_score": 24,
+    "answer_text": "For BigQuery Standard SQL:  \n#standardSQL\n--WITH yourTable AS (\n--  SELECT 1 AS id, 'John' AS name UNION ALL\n--  SELECT 1, 'Tom' UNION ALL\n--  SELECT 1, 'Bob' UNION ALL\n--  SELECT 2, 'Jack' UNION ALL\n--  SELECT 2, 'Tim' \n--)\nSELECT \n  id, \n  STRING_AGG(name ORDER BY name) AS Text \nFROM yourTable \nGROUP BY id\n\nOptional ORDER BY name within STRING_CONCAT allows you to get out sorted list of names as below  \nid  Text     \n1   Bob,John,Tom     \n2   Jack,Tim     \n\nFor Legacy SQL  \n#legacySQL\nSELECT \n  id, \n  GROUP_CONCAT(name) AS Text   \nFROM yourTable\nGROUP BY id  \n\nIf you would need to output sorted list here, you can use below (formally - it is not guaranteed by BigQuery Legacy SQL to get sorted list - but for most practical cases I had - it worked)  \n#legacySQL\nSELECT \n  id, \n  GROUP_CONCAT(name) AS Text \nFROM (\n  SELECT id, name \n  FROM yourTable \n  ORDER BY name\n)\nGROUP BY id  \n\n",
+    "answer_id": 42006983,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44510581,
+    "title": "Google BigQuery case insensitive match",
+    "question_text": "How would I run the following query, like I would again mysql:\nSELECT * FROM [integrated-myth-15.testing_data_100k]\nWHERE title='down in la'\n\nNow it will match if I have a perfect case-sensitive string match, but how would I do it case insensitive for \"down in la\"? I'm working from the Web console.\n",
+    "question_score": 24,
+    "answer_text": "The standard way to do this is using LOWER or UPPER on the input string, e.g.:\n#legacySQL\nSELECT * FROM [integrated-myth-15.testing_data_100k]\nWHERE LOWER(title) = 'down in la';\n\nOr:\n#standardSQL\nSELECT * FROM `integrated-myth-15.testing_data_100k`\nWHERE LOWER(title) = 'down in la';\n\n",
+    "answer_id": 44510688,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 38884708,
+    "title": "How to generate series in BigQuery Standard SQL",
+    "question_text": "I need to generate table with say 600 consecutive numbers (starting with 51) in each row\nHow I do this with BigQuery Standard SQL?  \n",
+    "question_score": 24,
+    "answer_text": "BigQuery Standard SQL  \nSELECT 50 + ROW_NUMBER() OVER() AS num\nFROM UNNEST((SELECT SPLIT(FORMAT(\"%600s\", \"\"),'') AS h FROM (SELECT NULL))) AS pos\nORDER BY num\n\nBigQuery Legacy SQL  \nSELECT 50 + pos AS pos FROM (\n  SELECT ROW_NUMBER() OVER() AS pos, * \n  FROM (FLATTEN((SELECT SPLIT(RPAD('', 600, '.'),'') AS h FROM (SELECT NULL)), h))\n) WHERE pos BETWEEN 1 AND 600\n\nFrom there you can adjust logic for example to get consecutive days and other sequences\n",
+    "answer_id": 38884709,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 37423022,
+    "title": "WITH in BigQuery",
+    "question_text": "Does BigQuery support the WITH clause? I don't like formatting too many subqueries.\nFor example:\nWITH alias_1 AS (SELECT foo1 c FROM bar)\n, alias_2 AS (SELECT foo2 c FROM bar a, alias_1 b WHERE b.c = a.c)\nSELECT * FROM alias_2 a;\n\n",
+    "question_score": 24,
+    "answer_text": "Recently introduced BigQuery Standard SQL does support WITH clause\nSee more about WITH clause\nSee also how to Enabling Standard SQL\n",
+    "answer_id": 37423071,
+    "tags": [
+      "sql",
+      "google-bigquery",
+      "common-table-expression"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 59682833,
+    "title": "&quot;pyarrow.lib.ArrowInvalid: Casting from timestamp[ns] to timestamp[ms] would lose data&quot; when sending data to BigQuery without schema",
+    "question_text": "I'm working on a script where I'm sending a dataframe to BigQuery:\nload_job = bq_client.load_table_from_dataframe(\n    df, '.'.join([PROJECT, DATASET, PROGRAMS_TABLE])\n)\n\n# Wait for the load job to complete\nreturn load_job.result() \n\nThis is working fine but only if a schema has already been defined in BigQuery or if I'm defining the schema of my job in my script. If no schema has been defined I have the following error:\nTraceback (most recent call last): File \"/env/local/lib/python3.7/site-packages/google/cloud/bigquery/client.py\", line 1661, in load_table_from_dataframe dataframe.to_parquet(tmppath, compression=parquet_compression) File \"/env/local/lib/python3.7/site-packages/pandas/core/frame.py\", line 2237, in to_parquet **kwargs File \"/env/local/lib/python3.7/site-packages/pandas/io/parquet.py\", line 254, in to_parquet **kwargs File \"/env/local/lib/python3.7/site-packages/pandas/io/parquet.py\", line 117, in write **kwargs File \"/env/local/lib/python3.7/site-packages/pyarrow/parquet.py\", line 1270, in write_table writer.write_table(table, row_group_size=row_group_size) File \"/env/local/lib/python3.7/site-packages/pyarrow/parquet.py\", line 426, in write_table self.writer.write_table(table, row_group_size=row_group_size) File \"pyarrow/_parquet.pyx\", line 1311, in pyarrow._parquet.ParquetWriter.write_table File \"pyarrow/error.pxi\", line 85, in pyarrow.lib.check_status pyarrow.lib.ArrowInvalid: Casting from timestamp[ns] to timestamp[ms] would lose data: 1578661876547574000 During handling of the above exception, another exception occurred: Traceback (most recent call last): File \"/env/local/lib/python3.7/site-packages/google/cloud/functions/worker.py\", line 383, in run_background_function _function_handler.invoke_user_function(event_object) File \"/env/local/lib/python3.7/site-packages/google/cloud/functions/worker.py\", line 217, in invoke_user_function return call_user_function(request_or_event) File \"/env/local/lib/python3.7/site-packages/google/cloud/functions/worker.py\", line 214, in call_user_function event_context.Context(**request_or_event.context)) File \"/user_code/main.py\", line 151, in main df = df(param1, param2) File \"/user_code/main.py\", line 141, in get_df df, '.'.join([PROJECT, DATASET, PROGRAMS_TABLE]) File \"/env/local/lib/python3.7/site-packages/google/cloud/bigquery/client.py\", line 1677, in load_table_from_dataframe os.remove(tmppath) FileNotFoundError: [Errno 2] No such file or directory: '/tmp/tmp_ps5xji9_job_634ff274.parquet'\n\nWhy is pyarrow generating this error? How can I solve it other than pre-defining schema? \n",
+    "question_score": 24,
+    "answer_text": "The default behavior when converting to Arrow or Parquet from pandas is to not allow silent data loss. There are options to set when doing the conversion to allow permit unsafe casts causing loss of timestamp precision or other forms of data loss. The BigQuery Python API would need to set these options, so it may be a bug in the BigQuery library. I suggest reporting on their issue tracker https://github.com/googleapis/google-cloud-python\n",
+    "answer_id": 59721043,
+    "tags": [
+      "python-3.x",
+      "google-bigquery",
+      "google-cloud-functions",
+      "pyarrow"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 42729526,
+    "title": "Alternative to BigQuery for medium-sized data",
+    "question_text": "This is a follow-up to the question Why doesn't BigQuery perform as well on small data sets. \nLet's suppose I have a data-set that is ~1M rows. In the current database that we're using (mysql) aggregation queries would run quite slow, perhaps taking ~10s or so on complex aggregations. On BigQuery, the initialization time required might make this query take ~3 seconds, better than in mysql, but the wrong tool for the job, if we need to return queries in 1s or under.\nMy question then is, what would be a good alternative to using BigQuery on doing aggregated queries on moderate-sized data-sets, such as 1-10M rows? An example query might be:\nSELECT studio, territory, count(*)\nFROM mytable\nGROUP BY studio, territory\nORDER BY count(*) DESC\n\nPossible solutions I've thought of are ElasticSearch (https://github.com/NLPchina/elasticsearch-sql) and Redshift (postgres is too slow). What would be a good option here that can be queried via SQL?\nNote: I'm not looking for why or how BQ should be used, I'm looking for an alternative for data sets under 10M rows where the query can be returned in under ~1s.\n",
+    "question_score": 24,
+    "answer_text": "Here are a few alternatives to consider for data of this size:\n\nSingle Redshift small SSD node\n\n\nNo setup. Easily returns answers on this much data in under 1s.\u00a0\n\nGreenplum on a small T2 instance\n\n\nPostgres-like. Similar perf to Redshift. Not paying for storage you won't need. Start with their single node \"sandbox\" AMI.\n\nMariaDB Columnstore\n\n\nMySQL-like. Used to be called InfiniDB. Very good performance. Supported by MariaDB (the company).\n\nApache Drill\n\n\nDrill has a very similar philosophy to BiqQuery but can be used to anywhere (it's just a jar). Queries will be fast on this size data.\n\n\nIf low admin / quick start is critical go with Redshift. \nIf money / flexibility is critical start with Drill. \nIf you prefer MySQL start with MariaDB Columnstore.\n",
+    "answer_id": 42909730,
+    "tags": [
+      "mysql",
+      "sql",
+      "google-bigquery",
+      "amazon-redshift"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 47373774,
+    "title": "Update with join with BigQuery",
+    "question_text": "Is it possible to do an UPDATE on a table based on a JOIN with an existing table in BigQuery?\nWhen I try this statement on the following database (https://bigquery.cloud.google.com/dataset/pfamdb:pfam31),\n  UPDATE pfam31.uniprot\n  SET uniprot.auto_architecture = uniprot_architecture.auto_architecture\n  INNER JOIN\n      pfam31.uniprot_architecture using(uniprot_acc)\n\nI get errors relating to the INNER JOIN, with WHERE being expected instead. How should I be doing this (if it's possible)?\n",
+    "question_score": 23,
+    "answer_text": "\nUPDATE `pfam31.uniprot` a\nSET a.auto_architecture = b.auto_architecture\nFROM `pfam31.uniprot_architecture` b\nWHERE a.uniprot_acc = b.uniprot_acc\n\n",
+    "answer_id": 47373922,
+    "tags": [
+      "join",
+      "sql-update",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44647310,
+    "title": "Convert Bigquery results to Pandas Data Frame",
+    "question_text": "Below is the code to convert BigQuery results into Pandas data frame.\nIm learning Python&Pandas and wonder if i can get suggestion/ideas about any kind of improvements to the code?\n#...code to run query, that returns 3 columns: 'date' DATE, 'currency' STRING,'rate' FLOAT...\n\nrows, total_count, token = query.fetch_data()\ncurrency = []\nrate = []\ndates = []\nfor row in rows:\n    dates.append(row[0])\n    currency.append(row[1])\n    rate.append(row[2])\n\n\ndict = {\n'currency' : currency,\n'date' : dates,\n'rate' : rate\n}\n\ndf2 = pd.DataFrame(dict)\n\ndf2['date'] = pd.to_datetime(df2['date'])\ndf2 = df2.set_index('date')\n\nThe above works. But looks chunky. Is there any way to do the same thing more efficiently than the above?\nI tried libraries such as sqlalchemy but they do not support BigQuery. And generally my question is about code and syntax above.\n",
+    "question_score": 23,
+    "answer_text": "You should use read_gbq() instead: https://pandas.pydata.org/pandas-docs/stable/generated/pandas.read_gbq.html\n",
+    "answer_id": 44647760,
+    "tags": [
+      "python",
+      "pandas",
+      "dataframe",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 36454569,
+    "title": "Export from Google BigQuery into CloudSQL?",
+    "question_text": "I want to dump data from BigQuery (i.e. reports) into a CloudSQL database, what is the best way to achieve this programatically?\nI realise I could do this manually by running a BigQuery query, downloading it as a CSV, then uploading it through the Cloud console, but I want to do this programatically, preferably in Python/SQL.\n",
+    "question_score": 23,
+    "answer_text": "If you would like to dump entire tables, you can use a combination of the BigQuery and Cloud SQL APIs to achieve this.\nThe BigQuery documentation has an API example in python for extracting a BigQuery table to Cloud Storage.\nOnce the data is in Cloud Storage, you can use the Cloud SQL Admin API to import the data into a MySQL table.\nIf you need more granular control, you can use the BigQuery API to perform the query, fetch the results, connect to the Cloud SQL instance and insert the data. This won't perform as well if the amount of data is large.\nA more complex approach is to use Dataflow to write the data you are interested in to Cloud Storage and use the Cloud SQL API to import it.\n(For my own curiosity, can you describe the use case for wanting the data in Cloud SQL instead of BigQuery? It will help me/us understand how our customers are using our product and where we can improve.)\n",
+    "answer_id": 36464054,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-storage",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 39188353,
+    "title": "Scalable Solution to get latest row for each ID in BigQuery",
+    "question_text": "I have a quite large table with a field ID and another field as collection_time. I want to select latest record for each ID. Unfortunately combination of (ID, collection_time) time is not unique together in my data. I want just one of records with the maximum collection time. I have tried two solutions but none of them has worked for me:\nFirst: using query\nSELECT *  FROM \n(SELECT *, ROW_NUMBER() OVER (PARTITION BY ID ORDER BY collection_time) as rn \nFROM mytable)  where rn=1\n\nThis results in Resources exceeded error that I guess is because of ORDER BY in the query.\nSecond\nUsing join between table and latest time:\n(SELECT tab1.* \nFROM mytable AS tab1\nINNER JOIN EACH \n(SELECT ID, MAX(collection_time) AS second_time \nFROM mytable GROUP EACH BY ID) AS tab2\nON tab1.ID=tab2.ID AND tab1.collection_time=tab2.second_time) \n\nthis solution does not work for me because (ID, collection_time) are not unique together so in JOIN result there would be multiple rows for each ID.\nI am wondering if there is a workaround for the resourcesExceeded error, or a different query that would work in my case?\n",
+    "question_score": 22,
+    "answer_text": "Quick and dirty option - combine your both queries into one - first get all records with latest collection_time (using your second query) and then dedup them using your first query:  \nSELECT * FROM (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY tab1.ID) AS rn \n  FROM (\n    SELECT tab1.* \n    FROM mytable AS tab1\n    INNER JOIN (\n      SELECT ID, MAX(collection_time) AS second_time \n      FROM mytable GROUP BY ID\n    ) AS tab2\n    ON tab1.ID=tab2.ID AND tab1.collection_time=tab2.second_time\n  )\n)\nWHERE rn = 1  \n\nAnd with Standard SQL (proposed by S.Mohsen sh)  \nWITH myTable AS (\n  SELECT 1 AS ID, 1 AS collection_time\n),\ntab1 AS (\n  SELECT ID,\n  MAX(collection_time) AS second_time \n  FROM myTable GROUP BY ID\n),\ntab2 AS (\n  SELECT * FROM myTable\n),\njoint AS (\n  SELECT tab2.* \n  FROM tab2 INNER JOIN tab1\n  ON tab2.ID=tab1.ID AND tab2.collection_time=tab1.second_time \n)\nSELECT * EXCEPT(rn) \nFROM (\n  SELECT *, ROW_NUMBER() OVER (PARTITION BY ID) AS rn \n  FROM joint\n)\nWHERE rn=1\n\n",
+    "answer_id": 39188430,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 28600228,
+    "title": "Indexes on BigQuery Table",
+    "question_text": "I have a use case in which we have a few tables in BigQuery.\nNow I want to implement an index on one of the columns in the BigQuery table.\nBut I am not finding enough documentation to do that. I found a few blogs and posts mentioning BigQuery doesn't support indexes.\nPlease help me find a blog or post which can help me in implementing index on BigQuery. Thanks in advance.\n",
+    "question_score": 22,
+    "answer_text": "2019 update: Check out how clusters improve your querying times and data scanned:\n\nhttps://medium.com/google-cloud/bigquery-optimized-cluster-your-tables-65e2f684594b\n\n\nAs stated in the comments this question is associated with \"how would BigQuery deal with my data if it was a 100 times larger\". When dealing with traditional databases an index is the right solution, but BigQuery is different: As data size grows, BigQuery adds more servers to the mix - keeping performance almost constant.\nIn other words, as your data grows you should expect costs to increase linearly, with performance staying almost constant. No indexes needed. And this is one of the big reasons why people choose BigQuery for their analytical workloads.\n(It all depends on your specific use case of course, please test these assertions and report back!)\n",
+    "answer_id": 28636887,
+    "tags": [
+      "cloud",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 63543561,
+    "title": "BigQuery vs Cloud SQL for dashboards backend",
+    "question_text": "I'm a bit confused about BQ vs Cloud SQL use cases. I've got few Gbs of row data in BQ and need to build web dashboards on that data (SQL with JOINs over several tables).\nIs there a big downside of querying data right from BQ (e.g. latency or concurrency), and should I move data to Cloud SQL(pSQL) and query that?\nThe data isn't realtime. I expect at most few hundred concurrent requests.\nI don't expect high cost on this, thus query speed and reliability is the main goal.\nThanks!\n",
+    "question_score": 22,
+    "answer_text": "BigQuery is perfectly suited for storing and querying large data sets quickly.\nGoogle Cloud SQL on the other hand, is mainly based on Relational Database Management System (RDBMS) concepts. It provides support for MySQL and PostgreSQL.\nBig Query is however best suited for analytics but handling transactional data is possible as well. BigQuery is quite fast, certainly faster than Querying in CloudSQL because BigQuery is a Datawarehouse that has the ability to query absurdly large data sets to return results immediately. When you have to deal with really large data sets, then BigQuery will be the cheaper Database. Cloud SQL either MySQL or PostgreSQL can only handle up to 30,720 GB depending on the machine type for MySQL or depending on whether the instance has dedicated or shared vCPUs for PostgreSQL while BigQuery doesn\u2019t have this kind of storage limitation. Please also refer to other quotas and limitation of BigQuery.\nWith that being said, the charges can rack up quickly on BigQuery if you don't construct your queries properly since it traverses too much data too frequently.\nCloud SQL and BigQuery are priced differently, please refer to the pricing page of Cloud SQL and BigQuery for more details.\nI see this link that compares some of the features of BigQuery with CloudSQL. I think the details shared in the article may be helpful.\nGenerally, Cloud SQL is a relational database which is more intended for transactional purposes while BigQuery on the other hand is analytics data warehouse which is intended for analytics, data visualization, business intelligence and/or machine learning, etc. So, if your purpose is to store data for transactional purposes then Cloud SQL would be a choice, but, if you\u2019re storing data for analytical purposes then BigQuery is the way to go.\n",
+    "answer_id": 63585216,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 35739103,
+    "title": "Using IF in BigQuery SQL",
+    "question_text": "Case: I have Sales table in BQ and item_num column contains values 1, -1 and 0. I want to count how many cases I have for each value.\nTried a simple query below, but count returns exactly the same number for each case.. What I am missing?\nSELECT \ncount(if(item_num > 0,1, 0)) as buysplus,\ncount(if(item_num < 0,1, 0)) as buysminus,\ncount(if(item_num = 0,1, 0)) as buyszero\nfrom MyShop.Sales\n\nthanks\n",
+    "question_score": 22,
+    "answer_text": "SELECT \n  SUM(IF(item_num > 0, 1, 0)) AS buysplus,\n  SUM(IF(item_num < 0, 1, 0)) AS buysminus,\n  SUM(IF(item_num = 0, 1, 0)) AS buyszero\nFROM MyShop.Sales\n\nor even less verbose version of it:  \nSELECT \n  SUM(item_num > 0) AS buysplus,\n  SUM(item_num < 0) AS buysminus,\n  SUM(item_num = 0) AS buyszero\nFROM MyShop.Sales\n\nthis will give yo result like below  \nbuysplus    buysminus   buyszero     \n4           2           3\n\nAnother option would be transposed version of it\nSELECT \n  item_num AS buys,\n  COUNT(1) AS volume\nFROM MyShop.Sales\nGROUP BY 1  \n\nwith the result as below  \n buys        volume  \n 0          3    \n 1          4    \n-1          2    \n\n",
+    "answer_id": 35739604,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 40761453,
+    "title": "Transpose rows into columns in BigQuery (Pivot implementation)",
+    "question_text": "I want to generate a new table and place all key value pairs with keys as column names and values as their respective values using BigQuery.\nExample:\n**Key**                  **Value**\nchannel_title           Mahendra Guru    \nyoutube_id              ugEGMG4-MdA  \nchannel_id              UCiDKcjKocimAO1tV    \nexamId                  72975611-4a5e-11e5   \npostId                  1189e340-b08f \n\nchannel_title           Ab Live  \nyoutube_id              3TNbtTwLY0U  \nchannel_id              UCODeKM_D6JLf8jJt    \nexamId                  72975611-4a5e-11e5   \npostId                  0c3e6590-afeb\n\nI want to convert it to:\n**channel_title   youtube_id   channel_id         examId               postId**\nMahendra Guru   ugEGMG4-MdA  UCiDKcjKocimAO1tV  72975611-4a5e-11e5   1189e340-b08f\nAb Live         3TNbtTwLY0U  UCODeKM_D6JLf8jJt  72975611-4a5e-11e5   0c3e6590-afeb\n\nHow to do it using BigQuery?\n",
+    "question_score": 22,
+    "answer_text": "BigQuery does not support yet pivoting functions\nYou still can do this in BigQuery using below approach  \nBut first, in addition to two columns in input data you must have one more column that would specify groups of rows in input that needs to be combined into one row in output   \nSo, I assume your input table (yourTable) looks like below   \n**id**  **Key**                  **Value**\n   1    channel_title           Mahendra Guru    \n   1    youtube_id              ugEGMG4-MdA  \n   1    channel_id              UCiDKcjKocimAO1tV    \n   1    examId                  72975611-4a5e-11e5   \n   1    postId                  1189e340-b08f \n\n   2    channel_title           Ab Live  \n   2    youtube_id              3TNbtTwLY0U  \n   2    channel_id              UCODeKM_D6JLf8jJt    \n   2    examId                  72975611-4a5e-11e5   \n   2    postId                  0c3e6590-afeb  \n\nSo, first you should run below query  \nSELECT 'SELECT id, ' + \n   GROUP_CONCAT_UNQUOTED(\n      'MAX(IF(key = \"' + key + '\", value, NULL)) as [' + key + ']'\n   ) \n   + ' FROM yourTable GROUP BY id ORDER BY id'\nFROM (\n  SELECT key \n  FROM yourTable\n  GROUP BY key\n  ORDER BY key\n) \n\nResult of above query will be string that (if to format) will look like below   \nSELECT \n  id, \n  MAX(IF(key = \"channel_id\", value, NULL)) AS [channel_id],\n  MAX(IF(key = \"channel_title\", value, NULL)) AS [channel_title],\n  MAX(IF(key = \"examId\", value, NULL)) AS [examId],\n  MAX(IF(key = \"postId\", value, NULL)) AS [postId],\n  MAX(IF(key = \"youtube_id\", value, NULL)) AS [youtube_id] \nFROM yourTable \nGROUP BY id \nORDER BY id\n\nyou should now copy above result (note: you don't really need to format it - i did it for presenting only) and run it as normal query  \nResult will be as you would expected   \nid  channel_id          channel_title   examId              postId          youtube_id   \n1   UCiDKcjKocimAO1tV   Mahendra Guru   72975611-4a5e-11e5  1189e340-b08f   ugEGMG4-MdA  \n2   UCODeKM_D6JLf8jJt   Ab Live         72975611-4a5e-11e5  0c3e6590-afeb   3TNbtTwLY0U  \n\nPlease note: you can skip Step 1 if you can construct proper query (as in step 2) by yourself and number of fields small and constant or if it is one time deal. But Step 1 just helper step that makes it for you, so you can create it fast any time!   \n\nIf you are interested - you can see more about pivoting in my other posts.\n\nHow to scale Pivoting in BigQuery?\nPlease note \u2013 there is a limitation of 10K columns per table - so you are limited with 10K organizations.\nYou can also see below as simplified examples (if above one is too complex/verbose):\nHow to transpose rows to columns with large amount of the data in BigQuery/SQL?\nHow to create dummy variable columns for thousands of categories in Google BigQuery?\nPivot Repeated fields in BigQuery \n",
+    "answer_id": 40766540,
+    "tags": [
+      "sql",
+      "google-bigquery",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 39390342,
+    "title": "Is there an Autoincrement in BigQuery?",
+    "question_text": "Is there something like an AUTO_INCREMENT, SERIAL, IDENTITY or sequence in BigQuery ?\nI'm aware of ROW_NUMBER https://cloud.google.com/bigquery/query-reference#row-number\nBut I want to persist a generated unique ID for every row in my table.\n",
+    "question_score": 22,
+    "answer_text": "BigQuery does not have a notion of row key generation at load time. You could rewrite the table with a query to generate arbitrary keys for your rows.\nAs you noted, ROW_NUMBER would give you a unique index for each row, but you may hit size limits for particularly large tables (since you'd need an unpartitioned window function over everything).\nIf you can tolerate a larger string key, you might consider generating a UUID for each row (which can be done randomly and doesn't require coordination with the rest of your data). If you're using Standard SQL (and you should!) the GENERATE_UUID() function will accomplish this.\nIn the linked answer, Felipe constructs a composite key, which may also work for you, if the combination of your keys is distinct.\n",
+    "answer_id": 39397342,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 38694040,
+    "title": "How to generate date series to occupy absent dates in google BiqQuery?",
+    "question_text": "I am trying to get daily sum of sales from a google big-query table. I used following code for that.\nselect Day(InvoiceDate) date, Sum(InvoiceAmount) sales from test_gmail_com.sales \nwhere year(InvoiceDate) = Year(current_date()) and\nMonth(InvoiceDate) = Month(current_date())\ngroup by date order by date\n\nFrom the above query it gives only the sum of sales daily which were in the table. There is a chance that some days do not have any sales. For those kind of situations, I need to get the date and sum should be 0. As an example, in every month should 30 0r 31 rows with sum of sales. Examples show below. 4th day of the month does not have a sales. So its sum should be 0. \ndate | sales\n-----+------\n1    |   259\n-----+------\n2    |   359\n-----+------\n3    |   45\n-----+------\n4    |    0\n-----+------\n5    |  156\n\nIs it possible to do in Big-query? Basically date column should be a series from 1 - 28/29/30 or 31st depending on the month of the year\n",
+    "question_score": 21,
+    "answer_text": "You can use below to generate on fly all dates in given range (in below example it is all dates from 2015-06-01 till CURRENT_DATE() - by changing those you can control which dates range to generate)  \nSELECT DATE(DATE_ADD(TIMESTAMP(\"2015-06-01\"), pos - 1, \"DAY\")) AS calendar_day\nFROM (\n     SELECT ROW_NUMBER() OVER() AS pos, *\n     FROM (FLATTEN((\n     SELECT SPLIT(RPAD('', 1 + DATEDIFF(TIMESTAMP(CURRENT_DATE()), TIMESTAMP(\"2015-06-01\")), '.'),'') AS h\n     FROM (SELECT NULL)),h\n)))\n\nso, now - you can use it with LEFT JOIN with your table to have all dates accounted. See potential example below  \nSELECT\n  calendar_day,\n  IFNULL(sales, 0) AS sales\nFROM (\n  SELECT DATE(DATE_ADD(TIMESTAMP(\"2015-06-01\"), pos - 1, \"DAY\")) AS calendar_day\n  FROM (\n       SELECT ROW_NUMBER() OVER() AS pos, *\n       FROM (FLATTEN((\n       SELECT SPLIT(RPAD('', 1 + DATEDIFF(TIMESTAMP(CURRENT_DATE()), TIMESTAMP(\"2015-06-01\")), '.'),'') AS h\n       FROM (SELECT NULL)),h\n  )))\n) AS all_dates\nLEFT JOIN (\n  SELECT DAY(InvoiceDate) DATE, SUM(InvoiceAmount) sales \n  FROM test_gmail_com.sales \n  WHERE YEAR(InvoiceDate) = YEAR(CURRENT_DATE()) AND\n  MONTH(InvoiceDate) = MONTH(CURRENT_DATE())\n  GROUP BY DATE \n)\nON DATE = calendar_day  \n\n\nI wanna need to get previous months sales\n\nBelow gives all days of previous month\nSELECT DATE(DATE_ADD(DATE_ADD(DATE_ADD(CURRENT_DATE(), -1, \"MONTH\"), 1 - DAY(CURRENT_DATE()), \"DAY\"), pos - 1, \"DAY\")) AS calendar_day\nFROM (\n     SELECT ROW_NUMBER() OVER() AS pos, *\n     FROM (FLATTEN((\n     SELECT SPLIT(RPAD('', 1 + DATEDIFF(DATE_ADD(CURRENT_DATE(), - DAY(CURRENT_DATE()), \"DAY\"), DATE_ADD(DATE_ADD(CURRENT_DATE(), -1, \"MONTH\"), 1 - DAY(CURRENT_DATE()), \"DAY\")), '.'),'') AS h\n     FROM (SELECT NULL)),h\n)))\n\n",
+    "answer_id": 38702850,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 16702420,
+    "title": "Bigquery add columns to table schema",
+    "question_text": "I am trying to add new column to BigQuery existing table. I have tried bq command tool and API approach. I get following error when making call to Tables.update(). \nI have tried with providing full schema with additional field and that also gives me same error as shown below.\nWith API I get following Error:\n{\n    \"schema\": {\n        \"fields\": [{\n            \"name\": \"added_column\",\n            \"type\": \"integer\",\n            \"mode\": \"nullable\"\n        }]\n    }\n}\n\n\n\n{\n    \"error\": {\n        \"errors\": [{\n            \"domain\": \"global\",\n            \"reason\": \"invalid\",\n            \"message\": \"Provided Schema does not match Table [blah]\"\n        }],\n        \"code\": 400,\n        \"message\": \"Provided Schema does not match Table [blah]\"\n    }\n}\n\nWith BQ tool I get following error:\n./bq update -t blah added_column:integer\n\nBigQuery error in update operation: Provided Schema does not match Table [blah]\n",
+    "question_score": 21,
+    "answer_text": "Try this:\nbq --format=prettyjson show yourdataset.yourtable > table.json\n\nEdit table.json and remove everything except the inside of \"fields\" (e.g. keep the [ { \"name\": \"x\" ... }, ... ]). Then add your new field to the schema.\nOr pipe through jq\nbq --format=prettyjson show yourdataset.yourtable | jq .schema.fields > table.json\n\nThen run:\nbq update yourdataset.yourtable table.json\n\nYou can add --apilog=apilog.txt to the beginning of the command line which will show exactly what is sent / returned from the bigquery server.\n",
+    "answer_id": 16704021,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 44770893,
+    "title": "BigQuery StandardSQL: Last 7 Days using _TABLE_SUFFIX",
+    "question_text": "Question: I want to pull data from multiple Google Analytics sessions tables using _TABLE_SUFFIX, but I want to set the suffix parameters to between \"seven days ago\" and \"one day ago\" (i.e. pulling data for the last 7 days)\nThe current syntax (that doesn't work):\n#StandardSQL\nSELECT\n  date,\n  SUM (totals.visits) AS visits\nFROM\n  `projectname.123456789.ga_sessions_*`\nWHERE\n  _TABLE_SUFFIX BETWEEN \n  'DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -7 DAY)' AND \n  'DATE_ADD(CURRENT_TIMESTAMP(), INTERVAL -1 DAY)'\nGROUP BY \n   date\nORDER BY \n   date ASC\n\nWhich gives me the message \"Valid: This query will process 0 B when run.\" To my eyes, there is no error in the syntax, but BigQuery is unable ot read my date functions and thus unable to suffix them to the ga_sessions_* wildcard\nInspiration:\nBigQuery Cookbook has an example for legacySQL that I have been basing this on: (https://support.google.com/analytics/answer/4419694?hl=en#7days)\n#LegacySQL\nSELECT\n  date,\n  SUM (totals.visits) AS visits\nFROM \n  (TABLE_DATE_RANGE([73156703.ga_sessions_], \n  DATE_ADD(CURRENT_TIMESTAMP(), -7, 'DAY'), \n  DATE_ADD(CURRENT_TIMESTAMP(), -1, 'DAY')))\nGROUP BY\n  date\nORDER BY\n  date ASC \n\nThings I've tried: (that doesn't work)\nUsing DATE_SUB instead of DATE_ADD and using CURRENT_DATE instead of CURRENT_TIMESTAMP: \nWHERE\n   _TABLE_SUFFIX BETWEEN \n   'DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)' AND \n   'DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)'\n\nResulting in \"Valid: This query will process 0 B when run.\"\nUsing DATE_FORMAT around DATE_SUB and CURRENT_DATE in order to get the dates without dashes: \nWHERE\n   _TABLE_SUFFIX BETWEEN \n   'FORMAT_DATE(\"%Y%m%d\", DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY))' AND \n   'FORMAT_DATE(\"%Y%m%d\", DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))'\n\nResulting in \"Valid: This query will process 0 B when run.\"\nTried skippingt he hyphens '' around the DATE_SUB clause\nWHERE\n  _TABLE_SUFFIX BETWEEN \n  DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY) AND\n  DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY)\n\nResulting in the following error message \"Error: No matching signature for operator BETWEEN for argument types: STRING, DATE, DATE. Supported signature: (ANY) BETWEEN (ANY) AND (ANY)\"\nThanks in advance, \n",
+    "question_score": 21,
+    "answer_text": "Elliott's answer is correct, but if you want to get the most performance out of BigQuery for such kind of query, instead of converting _TABLESUFFIX to DATE, you should convert CURRENT_DATE expressions to strings:\nWHERE\n  _TABLE_SUFFIX BETWEEN \n  FORMAT_DATE(\"%Y%m%d\", DATE_SUB(CURRENT_DATE(), INTERVAL 7 DAY)) AND\n  FORMAT_DATE(\"%Y%m%d\", DATE_SUB(CURRENT_DATE(), INTERVAL 1 DAY))\n\n",
+    "answer_id": 44772271,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 49336013,
+    "title": "How can I make integration tests with google cloud bigquery",
+    "question_text": "We are in the processing of migrating from apache hbase to bigquery.\nCurrently we have end to end tests (using cucumbers) that work with a docker container running hbase.\nThere don't seem to be any bigquery docker containers or emulators (https://cloud.google.com/sdk/gcloud/reference/beta/emulators/)\nHow would we be able to create end to end tests for an application working with bigquery?\n",
+    "question_score": 21,
+    "answer_text": "Currently there is not any kind of BigQuery local emulator or anything similar to that. As pointed out by the link you shared about available GCP emulators, there are some other products that have such a feature, but probably the reason why BigQuery does not have one is that its true potential is only seen when working in its real infrastructure, plus the fact that the costs of working with BigQuery can be relatively low depending on the usage you make of it, plus you have a Free Tier to start working with.\nLet me summarize some info about BigQuery pricing that can be useful for you:\n\nBigQuery storage and operation costs are summarized in the pricing documentation.\nBigQuery offers some operations that are free of charge.\nThere's a Storage free tier with 10GB of free storage. It may not be a lot, given that BQ is designed to work with enormous amounts of data, but it can be a good starting point to do some tests.\nThere's also an Operations free tier, where the first TeraByte of processed data (per month) is free of charge.\nYou can set up alerts in order to monitor usage with Stackdriver, using the available metrics.\n\nIn any case, if you still think that working with BigQuery directly is not the best option for you, can always forward your requests to the Engineering team by creating a Feature Request in the Public Issue Tracker for BigQuery, although it will be in hands of the engineering team whether to decide if (and when) to implement such a feature, even more considering the complexity of BigQuery and that its performance is optimized for working in its current architecture.\n",
+    "answer_id": 49403421,
+    "tags": [
+      "java",
+      "continuous-integration",
+      "google-bigquery",
+      "integration-testing"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 51390797,
+    "title": "JSON formatting Error when loading into Google Big Query",
+    "question_text": "I am trying to load the following data in Big Query from PUBSUB using the built in dataflow template:\n{\n    \"current_speed\": \"19.09\",\n    \"_east\": \"-87.654561\",\n    \"_last_updt\": \"2018-07-17 15:50:54.0\",\n    \"_region_id\": \"1\",\n    \"_north\": \"42.026444\",\n    \"_south\": \"41.997946\",\n    \"region\": \"Rogers Park - West Ridge\",\n    \"_west\": \"-87.709645\",\n    \"_description\": \"North of Devon. Kedzie to Lake Shore\"\n}\n\nBut I keeping getting this error: \n\n\"Error while reading data, error message: Failed to parse JSON:\n  Unexpected end of string; Unexpected end of string; Expected key\"\n\nI actually need to load the larger dataset which looks like this:\n [{\n    \"current_speed\": \"19.09\",\n    \"_east\": \"-87.654561\",\n    \"_last_updt\": \"2018-07-17 15:50:54.0\",\n    \"_region_id\": \"1\",\n    \"_north\": \"42.026444\",\n    \"_south\": \"41.997946\",\n    \"region\": \"Rogers Park - West Ridge\",\n    \"_west\": \"-87.709645\",\n    \"_description\": \"North of Devon. Kedzie to Lake Shore\"\n}, {\n    \"current_speed\": \"25.23\",\n    \"_east\": \"-87.747456\",\n    \"_last_updt\": \"2018-07-17 15:50:54.0\",\n    \"_region_id\": \"2\",\n    \"_north\": \"42.0190998\",\n    \"_south\": \"41.960669\",\n    \"region\": \"Far North West\",\n    \"_west\": \"-87.84621\",\n    \"_description\": \"North of Montrose. East River to Cicero\"\n}\n\n]\nBut there I get this error:\n\nError while reading data, error message: Failed to parse JSON: No\n  object found when new array is started.; BeginArray returned false;\n  Parser terminated before end of string\n\nWhat am I doing wrong here?\n",
+    "question_score": 20,
+    "answer_text": "Yes, BigQuery only accepts new-line delimited JSON, which means one complete JSON object per line. Before you merge the object to one line, BigQuery reads \"{\", which is start of an object, and expects to read a key, but the line ended, so you see the error message \"expected key\".\nFor multiple JSON objects, just put them one in each line. Don't enclose them inside an array. BigQuery expects each line to start with an object, \"{\". If you put \"[\" as the first character, you will see the second error message which means BigQuery reads an array but not inside an object.\n",
+    "answer_id": 51392375,
+    "tags": [
+      "json",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 15464574,
+    "title": "Use google bigquery to build histogram graph",
+    "question_text": "How can write a query that makes histogram graph rendering easier?\nFor example, we have 100 million people with ages, we want to draw the histogram/buckets for age 0-10, 11-20, 21-30 etc... What does the query look like?\nHas anyone done it? Did you try to connect the query result to google spreadsheet to draw the histogram?\n",
+    "question_score": 20,
+    "answer_text": "See the 2019 update, with #standardSQL --Fh\n\nThe subquery idea works, as does \"CASE WHEN\" and then doing a group by:\nSELECT COUNT(field1), bucket \nFROM (\n    SELECT field1, CASE WHEN age >=  0 AND age < 10 THEN 1\n                        WHEN age >= 10 AND age < 20 THEN 2\n                        WHEN age >= 20 AND age < 30 THEN 3\n                        ...\n                        ELSE -1 END as bucket\n    FROM table1) \nGROUP BY bucket\n\nAlternately, if the buckets are regular -- you could just divide and cast to an integer:\nSELECT COUNT(field1), bucket \nFROM (\n    SELECT field1, INTEGER(age / 10) as bucket FROM table1)\nGROUP BY bucket\n\n",
+    "answer_id": 15483461,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 39733826,
+    "title": "How to choose the latest partition in BigQuery table?",
+    "question_text": "I am trying to select data from the latest partition in a date-partitioned BigQuery table, but the query still reads data from the whole table.\nI've tried (as far as I know, BigQuery does not support QUALIFY):\nSELECT col FROM table WHERE _PARTITIONTIME = (\n  SELECT pt FROM (\n    SELECT pt, RANK() OVER(ORDER by pt DESC) as rnk FROM (\n      SELECT _PARTITIONTIME AS pt FROM table GROUP BY 1)\n    )\n  )\n  WHERE rnk = 1\n);\n\nBut this does not work and reads all rows.\nSELECT col from table WHERE _PARTITIONTIME = TIMESTAMP('YYYY-MM-DD')\n\nwhere 'YYYY-MM-DD' is a specific date does work.\nHowever, I need to run this script in the future, but the table update (and the _PARTITIONTIME) is irregular. Is there a way I can pull data only from the latest partition in BigQuery?\n",
+    "question_score": 20,
+    "answer_text": "\nOctober 2019 Update   \n\nSupport for Scripting and Stored Procedures is now in beta (as of October 2019)   \nYou can submit multiple statements separated with semi-colons and BigQuery is able to run them now \nSee example below    \nDECLARE max_date TIMESTAMP;\nSET max_date = (\n  SELECT MAX(_PARTITIONTIME) FROM project.dataset.partitioned_table`);\n\nSELECT * FROM `project.dataset.partitioned_table`\nWHERE _PARTITIONTIME = max_date;\n\n\nUpdate for those who like downvoting without checking context, etc.    \n\nI think, this answer was accepted because it addressed the OP's main question Is there a way I can pull data only from the latest partition in BigQuery? and in comments it was mentioned that it is obvious that BQ engine still scans ALL rows but returns result based on ONLY recent partition. As it was already mentioned in comment for question - Still something that easily to be addressed by having that logic scripted - first getting result of subquery and then use it in final query \nTry\nSELECT * FROM [dataset.partitioned_table]\nWHERE _PARTITIONTIME IN (\n  SELECT MAX(TIMESTAMP(partition_id))\n  FROM [dataset.partitioned_table$__PARTITIONS_SUMMARY__]\n)  \n\nor \nSELECT * FROM [dataset.partitioned_table]\nWHERE _PARTITIONTIME IN (\n  SELECT MAX(_PARTITIONTIME) \n  FROM [dataset.partitioned_table]\n)  \n\n",
+    "answer_id": 39734030,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 58197814,
+    "title": "Equivalent of string contains in google bigquery",
+    "question_text": "I have a table like as shown below\n\nI would like to create two new binary columns indicating whether the subject had steroids and aspirin. I am looking to implement this in Postgresql and google bigquery\nI tried the below but it doesn't work\nselect subject_id\ncase when lower(drug) like ('%cortisol%','%cortisone%','%dexamethasone%') \nthen 1 else 0 end as steroids,\ncase when lower(drug) like ('%peptide%','%paracetamol%') \nthen 1 else 0 end as aspirin,\nfrom db.Team01.Table_1\n\n\nSELECT \ndb.Team01.Table_1.drug\nFROM `table_1`,\nUNNEST(table_1.drug) drug\nWHERE REGEXP_CONTAINS( db.Team01.Table_1.drug,r'%cortisol%','%cortisone%','%dexamethasone%')\n\nI expect my output to be like as shown below\n\n",
+    "question_score": 20,
+    "answer_text": "Below is for BigQuery Standard SQL    \n#standardSQL\nSELECT \n  subject_id,\n  SUM(CASE WHEN REGEXP_CONTAINS(LOWER(drug), r'cortisol|cortisone|dexamethasone') THEN 1 ELSE 0 END) AS steroids,\n  SUM(CASE WHEN REGEXP_CONTAINS(LOWER(drug), r'peptide|paracetamol') THEN 1 ELSE 0 END) AS aspirin\nFROM `db.Team01.Table_1`\nGROUP BY subject_id   \n\nif to apply to sample data from your question  - result is    \nRow subject_id  steroids    aspirin  \n1   1           3           1    \n2   2           1           1     \n\nNote: instead of simple LIKE ending with lengthy and redundant text - I am using LIKE on steroids - which is REGEXP_CONTAINS \n",
+    "answer_id": 58202133,
+    "tags": [
+      "sql",
+      "postgresql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 36677604,
+    "title": "How can I change the project in BigQuery",
+    "question_text": "When configuring the Big-Query command line tool I was asked to set up a default project. However, now I have many projects and I can't happen to find how do I switch from one project to the other. Does someone know how to navigate the projects using the command line? Thanks in advance!\nG\n",
+    "question_score": 20,
+    "answer_text": "You have two ways to do it:\n\nSpecify --project_id global flag in bq. Example: bq ls -j --project_id <PROJECT>\nChange default project by issuing gcloud config set project <PROJECT>\n\n",
+    "answer_id": 36677680,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 56122855,
+    "title": "How can users prove a specific account has access to BigQuery? (AEAD encryption and authorized views)",
+    "question_text": "I'm running an event where multiple people need to access BigQuery, and I want them to send me a proof that they have access:\n\nI want to collect email addresses of participants that can access BigQuery.\nI want proof that they have used BigQuery.\n\nHow can a user prove that their specific email account has access to BigQuery? \nI'm wondering if we could build a solution with authorized views and encryption functions. \n",
+    "question_score": 20,
+    "answer_text": "We are going to use authorized views and the new AEAD encryption functions.\nFirst, let's create a key that only I can see in one of my private datasets:\nCREATE TABLE `secrets.keys`\nAS \nSELECT KEYS.NEW_KEYSET('AEAD_AES_GCM_256') key, CURRENT_TIMESTAMP() ts, 'for_a_view' label\n\nNow I can create a view in a public dataset that leverages SESSION_USER() and AEAD.ENCRYPT():\nSELECT SESSION_USER() user, ts, key_ts, key_label\n  , AEAD.ENCRYPT(key, FORMAT('%s|%t', SESSION_USER(), ts), '') enc_user_ts\n  , AEAD.ENCRYPT(key, SESSION_USER(), '') enc_user\n  , AEAD.ENCRYPT(key, CAST(ts AS STRING), '') enc_ts\n\nFROM (SELECT CURRENT_TIMESTAMP() ts)\n, (SELECT ts key_ts, key, label key_label FROM `fh-bigquery.secrets.keys`  WHERE label='for_a_view')\n\nTo keep my view public and the keys secret, I can set in my secrets dataset access to this new authorized view to read the key:\n\nNow anyone can run the following query:\nSELECT enc_user_ts\nFROM `fh-bigquery.public_dump.encrypting_user_view`\n\nWhich returns:\nAQElE+8cn+uHouGhZO7895UNjVs3/k05ZJLkEceQ8kszHJjQkbvuB6Vx/miDi3DhFTty7ZifXps1VKWC5OtTrQOkCQqoFFQu+VkDfz9F65R5f3PGPA==\n\nI can ask users to share that value with me, and I can share that value with you - but only I can decrypt it using my secret key.\nDecrypting with my secret key:\nSELECT AEAD.DECRYPT_STRING(key, FROM_BASE64('AQElE+8cn+uHouGhZO7895UNjVs3/k05ZJLkEceQ8kszHJjQkbvuB6Vx/miDi3DhFTty7ZifXps1VKWC5OtTrQOkCQqoFFQu+VkDfz9F65R5f3PGPA=='), '')\nFROM (SELECT key FROM `fh-bigquery.secrets.keys` WHERE label='for_a_view' LIMIT 1)\n\nWhich returns:\n\u2b1b\u2b1b\u2b1b\u2b1b\u2b1b\u2b1b\u2b1b\u2b1be@gmail.com|2019-05-14 03:51:15.047791+00   \n\nNote that's the exact account and timestamp they used to run their query!\nAnd this is how - if I ever need proof that the account you are telling me you are using to use BigQuery is indeed that account, I'll ask you to run the following query and share its result with me:\nSELECT enc_user_ts\nFROM `fh-bigquery.public_dump.encrypting_user_view`\n\n",
+    "answer_id": 56122856,
+    "tags": [
+      "encryption",
+      "google-bigquery",
+      "sql-view"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 50885946,
+    "title": "Python BigQuery API - get table schema",
+    "question_text": "I am trying to fetch schema form bigquery table. Given a sample code like\nfrom google.cloud import bigquery\nfrom google.cloud import storage\n\nclient =  bigquery.Client.from_service_account_json('service_account.json')\n\ndef test_extract_schema(client): \n    project = 'bigquery-public-data'\n    dataset_id = 'samples'\n    table_id = 'shakespeare'\n\n    dataset_ref = client.dataset(dataset_id, project=project)\n    table_ref = dataset_ref.table(table_id)\n    table = client.get_table(table_ref)  # API Request\n\n    # View table properties\n    print(table.schema)\n\nif __name__ == '__main__':\n    test_extract_schema(client)\n\nThis is returning value like:\n[SchemaField('word', 'STRING', 'REQUIRED', 'A single unique word (where whitespace is the delimiter) extracted from a corpus.', ()), SchemaField('word_count', 'INTEGER', 'REQUIRED', 'The number of times this word appears in this corpus.', ()), SchemaField('corpus', 'STRING', 'REQUIRED', 'The work from which this word was extracted.', ()), SchemaField('corpus_date', 'INTEGER', 'REQUIRED', 'The year in which this corpus was published.', ())]\nWhere I am trying to capture schema only in the format like\n'word' 'STRING','word_count' INTEGER'\n\nIs there any way to get this using API call or any other method?\n",
+    "question_score": 20,
+    "answer_text": "You can always get the table.schema variable and iterate over it, since the table is a list made of SchemaField values:\nresult = [\"{0} {1}\".format(schema.name,schema.field_type) for schema in table.schema]\n\nResult for that same dataset and table:\n['word STRING', 'word_count INTEGER', 'corpus STRING', 'corpus_date INTEGER']\n\n",
+    "answer_id": 50908479,
+    "tags": [
+      "python-3.x",
+      "google-cloud-platform",
+      "google-bigquery",
+      "google-cloud-datastore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 51475252,
+    "title": "Can I use a query parameter in a table name?",
+    "question_text": "I want to do something along the lines of:\nSELECT some_things\nFROM `myproject.mydataset.mytable_@suffix`\n\nBut this doesn't work because the parameter isn't expanded inside the table name.\nThis does work, using wildcard tables:\nSELECT some_things\nFROM `myproject.mydataset.mytable_*`\nWHERE _TABLE_SUFFIX = @suffix\n\nHowever, it has some problems:\n\nIf I mistype the parameter, this query silently returns zero rows, rather than yelling at me loudly.\nQuery caching stops working when querying with a wildcard.\nIf other tables exist with the mytable_ prefix, they must have the same schema, even if they don't match the suffix. Otherwise, weird stuff happens. It seems like BigQuery either computes the union of all columns, or takes the schema of an arbitrary table; it's not documented and I didn't look at it in detail.\n\nIs there a better way to query a single table whose name depends on a query parameter?\n",
+    "question_score": 20,
+    "answer_text": "Yes, you can, here's a working example:\nDECLARE tablename STRING;\nDECLARE tableQuery STRING;\n\n##get list of tables\nCREATE TEMP TABLE tableNames as select table_name from nomo_nausea.INFORMATION_SCHEMA.TABLES where table_name not in ('_sdc_primary_keys', '_sdc_rejected', 'fba_all_order_report_data');\n\nWHILE (select count(*) from tableNames) >= 1 DO\n  SET tablename = (select table_name from tableNames LIMIT 1);\n  ##build dataset + table name\n  SET tableQuery = CONCAT('nomo_nausea.' , tablename);\n  ##use concat to build string and execute\n  EXECUTE IMMEDIATE CONCAT('SELECT * from `', tableQuery, '` where _sdc_deleted_at is not null');\n  DELETE FROM tableNames where table_name = tablename;\nEND WHILE;\n\n",
+    "answer_id": 66380442,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 53539916,
+    "title": "How to get show create table in Big Query web UI",
+    "question_text": "I want to get Create table script for an existing Table basically DDL from web UI or something similar to Show create table . I have googled couldn't find anything relevant \n",
+    "question_score": 19,
+    "answer_text": "Cool news! Launched today, now you can get the DDL from INFORMATION_SCHEMA.TABLES\nHere is the example from Google Documentation:\nSELECT\n table_name, ddl\nFROM\n `bigquery-public-data`.census_bureau_usa.INFORMATION_SCHEMA.TABLES\nWHERE\n table_name=\"population_by_zip_2010\"\n\n\n",
+    "answer_id": 66897001,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 57739550,
+    "title": "How to export BigQuery table schema as DDL",
+    "question_text": "I need to create BigQuery table with the same schema as in existing one.\nIn standard MySql there is SHOW CREATE TABLE, is there something similar for BigQuery?\n",
+    "question_score": 19,
+    "answer_text": "Nothing similar to the SHOW CREATE TABLE from MySQL, but it is possible with the use of UDFs to generate the DDL statements of your tables in a dataset...\nUse the following script and make sure to replace 'mydataset' with yours. You can even add a WHERE predicate to output only specific table DDL\nCopy the output of the desired table and paste it in a new Compose Query Window and give it a new table name!\nCREATE TEMP FUNCTION MakePartitionByExpression(\n  column_name STRING, data_type STRING\n) AS (\n  IF(\n    column_name = '_PARTITIONTIME',\n    'DATE(_PARTITIONTIME)',\n    IF(\n      data_type = 'TIMESTAMP',\n      CONCAT('DATE(', column_name, ')'),\n      column_name\n    )\n  )\n);\n\nCREATE TEMP FUNCTION MakePartitionByClause(\n  columns ARRAY<STRUCT<column_name STRING, data_type STRING, is_nullable STRING,  is_partitioning_column STRING, clustering_ordinal_position INT64>>\n) AS (\n  IFNULL(\n    CONCAT(\n      'PARTITION BY ',\n      (SELECT MakePartitionByExpression(column_name, data_type)\n       FROM UNNEST(columns) WHERE is_partitioning_column = 'YES'),\n      '\\n'),\n    ''\n  )\n);\n\nCREATE TEMP FUNCTION MakeClusterByClause(\n  columns ARRAY<STRUCT<column_name STRING, data_type STRING, is_nullable STRING,  is_partitioning_column STRING, clustering_ordinal_position INT64>>\n) AS (\n  IFNULL(\n    CONCAT(\n      'CLUSTER BY ',\n      (SELECT STRING_AGG(column_name, ', ' ORDER BY clustering_ordinal_position)\n        FROM UNNEST(columns) WHERE clustering_ordinal_position IS NOT NULL),\n      '\\n'\n    ),\n    ''\n  )\n);\n\nCREATE TEMP FUNCTION MakeNullable(data_type STRING, is_nullable STRING)\nAS (\n  IF(not STARTS_WITH(data_type, 'ARRAY<') and is_nullable = 'NO', ' NOT NULL', '')\n);\n\nCREATE TEMP FUNCTION MakeColumnList(\n  columns ARRAY<STRUCT<column_name STRING, data_type STRING, is_nullable STRING,  is_partitioning_column STRING, clustering_ordinal_position INT64>>\n) AS (\n  IFNULL(\n    CONCAT(\n      '(\\n',\n      (SELECT STRING_AGG(CONCAT('  ', column_name, ' ', data_type,  MakeNullable(data_type, is_nullable)), ',\\n')\n       FROM UNNEST(columns)),\n      '\\n)\\n'\n    ),\n    ''\n  )\n);\n\nCREATE TEMP FUNCTION MakeOptionList(\n  options ARRAY<STRUCT<option_name STRING, option_value STRING>>\n) AS (\n  IFNULL(\n    CONCAT(\n      'OPTIONS (\\n',\n      (SELECT STRING_AGG(CONCAT('  ', option_name, '=', option_value), ',\\n') FROM UNNEST(options)),\n      '\\n)\\n'),\n    ''\n  )\n);\n\nWITH Components AS (\n  SELECT\n    CONCAT('`', table_catalog, '.', table_schema, '.', table_name, '`') AS table_name,\n    ARRAY_AGG(\n      STRUCT(column_name, data_type, is_nullable, is_partitioning_column, clustering_ordinal_position)\n      ORDER BY ordinal_position\n    ) AS columns,\n    (SELECT ARRAY_AGG(STRUCT(option_name, option_value))\n     FROM mydataset.INFORMATION_SCHEMA.TABLE_OPTIONS AS t2\n     WHERE t.table_name = t2.table_name) AS options\n  FROM mydataset.INFORMATION_SCHEMA.TABLES AS t\n  LEFT JOIN mydataset.INFORMATION_SCHEMA.COLUMNS\n  USING (table_catalog, table_schema, table_name)\n  WHERE table_type = 'BASE TABLE'\n  GROUP BY table_catalog, table_schema, t.table_name\n)\nSELECT\n  CONCAT(\n    'CREATE OR REPLACE TABLE ',\n    table_name,\n    '\\n',\n    MakeColumnList(columns),\n    MakePartitionByClause(columns),\n    MakeClusterByClause(columns),\n    MakeOptionList(options))\nFROM Components\n\nFor more info check ->  Getting table metadata using INFORMATION_SCHEMA https://cloud.google.com/bigquery/docs/information-schema-tables\n",
+    "answer_id": 57740100,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery",
+      "ddl",
+      "create-table"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 33433925,
+    "title": "Is there a way to measure string similarity in Google BigQuery",
+    "question_text": "I'm wondering if anyone knows of a way to measure string similarity in BigQuery. \nSeems like would be a neat function to have. \nMy case is i need to compare the similarity of two urls as want to be fairly sure they refer to the same article.\nI can find examples using javascript so maybe a UDF is the way to go but i've not used UDF's at all (or javascript for that matter :) )\nJust wondering if there may be a way using existing regex functions or if anyone might be able to get me started with porting the javascript example into a UDF. \nAny help much appreciated, thanks\nEDIT: Adding some example code\nSo if i have a UDF defined as:\n// distance function\n\nfunction levenshteinDistance (row, emit) {\n\n  //if (row.inputA.length <= 0 ) {var myresult = row.inputB.length};\n  if (typeof row.inputA === 'undefined') {var myresult = 1};\n  if (typeof row.inputB === 'undefined') {var myresult = 1};\n  //if (row.inputB.length <= 0 ) {var myresult = row.inputA.length};\n\n    var myresult = Math.min(\n        levenshteinDistance(row.inputA.substr(1), row.inputB) + 1,\n        levenshteinDistance(row.inputB.substr(1), row.inputA) + 1,\n        levenshteinDistance(row.inputA.substr(1), row.inputB.substr(1)) + (row.inputA[0] !== row.inputB[0] ? 1 : 0)\n    ) + 1;\n\n  emit({outputA: myresult})\n\n}\n\nbigquery.defineFunction(\n  'levenshteinDistance',                           // Name of the function exported to SQL\n  ['inputA', 'inputB'],                    // Names of input columns\n  [{'name': 'outputA', 'type': 'integer'}],  // Output schema\n  levenshteinDistance                       // Reference to JavaScript UDF\n);\n\n// make a test function to test individual parts\n\nfunction test(row, emit) {\n  if (row.inputA.length <= 0) { var x = row.inputB.length} else { var x = row.inputA.length};\n  emit({outputA: x});\n}\n\nbigquery.defineFunction(\n  'test',                           // Name of the function exported to SQL\n  ['inputA', 'inputB'],                    // Names of input columns\n  [{'name': 'outputA', 'type': 'integer'}],  // Output schema\n  test                       // Reference to JavaScript UDF\n);\n\nAny i try test with a query such as:\nSELECT outputA FROM (levenshteinDistance(SELECT \"abc\" AS inputA, \"abd\" AS inputB))\n\nI get error:\nError: TypeError: Cannot read property 'substr' of undefined at line 11, columns 38-39\nError Location: User-defined function\nIt seems like maybe row.inputA is not a string perhaps or for some reason string functions not able to work on it. Not sure if this is a type issue or something funny about what utils the UDF is able to use by default. \nAgain any help much appreciated, thanks. \n",
+    "question_score": 19,
+    "answer_text": "Ready to use shared UDFs - Levenshtein distance:\nSELECT fhoffa.x.levenshtein('felipe', 'hoffa')\n , fhoffa.x.levenshtein('googgle', 'goggles')\n , fhoffa.x.levenshtein('is this the', 'Is This The')\n\n6  2  0\n\nSoundex:\nSELECT fhoffa.x.soundex('felipe')\n , fhoffa.x.soundex('googgle')\n , fhoffa.x.soundex('guugle')\n\nF410  G240  G240\n\nFuzzy choose one:\nSELECT fhoffa.x.fuzzy_extract_one('jony' \n  , (SELECT ARRAY_AGG(name) \n   FROM `fh-bigquery.popular_names.gender_probabilities`) \n  #, ['john', 'johnny', 'jonathan', 'jonas']\n)\n\njohnny\n\nHow-to:\n\nhttps://medium.com/@hoffa/new-in-bigquery-persistent-udfs-c9ea4100fd83\n\n",
+    "answer_id": 57499387,
+    "tags": [
+      "javascript",
+      "regex",
+      "google-bigquery",
+      "udf"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 45315674,
+    "title": "Trim a decimal to 2 places Bigquery",
+    "question_text": "I am currently running a query that runs a sum function and also divides this number. Currently I get values like 0.0904246741698848, and 1.6419814808335567. I want these decimals to be trimmed to 2 spaces past the decimal point. Their schema is a float. Here is my code. Thanks for the help. \n#standardSQL\nSELECT\n  Serial,\n  MAX(createdAt) AS Latest_Use,\n  SUM(ConnectionTime/3600) as Total_Hours,\n  COUNT(DISTINCT DeviceID) AS Devices_Connected\nFROM `dataworks-356fa.FirebaseArchive.Firebase_ConnectionInfo`\nWHERE PeripheralType = 1 or PeripheralType = 2 or PeripheralType = 12\nGROUP BY Serial\nORDER BY Latest_Use DESC\n\n",
+    "question_score": 19,
+    "answer_text": "\n#standardSQL\nWITH `data` AS (\n  SELECT 0.0904246741698848  AS val UNION ALL\n  SELECT 1.6419814808335567 \n)\nSELECT val, ROUND(val, 2) AS rounded_val\nFROM `data`   \n\nfor example, assuming your want apply this to your Total_Hours column   :\n#standardSQL\nSELECT\n  Serial,\n  MAX(createdAt) AS Latest_Use,\n  ROUND(SUM(ConnectionTime/3600),2) AS Total_Hours,\n  COUNT(DISTINCT DeviceID) AS Devices_Connected\nFROM `dataworks-356fa.FirebaseArchive.Firebase_ConnectionInfo`\nWHERE PeripheralType = 1 OR PeripheralType = 2 OR PeripheralType = 12\nGROUP BY Serial\nORDER BY Latest_Use DESC\n\n",
+    "answer_id": 45315706,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 58743050,
+    "title": "What&#39;s a good balance to decide when to partition a table in BigQuery?",
+    "question_text": "We are using a public dataset to benchmark BigQuery. We took the same table and partitioned it by day, but it's not clear we are getting many benefits. What's a good balance?\nSELECT  sum(score) \nFROM `fh-bigquery.stackoverflow_archive.201906_posts_questions` \nWHERE creation_date > \"2019-01-01\" \n\nTakes 1 second, and processes 270.7MB.\nSame, with partitions:\nSELECT  sum(score) \nFROM `temp.questions_partitioned` \nWHERE creation_date > \"2019-01-01\"\n\nTakes 2 seconds and processes 14.3 MB.\nSo we see a benefit in MBs processed, but the query is slower.\nWhat's a good strategy to decide when to partition?\n(from an email I received today)\n",
+    "question_score": 19,
+    "answer_text": "When partitioning a table, you need to consider having enough data for each partition. Think of each partition like being a different file - and opening 365 files might be slower than having a huge one.\nIn this case, the table used for the benchmark has 1.6 GB of data for 2019 (until June in this one). That's 1.6GB/180 = 9 MB of data for each daily partition.\nFor such a low amount of data - arranging it in daily partitions won't bring much benefits. Consider partitioning the data by year instead. See the following question to learn how:\n\nPartition by week/month//quarter/year to get over the partition limit?\n\nAnother alternative is not partitioning the table at all, and instead using clustering to sort the data by date. Then BigQuery can choose the ideal size of each block.\nIf you want to run your own benchmarks, do this:\nCREATE TABLE `temp.questions_partitioned`\nPARTITION BY DATE(creation_date)\nAS\nSELECT *\nFROM `fh-bigquery.stackoverflow_archive.201906_posts_questions` \n\nvs no partitions, just clustering by date:\nCREATE TABLE `temp.questions_clustered`\nPARTITION BY fake_date\nCLUSTER BY creation_date\nAS\n\nSELECT *, DATE('2000-01-01') fake_date  \nFROM `fh-bigquery.stackoverflow_archive.201906_posts_questions` \n\nThen my query over the clustered table would be:\nSELECT sum(score) \nFROM `temp.questions_clustered`\nWHERE creation_date > \"2019-01-01\" \n\nAnd it took 0.5 seconds, 17 MB processed.\nCompared:\n\nRaw table: 1 sec, 270.7MB\nPartitioned: 2 sec, 14.3 MB\nClustered: 0.5 sec, 17 MB\n\nWe have a winner! Clustering organized the daily data (which isn't much for this table) into more efficient blocks than strictly partitioning it by day.\nIt's also interesting to look at the execution details for each query on these tables:\nSlot time consumed \n\nRaw table: 10.683 sec\nPartitioned: 7.308 sec\nClustered: 0.718 sec\n\nAs you can see, the  query over raw table used a lot of slots (parallelism) to get the results in 1 second. In this case 50 workers processed the whole table with multiple years of data, reading 17.7M rows. The query over the partitioned table had to use a lot of slots - but this because each slot was assigned smallish daily partitions, a reading that used 153 parallel workers over 0.9M rows. The clustered query instead was able to use a very low amount of slots. Data was well organized to be read by 57 parallel workers, reading 1.12M rows.\n\n\n\nSee also:\n\nhttps://medium.com/google-cloud/bigquery-optimized-cluster-your-tables-65e2f684594b\nHow can I improve the amount of data queried with a partitioned+clustered table?\nhow clustering works in BigQuery\n\n",
+    "answer_id": 58743051,
+    "tags": [
+      "google-bigquery",
+      "database-partitioning",
+      "database-cluster"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 14622526,
+    "title": "Create a table from query results in Google BigQuery",
+    "question_text": "We're using Google BigQuery via the Python API. How would I create a table (new one or overwrite old one) from query results? I reviewed the query documentation, but I didn't find it useful.\nWe want to simulate: \n\n\"SELEC ... INTO ...\" from ANSI SQL.\n\n",
+    "question_score": 19,
+    "answer_text": "You can do this by specifying a destination table in the query. You would need to use the Jobs.insert API rather than the Jobs.query call, and you should specify writeDisposition=WRITE_APPEND and fill out the destination table.\nHere is what the configuration would look like, if you were using the raw API. If you're using Python, the Python client should give accessors to these same fields:\n\"configuration\": {\n  \"query\": {\n    \"query\": \"select count(*) from foo.bar\",\n    \"destinationTable\": {\n      \"projectId\": \"my_project\",\n      \"datasetId\": \"my_dataset\",\n      \"tableId\": \"my_table\"\n    },\n    \"createDisposition\": \"CREATE_IF_NEEDED\",\n    \"writeDisposition\": \"WRITE_APPEND\",\n  }\n}\n\n",
+    "answer_id": 14634697,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 41019739,
+    "title": "BigQuery select * except nested column",
+    "question_text": "What I want to do should be simple: Given a BigQuery schema, I want to select all tables (including nested ones) apart from a few. The tricky thing is that BigQuery has a nested structure and the few I want to exclude are nested within other records.\nI've found the SELECT * except clause in the BigQuery documentation which seems very promising. The problem is that it doesn't seem to support the nested structure exclusion.\nFor example, using the public github_nested dataset we can write a query like\n#standardSQL\nSELECT * except (payload) FROM `bigquery-public-data.samples.github_nested` LIMIT 1000\n\nThis does what we expect successfully by removing the payload record from the results. Let's imagine now that we only want to remove payload.comment, thereby preserving the rest of the payload record contents in the response. I tried\n#standardSQL\nSELECT * except (payload.comment) FROM `bigquery-public-data.samples.github_nested` LIMIT 1000\n\nHowever, this fails.\nAnyone know of a way to accomplish this?\nThanks!\n",
+    "question_score": 19,
+    "answer_text": "The way to think of the problem is that you still want a payload column in the result, but you want it to have a different structure, namely to exclude comment. In this case, you can use SELECT * REPLACE to make the modification. For example,\n#standardSQL\nSELECT * REPLACE ((SELECT AS STRUCT payload.* EXCEPT (comment)) AS payload)\nFROM `bigquery-public-data.samples.github_nested`\nLIMIT 1000;\n\n",
+    "answer_id": 41020291,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 38069158,
+    "title": "Do I need create tables manually in Google BigQuery to view the raw event data from Firebase?",
+    "question_text": "I had created a android App with Google Firebase supported and linked to the BigQuery yesterday. \nToday I've seen the event report on the Firebase Console, but after I clicked the View button in the Event page like the image below\n\nI saw none table in the BigQuery page and got a warning saying the project's table is dismissing.\nI wonder if I need do something, like creating some table manually or calling some Firebase or BigQuery APIs in my app. But I've looked up the official document which saying\n\nOnce an app is linked to BigQuery, a corresponding dataset will be\n  created in the associated BigQuery project upon the first daily export\n  of events. Each day, raw event data for each linked app populates a\n  new table in the associated dataset.\n\nIt seems I need do nothing. So what's the problem here?\n",
+    "question_score": 19,
+    "answer_text": "After you link your Firebase app to BigQuery, the next day, your events will flow from Firebase to BigQuery and this will automatically create the BigQuery dataset and its first daily table.  Keep in mind that if your app is not logging any events, then no events will be sent to BigQuery. And the dataset will not be created until some events have been logged after the linkage.\n",
+    "answer_id": 38150592,
+    "tags": [
+      "firebase",
+      "google-bigquery",
+      "firebase-analytics"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 40033346,
+    "title": "Is it possible to add a new field to an existing field of RECORD type in bigquery from UI?",
+    "question_text": "Is it possible to add a new field to an existing field of RECORD type in bigquery? So for example if my current schema is :\n{u'fields': [{u'mode': u'NULLABLE', u'name': u'test1', u'type': u'STRING'},\n             {u'fields': [{u'mode': u'NULLABLE',\n                           u'name': u'field1',\n                           u'type': u'STRING'}],\n              u'mode': u'NULLABLE',\n              u'name': u'recordtest',\n              u'type': u'RECORD'}]}\n\nCan I change it to add field \"field2\" to recordtest? So the new schema will look like:\n{u'fields': [{u'mode': u'NULLABLE', u'name': u'test1', u'type': u'STRING'},\n             {u'fields': [{u'mode': u'NULLABLE',\n                           u'name': u'field1',\n                           u'type': u'STRING'},\n                          {u'mode': u'NULLABLE',\n                           u'name': u'field2',\n                           u'type': u'STRING'}],\n              u'mode': u'NULLABLE',\n              u'name': u'recordtest',\n              u'type': u'RECORD'}]}\n\nI couldn't find a way to do this from the UI. But I was able to do this using the API.\n",
+    "question_score": 18,
+    "answer_text": "This can be done totally from within UI using respective API Explorers  \nFirst, you need to get schema of your table. You can do this using Tables.get API Explorer. Make sure you select/check schema in fields box (better to leave the rest unchecked). Click Authorize and Execute. When done - Copy response text - it will look somehow like below  \n{\n \"schema\": {\n  \"fields\": [\n   {\n    \"name\": \"id\",\n    \"type\": \"STRING\",\n    \"mode\": \"NULLABLE\"\n   },\n\n... \n\n   {\n    \"name\": \"comment\",\n    \"type\": \"STRING\",\n    \"mode\": \"NULLABLE\"\n   }\n  ]\n }\n}\n\nThen, use Tables.patch API Explorer\nAdd needed fields(s) into previously retrieved schema and paste it as is into Patch Body box (chose freeform editor in the right-top corner of this box and just replace whatever inside with your schema's text). Again click Authorize and Execute\nYou done now.\nNote that no matter where you put your new field within record  - it will be added to the end of this record fields\nBtw, alternatively, you can use standalone Explorers\nServices > BigQuery API v2\nThe ones that we used here are bigquery.jobs.get and bigquery.tables.patch\n",
+    "answer_id": 40033682,
+    "tags": [
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 52901451,
+    "title": "Stratified random sampling with BigQuery?",
+    "question_text": "How can I do stratified sampling on BigQuery?\nFor example, we want a 10% proportionate stratified sample using the category_id as the strata. We have up to 11000 category_ids in some of our tables.\n",
+    "question_score": 18,
+    "answer_text": "With #standardSQL, let's define our table and some stats over it:\nWITH table AS (\n  SELECT *, subreddit category\n  FROM `fh-bigquery.reddit_comments.2018_09` a\n), table_stats AS (\n  SELECT *, SUM(c) OVER() total \n  FROM (\n    SELECT category, COUNT(*) c \n    FROM table\n    GROUP BY 1 \n    HAVING c>1000000)\n)\n\nIn this setup:\n\nsubreddit will be our category\nwe only want subreddits with more than 1000000 comments\n\nSo, if we want 1% of each category in our sample:\nSELECT COUNT(*) samples, category, ROUND(100*COUNT(*)/MAX(c),2) percentage\nFROM (\n  SELECT id, category, c  \n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  WHERE RAND()< 1/100 \n)\nGROUP BY 2\n\n\nOr let's say we want ~80,000 samples - but chosen proportionally through all categories:\nSELECT COUNT(*) samples, category, ROUND(100*COUNT(*)/MAX(c),2) percentage\nFROM (\n  SELECT id, category, c  \n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  WHERE RAND()< 80000/total\n)\nGROUP BY 2\n\n\nNow, if you want to get the ~same number of samples from each group (let's say, 20,000):\nSELECT COUNT(*) samples, category, ROUND(100*COUNT(*)/MAX(c),2) percentage\nFROM (\n  SELECT id, category, c  \n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  WHERE RAND()< 20000/c\n)\nGROUP BY 2\n\n\nIf you want exactly 20,000 elements from each category:\nSELECT ARRAY_LENGTH(cat_samples) samples, category, ROUND(100*ARRAY_LENGTH(cat_samples)/c,2) percentage\nFROM (\n  SELECT ARRAY_AGG(a ORDER BY RAND() LIMIT 20000) cat_samples, category, ANY_VALUE(c) c\n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  GROUP BY category\n)\n\n\nIf you want exactly 2% of each group:\nSELECT COUNT(*) samples, sample.category, ROUND(100*COUNT(*)/ANY_VALUE(c),2) percentage\nFROM (\n  SELECT ARRAY_AGG(a ORDER BY RAND()) cat_samples, category, ANY_VALUE(c) c\n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  GROUP BY category\n), UNNEST(cat_samples) sample WITH OFFSET off\nWHERE off<0.02*c\nGROUP BY 2\n\n\n\nIf this last approach is what you want, you might notice it failing when you actually want to get data out. An early LIMIT similar to the largest group size will make sure we don't sort more data than needed:\nSELECT sample.*\nFROM (\n  SELECT ARRAY_AGG(a ORDER BY RAND() LIMIT 105000) cat_samples, category, ANY_VALUE(c) c\n  FROM table a\n  JOIN table_stats b\n  USING(category)\n  GROUP BY category\n), UNNEST(cat_samples) sample WITH OFFSET off\nWHERE off<0.02*c\n\n",
+    "answer_id": 52901452,
+    "tags": [
+      "sql",
+      "google-bigquery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 47011713,
+    "title": "ImportError: cannot import name pubsub_v1",
+    "question_text": "I need to import Pubsub_v1 and bigquery from google.cloud module. I have installed it and pip freeze shows below :\ngapic-google-cloud-pubsub-v1==0.15.4\ngoogle-cloud-bigquery==0.26.0\ngoogle-cloud-pubsub==0.27.0\nproto-google-cloud-pubsub-v1==0.15.4\n\nIn my python script, i am importing the modules as below:\nimport os \nfrom google.cloud import pubsub_v1 \nimport time \nimport json \nfrom google.cloud import bigquery \n\nThe script is throwing error as :\nImportError: cannot import name pubsub_v1\n\nIf i run $sudo pip install --upgrade google-cloud-pubsub then It is able to import pubsub but failing to import Bigquery. I need both modules. Can anybody please help ?\n",
+    "question_score": 18,
+    "answer_text": "Upgraded the other google.cloud modules using \n$sudo pip install --upgrade google-cloud-bigquery\n$sudo pip install --upgrade google-cloud-storage\n$sudo pip install --upgrade google-cloud-logging\n\nIt resolves the issue.\n",
+    "answer_id": 47029315,
+    "tags": [
+      "python",
+      "google-bigquery",
+      "google-cloud-pubsub"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-bigquery",
+    "question_id": 41597314,
+    "title": "Is there an easy way to convert rows in BigQuery to JSON?",
+    "question_text": "I am trying to reduce my rows in my BigQuery Table to JSON string.\nIs there a quick way to do this in standard SQL?\nI thought about calling js with User-defined Function, but it forces me to declare the input type of the UDF so I can't generalize this function.\n",
+    "question_score": 18,
+    "answer_text": "This is now possible using TO_JSON_STRING, which can also help when you want to pass a row from your table to a JavaScript UDF.\n#standardSQL\nWITH MyTable AS (\n  SELECT 1 AS x, 'foo' AS y, true AS z UNION ALL\n  SELECT 2, 'bar', false\n)\nSELECT TO_JSON_STRING(t) AS json\nFROM MyTable AS t;\n\n",
+    "answer_id": 41597420,
+    "tags": [
+      "google-bigquery"
+    ]
+  }
+]

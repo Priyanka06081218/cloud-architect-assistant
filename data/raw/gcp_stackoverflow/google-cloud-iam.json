@@ -1,0 +1,666 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 47006062,
+    "title": "How do I list the roles associated with a gcp service account?",
+    "question_text": "In the google cloud gui console I went to \"IAM & admin\" > \"Service accounts\" and created a service account named \"my-service-account\" with the viewer role.\nI then ran this command:\ngcloud iam service-accounts get-iam-policy my-service-account@mydomain.iam.gserviceaccount.com\n\nand saw this output:\netag: ACAB\n\nAccording to the docs this means this service account has no policy associated with it. So I assigned it a \"role\" which is not included in its \"policy\".\nHow do I list the roles associated with a service account?\nEDIT:\nThanks to the excellent answer to this question I can now loop over all projects and get what I want. so, depending on your version of these cmd tools, this should list all role bindings of a single service account across all projects:\ngcloud projects list | \\\n  awk '{print $1}' | \\\n  xargs -I % sh -c \"echo \"\"; echo project:% && \\\n  gcloud projects get-iam-policy % \\\n  --flatten='bindings[].members' \\\n  --format='table(bindings.role)' \\\n  --filter='bindings.members:YOU-SERVICE-ACCOUNT@blah.com' \\\n  ;\" \n\n",
+    "question_score": 140,
+    "answer_text": "To filter on a specific service account, the following gcloud commmand does the trick:\ngcloud projects get-iam-policy <YOUR GCLOUD PROJECT>  \\\n--flatten=\"bindings[].members\" \\\n--format='table(bindings.role)' \\\n--filter=\"bindings.members:<YOUR SERVICE ACCOUNT>\"\n\nGives the nice output:\nROLE\nroles/cloudtrace.agent\nroles/servicemanagement.serviceController\nroles/viewer\n\nThe format param can of course be tweaked to suit your specific needs.\n",
+    "answer_id": 50485552,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 61847382,
+    "title": "How to Update Roles of Existing Service Accounts - Google Cloud Console",
+    "question_text": "I am using the Google Cloud Console for this purpose. When I create a service account, I can assign specific roles. But after I create it, I don't see an option to Update Roles of Service Accounts. \nI tried to edit the service account, and still no option to add or remove roles. What am I missing here?\n\n",
+    "question_score": 47,
+    "answer_text": "Once you have created a service account, to modify the roles assigned to the project for this identity (the service account), go to \"IAM & Admin\" then to \"IAM\" instead of \"Service Accounts\". Find the service account. Click the pencil icon at the far right. \"IAM\" is the first entry in the left panel of your screenshot.\nNote: You can assign other IAM members with roles to a service account when the service account is a resource. Under \"Service Accounts\" click the checkbox next to the service account email address. A panel will open. This is the right-side panel in your screenshot. However, in your case, you are using the service account as an identity, so you need to add the roles to the project under the \"IAM\" section.\n",
+    "answer_id": 61847514,
+    "tags": [
+      "google-cloud-platform",
+      "service-accounts",
+      "google-iam",
+      "google-cloud-iam",
+      "google-cloud-console"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 57564505,
+    "title": "Unable to assign iam.serviceAccounts.signBlob permission",
+    "question_text": "TLDR; I'm having trouble assigning an IAM permission to a service account. \nI'm building a test that involves minting custom tokens with firebase Auth. When I hit:\n  const token = await admin.auth().createCustomToken('test', {\n    isAdmin: true,\n  })\n\nthe following error is thrown\nPermission iam.serviceAccounts.signBlob is required to perform\nthis operation on service account \nprojects/-/serviceAccounts/dashboard@appspot.gserviceaccount.com.;\nPlease refer to \nhttps://firebase.google.com/docs/auth/admin/create-custom-tokens\nfor more details on how to use and troubleshoot this feature\n\nIn the referenced documentation it says to add the Service Account Token Creator role to the service account. I have added that role (as well as tried Service Account Admin to no avail.\n\nI can verify that my permissions seem to be correctly set, when I run \ngcloud projects get-iam-policy project I can see my service account attached to the desired role\n- members:\n  - serviceAccount:dashboard@appspot.gserviceaccount.com\n  role: roles/iam.serviceAccountTokenCreator\n\nHowever if I look at that specific service account, it seems to show up empty which would fall in line with my error:\ngcloud iam service-accounts get-iam-policy dashboard@appspot.gserviceaccount.com\netag: ACAB\n\n\nWhy would those two commands & cloud console show differing information?\n\nI assume that whatever is causing my service account permissions to show up blank is the culprit, but I'm not sure where to debug further. It seems to me the only difference is one command is called with a project in it, but I initialize my firebase app with the project id, and have verified it with (firebase-admin).apps[0].options so it seems like a dead end.\n",
+    "question_score": 42,
+    "answer_text": "The sign feature of a service account requires the iam.serviceAccounts.signBlob permission. This permission is included in the Service Account Token role roles/iam.serviceAccountTokenCreator\nYou can assign this role at the \"project\" level or at the \"service account\" level. This is why you see different results. Assigning roles at the project level affects permissions for all service accounts. Assigning roles at the service account only affects that service account.\nThe key to your problem is that the caller does not have this role on service account dashboard@appspot.gserviceaccount.com. You have given the service account permission and NOT the caller. Look into your code for the service account that you used to setup the Firebase SDK.\nAnother option is to grant the role to {YOUR_PROJECT_NAME}@appspot.gserviceaccount.com (1st gen) or {RANDOM_NUMBER}-compute@developer.gserviceaccount.com (2nd gen) but that grants permission to use any service account.\nA service account is both an identity and a resource. You need permission for the resource. That permission can be granted via a service account's IAM policy or via the project's IAM policy.\n",
+    "answer_id": 57565326,
+    "tags": [
+      "google-cloud-platform",
+      "firebase-authentication",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 56823383,
+    "title": "Your application has authenticated using end user credentials from the Google Cloud SDK which are not supported by the translate.googleapis.com",
+    "question_text": "After reading similar questions, such as:\ni am using gcp service account but when calling dialogue flow api its giving error :\nand\nWhy is Google Cloud API trying to connect as an end-user?\nand applying the suggested solutions I am still getting the error:\n    Caused by: com.google.api.client.googleapis.json.GoogleJsonResponseException: 403 Forbidden\n{\n  \"code\" : 403,\n  \"errors\" : [ {\n    \"domain\" : \"usageLimits\",\n    \"message\" : \"Your application has authenticated using end user credentials from the Google Cloud SDK or Google Cloud Shell which are not supported by the translate.googleapis.com. We recommend that most server applications use service accounts instead. For more information about service accounts and how to use them in your application, see https://cloud.google.com/docs/authentication/.\",\n    \"reason\" : \"rateLimitExceeded\"\n  } ],\n  \"message\" : \"Your application has authenticated using end user credentials from the Google Cloud SDK or Google Cloud Shell which are not supported by the translate.googleapis.com. We recommend that most server applications use service accounts instead. For more information about service accounts and how to use them in your application, see https://cloud.google.com/docs/authentication/.\",\n  \"status\" : \"PERMISSION_DENIED\"\n\nMy pom.xml:\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n    xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n\n    <groupId>seller</groupId>\n    <artifactId>home.digest</artifactId>\n    <version>0.0.1-SNAPSHOT</version>\n    <packaging>war</packaging>\n\n    <name>home.digest Maven Webapp</name>\n    <!-- FIXME change it to the project's website -->\n    <url>http://maven.apache.org</url>\n    <repositories>\n        <repository>\n            <id>prime-repo</id>\n            <name>Prime Repo</name>\n            <url>http://repository.primefaces.org</url>\n        </repository>\n    </repositories>\n\n    <properties>\n        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>\n        <maven.compiler.source>1.8</maven.compiler.source>\n        <maven.compiler.target>1.8</maven.compiler.target>\n    </properties>\n\n    <dependencies>\n        <dependency>\n            <groupId>junit</groupId>\n            <artifactId>junit</artifactId>\n            <version>4.11</version>\n            <scope>test</scope>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.seleniumhq.selenium/selenium-java -->\n        <dependency>\n            <groupId>org.seleniumhq.selenium</groupId>\n            <artifactId>selenium-java</artifactId>\n            <version>3.141.59</version>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.apache.httpcomponents/httpcore -->\n        <dependency>\n            <groupId>org.apache.httpcomponents</groupId>\n            <artifactId>httpcore</artifactId>\n            <version>4.4.10</version>\n        </dependency>\n        <dependency>\n            <groupId>org.apache.httpcomponents</groupId>\n            <artifactId>httpclient</artifactId>\n            <version>4.5.6</version>\n        </dependency>\n        <dependency>\n            <groupId>org.primefaces</groupId>\n            <artifactId>primefaces</artifactId>\n            <version>6.2</version>\n        </dependency>\n        <dependency>\n            <groupId>org.jboss.logging</groupId>\n            <artifactId>jboss-logging</artifactId>\n            <version>3.0.1.GA</version>\n            <scope>compile</scope>\n            <optional>true</optional>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.hibernate.javax.persistence/hibernate-jpa-2.1-api -->\n        <dependency>\n            <groupId>org.hibernate.javax.persistence</groupId>\n            <artifactId>hibernate-jpa-2.1-api</artifactId>\n            <version>1.0.2.Final</version>\n            <scope>provided</scope>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.hibernate/hibernate-core -->\n        <dependency>\n            <groupId>org.hibernate</groupId>\n            <artifactId>hibernate-core</artifactId>\n            <version>4.3.6.Final</version>\n             <scope>provided</scope>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/javax.enterprise/cdi-api -->\n        <dependency>\n            <groupId>javax.enterprise</groupId>\n            <artifactId>cdi-api</artifactId>\n            <version>2.0.SP1</version>\n            <scope>provided</scope>\n        </dependency>\n        <dependency>\n            <groupId>org.jboss.as</groupId>\n            <artifactId>jboss-as-web</artifactId>\n            <version>7.1.1.Final</version>\n            <scope>compile</scope>\n            <optional>true</optional>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.jboss.spec.javax.ejb/jboss-ejb-api_3.2_spec -->\n        <dependency>\n            <groupId>org.jboss.spec.javax.ejb</groupId>\n            <artifactId>jboss-ejb-api_3.2_spec</artifactId>\n            <version>1.0.2.Final</version>\n            <scope>provided</scope>\n        </dependency>\n\n        <!-- https://mvnrepository.com/artifact/com.google.cloud/google-cloud-translate -->\n        <dependency>\n            <groupId>com.google.cloud</groupId>\n            <artifactId>google-cloud-translate</artifactId>\n            <version>1.79.0</version>\n        </dependency>\n        <dependency>\n            <!-- jsoup HTML parser library @ https://jsoup.org/ -->\n            <groupId>org.jsoup</groupId>\n            <artifactId>jsoup</artifactId>\n            <version>1.11.3</version>\n        </dependency>\n        <!-- https://mvnrepository.com/artifact/org.apache.commons/commons-lang3 -->\n        <dependency>\n            <groupId>org.apache.commons</groupId>\n            <artifactId>commons-lang3</artifactId>\n            <version>3.8.1</version>\n        </dependency>\n    </dependencies>\n\n    <build>\n        <finalName>home.digest</finalName>\n        <pluginManagement><!-- lock down plugins versions to avoid using Maven \n                defaults (may be moved to parent pom) -->\n            <plugins>\n                <plugin>\n                    <artifactId>maven-clean-plugin</artifactId>\n                    <version>3.1.0</version>\n                </plugin>\n                <!-- see http://maven.apache.org/ref/current/maven-core/default-bindings.html#Plugin_bindings_for_war_packaging -->\n                <plugin>\n                    <artifactId>maven-resources-plugin</artifactId>\n                    <version>3.0.2</version>\n                </plugin>\n                <plugin>\n                    <artifactId>maven-compiler-plugin</artifactId>\n                    <version>3.8.0</version>\n                </plugin>\n                <plugin>\n                    <artifactId>maven-surefire-plugin</artifactId>\n                    <version>2.22.1</version>\n                </plugin>\n                <plugin>\n                    <artifactId>maven-war-plugin</artifactId>\n                    <version>3.2.2</version>\n                </plugin>\n                <plugin>\n                    <artifactId>maven-install-plugin</artifactId>\n                    <version>2.5.2</version>\n                </plugin>\n                <plugin>\n                    <artifactId>maven-deploy-plugin</artifactId>\n                    <version>2.8.2</version>\n                </plugin>\n            </plugins>\n        </pluginManagement>\n    </build>\n</project>\n\nMy code:\ncom.google.cloud.translate.Translate translate = TranslateOptions.getDefaultInstance().getService();\n        String translatexText = \"EMPTY\";\n        try {\n            Translation translation = translate.translate(\"Guten Tag\", Translate.TranslateOption.sourceLanguage(\"de\"),\n                    Translate.TranslateOption.targetLanguage(\"bg\"),\n                    // Use \"base\" for standard edition, \"nmt\" for the\n                    // premium model.\n                    Translate.TranslateOption.model(\"nmt\"));\n\n            translatexText = translation.getTranslatedText();\n        } catch (Exception e) {\n            Logger.getLogger(TestServlet.class).error(e.getMessage(), e);\n        }\n\n        System.out.println(translatexText);\n\n",
+    "question_score": 30,
+    "answer_text": "This error message is caused by using User Credentials when you setup the Cloud SDK. Typically this is done using the command gcloud auth login.\nThere are several methods to solve this problem. Each method uses a Service Account.\nMethod 1:\nCreate a service account and set up the Cloud SDK to use the service account.\nExample command:\ngcloud auth activate-service-account test@development-123456.iam.gserviceaccount.com --key-file=/fullpath/service-account.json\n\nMethod 2:\nSet the environment variable GOOGLE_APPLICATION_CREDENTIALS to point to your service account JSON file.\nset GOOGLE_APPLICATION_CREDENTIALS=/fullpath/service-account.json\nMethod 3:\nSpecify the service account when creating your Java SDK clients.\nThis link shows examples of specifying a service account file:\nSetting Up Authentication for Server to Server Production Applications\n",
+    "answer_id": 56826028,
+    "tags": [
+      "java",
+      "authentication",
+      "google-cloud-platform",
+      "google-translate",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 56126481,
+    "title": "gcloud - ERROR: (gcloud.app.deploy) Permissions error fetching application",
+    "question_text": "I am trying to deploy node js app on google cloud but getting following error -\nStep #1: ERROR: (gcloud.app.deploy) Permissions error fetching application [apps\n/mytest-240512]. Please make sure you are using the correct project ID and that\nyou have permission to view applications on the project.\n\nI am running following command -   \ngcloud builds submit . --config cloudbuild.yaml\n\nMy cloudbuild.yaml file looks like - \nsteps:\n  #install\n  - name: 'gcr.io/cloud-builders/npm'\n    args: ['install']\n\n   #deploy\n  - name: 'gcr.io/cloud-builders/gcloud'\n    args: ['app', 'deploy']\n\n",
+    "question_score": 28,
+    "answer_text": "The default Cloud Build service account does not allow access to deploy App Engine. You need to enable the Cloud Build service account to perform actions such as deploy.\nThe Cloud Build service account is formatted like this:\n[PROJECT_NUMBER]@cloudbuild.gserviceaccount.com\n\n\nGo to the Google Cloud Console -> IAM & admin -> IAM.\nLocate the service account and click the pencil icon.\nAdd the role \"App Engine Deployer\" to the service account.\n\nWait a couple of minutes for the service account to update globally and then try again.\n",
+    "answer_id": 56136326,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "google-cloud-build",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 51873072,
+    "title": "Can&#39;t push image to google container registry - Caller does not have permission &#39;storage.buckets.get&#39;",
+    "question_text": "I am working on a bitbucket pipeline for pushing image to gc container registry.\nI have created a service account with Storage Admin role. (bitbucket-authorization@mgcp-xxxx.iam.gserviceaccount.com)\n\ngcloud auth activate-service-account --key-file key.json\ngcloud config set project mgcp-xxxx\ngcloud auth configure-docker --quiet\ndocker push eu.gcr.io/mgcp-xxxx/image-name\n\nAlthough that the login is successful, i get:\nToken exchange failed for project 'mgcp-xxxx'. Caller does not have permission 'storage.buckets.get'. \nTo configure permissions, follow instructions at: https://cloud.google.com/container-registry/docs/access-control\nCan anyone advice on what i am missing?\nThanks!\n",
+    "question_score": 26,
+    "answer_text": "In the past I had another service account with same name and different permissions.\nAfter discovering that service account names are cached, I created a new service account with different name and it's pushing properly.\n",
+    "answer_id": 51879340,
+    "tags": [
+      "docker",
+      "google-cloud-platform",
+      "google-container-registry",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 58733523,
+    "title": "Google Cloud Platform Service Account is Unable to Access Project",
+    "question_text": "I encounter the following warning:\n\nWARNING: You do not appear to have access to project [$PROJECT] or it does not exist.\n\nafter running the following commands locally:\n\nActivate and set a service account:\ngcloud auth activate-service-account \\\n$SERVICE_ACCOUNT \\\n--key-file=key.json\n\n#=>\n\nActivated service account credentials for: [$SERVICE_ACCOUNT]\n\n\nSelect $PROJECT as the above service account:\ngcloud config set project $PROJECT\n\n#=>\n\nUpdated property [core/project].\nWARNING: You do not appear to have access to project [$PROJECT] or it does not exist.\n\n\n\nMy own GCP account is associated with the following roles:\n\nApp Engine Admin\nCloud Build Editor\nCloud Scheduler Admin\nStorage Object Creator\nStorage Object Viewer\n\nWhy is this service account unable to set $PROJECT?  Is there a role or permission I am missing?\n",
+    "question_score": 21,
+    "answer_text": "I believe this is an erroneous warning message. I see the same warning message on my service account despite the fact that the account has permissions on my GCP project and can successfully perform necessary actions.\nYou might be seeing this error due to an unrelated problem. In my case, I was trying to deploy to AppEngine from a continuous integration environment (Circle CI), but I hadn't enabled the App Engine Admin API. Once I enabled the API, I was able to deploy successfully.\n",
+    "answer_id": 58942484,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 53739459,
+    "title": "Dataflow setting Controller Service Account",
+    "question_text": "I try to set up controller service account for Dataflow. In my dataflow options I have:\noptions.setGcpCredential(GoogleCredentials.fromStream(\n                         new FileInputStream(\"key.json\")).createScoped(someArrays)); \noptions.setServiceAccount(\"xxx@yyy.iam.gserviceaccount.com\");\n\nBut I'm getting:\nWARNING: Request failed with code 403, performed 0 retries due to IOExceptions,         \n         performed 0 retries due to unsuccessful status codes, HTTP framework says \n         request can be retried, (caller responsible for retrying): \n         https://dataflow.googleapis.com/v1b3/projects/MYPROJECT/locations/MYLOCATION/jobs\nException in thread \"main\" java.lang.RuntimeException: Failed to create a workflow \n         job: (CODE): Current user cannot act as \n         service account \"xxx@yyy.iam.gserviceaccount.com. \n         Causes: (CODE): Current user cannot act as \n         service account \"xxx@yyy.iam.gserviceaccount.com.\n    at org.apache.beam.runners.dataflow.DataflowRunner.run(DataflowRunner.java:791)\n    at org.apache.beam.runners.dataflow.DataflowRunner.run(DataflowRunner.java:173)\n    at org.apache.beam.sdk.Pipeline.run(Pipeline.java:311)\n    at org.apache.beam.sdk.Pipeline.run(Pipeline.java:297)\n\n...\nCaused by: com.google.api.client.googleapis.json.GoogleJsonResponseException: 403 Forbidden\n{\n  \"code\" : 403,\n  \"errors\" : [ {\n    \"domain\" : \"global\",\n    \"message\" : \"(CODE): Current user cannot act as service account \n                 xxx@yyy.iam.gserviceaccount.com. Causes: (CODE): Current user\n                 cannot act as service account xxx@yyy.iam.gserviceaccount.com.\",\n    \"reason\" : \"forbidden\"\n  } ],\n  \"message\" : \"(CODE): Current user cannot act as service account \n               xxx@yyy.iam.gserviceaccount.com. Causes: (CODE): Current user \n               cannot act as service account xxx@yyy.iam.gserviceaccount.com.\",\n  \"status\" : \"PERMISSION_DENIED\"\n}\n\nAm I missing some Roles or permissions?\n",
+    "question_score": 19,
+    "answer_text": "Maybe someone is going to find it helpful:\n\nFor controller it was: Dataflow Worker and Storage Object Admin (that was found in Google's documentation).\nFor executor it was: Service Account User.\n\n",
+    "answer_id": 53740300,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-dataflow",
+      "dataflow",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 57145441,
+    "title": "SOLUTION: google cloud sdk issue: &#39;callers must accept terms of service&#39;",
+    "question_text": "Known issue: \nInstalling google-cloud-sdk (linux package or from tarball) has a quirk where you cannot create projects from the command line before accepting the terms of service. \nSteps to reproduce:\n\nDownload sdk, untar, move folder to home directory and add google sdk root directory to PATH using install.sh\nInitialize and login with: $ google init\nCreate a project from the CL: $ gcloud projects create  --set-as-default\n\nThis will spit out an error like:\nERROR: (gcloud.projects.create) Operation [cp.5641973328385684887] failed: 9: Callers must accept Terms of Service\nI hazard a guess that accepting the terms of service have not been built into the command line initialization yet. Omitting such a fundamental step to an installation process should be illegal, with consequences ranging from death by a thousand key-stokes, to 'build an operating system in headfuck'... but that's just me...\n",
+    "question_score": 18,
+    "answer_text": "We find the solution in the most unholiest of places: the google cloud control interface (cloud console). \n\nGo to your cloud console\nCreate a project by selecting 'select a project' (top-left next to \"Google Cloud Platform\" and then 'create project' (top-right in the popup window). \n\nThis will prompt the terms of service agreement and you may carry on after agreeing to the terms of service. \nI hope this helps whoever else stumbles upon this most infuriating of errors.\nLive long and prosper\nBitshift\n",
+    "answer_id": 57145442,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "google-cloud-sdk",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 55947963,
+    "title": "GCP Cloud Build fails with permissions error even though correct role is granted",
+    "question_text": "I setup a Cloud Build Trigger in my GCP project in order to deploy a Cloud Function from a Cloud Source Repository via a .yaml file. Everything seems to have been setup correctly and permissions granted according to the official documentation, but when I test the trigger by running it manually, I get the following error:\n\nERROR: (gcloud.functions.deploy) ResponseError: status=[403], code=[Forbidden], message=[Missing necessary permission iam.serviceAccounts.actAs for on resource [MY_SERVICE_ACCOUNT]. Please grant the roles/iam.serviceAccountUser role. You can do that by running 'gcloud iam service-accounts add-iam-policy-binding [MY_SERVICE_ACCOUNT] --member= --role=roles/iam.serviceAccountUser']\n\nNow first of all, running the suggested command doesn't even work because the suggested syntax is bad (missing a value for \"member=\"). But more importantly, I already added that role to the service account the error message is complaining about. I tried removing it, adding it back, both from the UI and the CLI, and still this error always shows. \nWhy?\n",
+    "question_score": 17,
+    "answer_text": "I figured it out after a lot of trial and error. The documentation seems to be incorrect (missing some additional necessary permissions). I used this answer to get me there.\nIn short, you also need to add the cloudfunctions.developer and iam.serviceAccountUser roles to the [PROJECT_NUMBER]@cloudbuild.gserviceaccount.com account, and (I believe) that the aforementioned cloudbuild service account also needs to be added as a member of the service account that has permissions to deploy your Cloud Function (again shown in the linked SO answer).\nThe documentation really should be reflecting this.\nGood luck!\n",
+    "answer_id": 55950194,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-build",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 65821436,
+    "title": "Programmatically get current Service Account on GCP",
+    "question_text": "Is there a way to programmatically access the email of the currently used Service Account on a GCP instance when no GOOGLE_APPLICATION_CREDENTIALS is set? (ie. when using the default Service Account)\nI've looked through the GCP documentation, but the only resource I found can't be used with the default Service Account when no GOOGLE_APPLICATION_CREDENTIALS is set. I know that it is possible to do so using gcloud (see this SO question or documentation), however these solutions aren't applicable when running on a ContainerOptimisedOS.  I've spent a couple of weeks back and forth with the GCP support team, but they concluded with not being able to help me and redirected me to Stack Overflow for help.\n",
+    "question_score": 16,
+    "answer_text": "The solution of John works great, on any language without any external library. However, it works only in Google Cloud environment, when a metadata server is deployed. You can't perform this test on your computer.\nI propose just bellow a piece of Python code (with Google OAuth library, but it works in other languages that have this library) to ask the library the current credential. If the credential is a service account (from GOOGLE_APPLICATION_CREDENTIALS on your computer, the ADC (Application Default Credential) or from the metadata server), you have the email printed, else you have a warning message because you use your user account credential:\nimport google.auth\n\ncredentials, project_id = google.auth.default()\n\nif hasattr(credentials, \"service_account_email\"):\n    print(credentials.service_account_email)\nelse:\n    print(\"WARNING: no service account credential. User account credential?\")\n\nNote that if the default service account is used this method will print default instead of the entire email address.\nThe Go version:\nctx := context.Background()\ncredential,err := google.FindDefaultCredentials(ctx)\ncontent := map[string]interface{}{}\n\njson.Unmarshal(credential.JSON, &content)\nif content[\"client_email\"] != nil {\n    fmt.Println(content[\"client_email\"])\n} else {\n    fmt.Println(\"WARNING: no service account credential. User account credential?\")\n}\n\n",
+    "answer_id": 65823760,
+    "tags": [
+      "google-cloud-platform",
+      "google-compute-engine",
+      "service-accounts",
+      "google-cloud-iam",
+      "google-container-os"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 56039142,
+    "title": "Enable APIs using serviceusage API with a service account",
+    "question_text": "I want to create an automatic deployment of GCP for clients.\nIn order to do that, I have opened a page for them to login with google, and then enabled the IAM API and the Service Usage API.\nThen I have created a service account that I want to use from this point forward in order to enable other required APIs on demand and not all at once.\nWhen I try to enable the cloudkms API, I get \ngoogleapiclient.errors.HttpError: <HttpError 403 when requesting https://serviceusage.googleapis.com/v1/projects/x-y-z/services/cloudkms.googleapis.com?alt=json returned \"The caller does not have permission\"\n\nI tried using the service account credentials (google.auth.jwt.Credentials) that I have created from the response of creating the service account, and I have added all the required permissions. I don't want to grant the role owner to the service account, because I want the account to have as less permissions as possible.\nWhen I try to get the status of cloudkms API using the user's permissions, it works.\nI have seen some solutions addressing me needing to create credentials for the service account here : https://console.developers.google.com/apis/credentials but I really need to do this programatically as well.\nMy code:\ncredentials = jwt.Credentials.from_service_account_file(service_account_info['email'] + '.json', audience=\"https://www.googleapis.com/auth/cloud-platform\")\n# credentials = GoogleCredentials.get_application_default() - it works with this\nservice_usage = googleapiclient.discovery.build('serviceusage', 'v1', credentials=credentials)\nservice_usage.services().get(name=\"projects/<project_id>/services/cloudkms.googleapis.com\").execute()\n\nThe error was mentioned above.\n",
+    "question_score": 13,
+    "answer_text": "You need the Cloud IAM permission serviceusage.services.enable to enable services. Depending on what features your require, such as listing services, you need serviceusage.services.list.\nTypically you add the role roles/serviceusage.serviceUsageAdmin which includes the following permissions:\n\nserviceusage.services.get\nserviceusage.services.list\nserviceusage.services.enable\nserviceusage.services.disable\n\n",
+    "answer_id": 56050811,
+    "tags": [
+      "python",
+      "authentication",
+      "google-cloud-platform",
+      "google-cloud-iam",
+      "google-auth-library"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 60554732,
+    "title": "GCP - Impersonate service account as a user",
+    "question_text": "I would like to allow users to impersonate a service account to do operations on a long running process. \nHowever, all the code examples illustrate a service account impersonating another service account.\nCan users directly impersonate a service account? If so, how?\nI'm following this example code.\nInitialize a source credential which does not have access to list bucket:\nfrom google.oauth2 import service_acccount\n\ntarget_scopes = [\n    'https://www.googleapis.com/auth/devstorage.read_only']\n\nsource_credentials = (\n    service_account.Credentials.from_service_account_file(\n        '/path/to/svc_account.json',\n        scopes=target_scopes))\n\nNow use the source credentials to acquire credentials to impersonate another service account:\nfrom google.auth import impersonated_credentials\n\ntarget_credentials = impersonated_credentials.Credentials(\n  source_credentials=source_credentials,\n  target_principal='impersonated-account@_project_.iam.gserviceaccount.com',\n  target_scopes = target_scopes,\n  lifetime=500)\n\n",
+    "question_score": 12,
+    "answer_text": "Instead of trying to impersonate a service account from a user account, grant the user permission to create a service account OAuth access token.\nGrant the user the role roles/iam.serviceAccountTokenCreator on the service account. This role is called \"Service Account Token Creator\" in the web console.\nCall the API generateAccessToken to create an access token from the service account.\nprojects.serviceAccounts.generateAccessToken\nA simple HTTP POST request will return an access token. Modify the following request with the service account email address.\nPOST https://iamcredentials.googleapis.com/v1/projects/-/serviceAccounts/SERVICE-ACCOUNT-NAME@PROJECTID.iam.gserviceaccount.com:generateAccessToken\n\nRequest Body:\n{\n  \"delegates\": [],\n  \"scope\": [\n      \"https://www.googleapis.com/auth/cloud-platform\"\n  ],\n  \"lifetime\": \"3600s\"\n}\n\nThis API requires authorization. Include the user's OAuth access token in the HTTP Authorization header.\nAuthorization: Bearer ACCESS_TOKEN\n\nResponse Body:\n{\n   \"accessToken\": \"eyJ0eXAifeA...NiK8i\",\n   \"expireTime\": \"2020-03-05T15:01:00.12345678Z\"\n}\n\n",
+    "answer_id": 60555486,
+    "tags": [
+      "google-cloud-platform",
+      "impersonation",
+      "service-accounts",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 59770167,
+    "title": "You need permissions for this action. Required permission(s): resourcemanager.projects.setIamPolicy",
+    "question_text": "I checked the IAM & admin in the GCP console UI. I have two roles: (Company name) Project Owner and Editor. The member is my company email address.\n\nBut when I try to edit(the edit button) other people's roles and permissions, I got below message:\n\nYou need permissions for this action.\n  Required permission(s): resourcemanager.projects.setIamPolicy\n\nMy (Company name) Project Owner role is granted by the project manager. It seems I only have Editor role permission.\nUpdate\nI have an organization like this: \ncompany.com\n\nproject_a\nproject_b \n\nFor project_b, I have the roles described above and meet this issue.\nWhen I check the Over granted permissions(click 1489/1601) of (Company name) Project Owner, I got this:\n\nThere is no recommendation available at this time for this binding. However, you do not have permission to view the analysis of the current role definition.\n\n\nBut I can check Over granted permissions for Editor Role. I can only give as much information as I can\n",
+    "question_score": 11,
+    "answer_text": "As mentioned in the comments, Project Owner is not one of the Primitive Roles for projects in GCP. It's most likely that Project Owneris a Custom Role created to provide access to users in your Organization.\nThe permission resourcemanager.projects.setIamPolicyis only contained in the following Roles:\n\nPrimitive Roles:\n\n\nOwner (roles/owner)\n\nPredefined Roles:\n\n\nSecurity Admin (roles/iam.securityAdmin)\nFolder Admin (roles/resourcemanager.folderAdmin)\nOrganization Administrator (roles/resourcemanager.organizationAdmin)\nProject IAM Admin (roles/resourcemanager.projectIamAdmin)\n\n\nYou can learn more about which permissions are included with every of these roles in the Cloud IAM Documentation. I would suggest to ask an Organization Administrator to assign the role Project IAM Admin to your user, as this role is very specific to provide permissions to administer Cloud IAM policies on projects only. They could also add the individual roles to the custom Project Owner role, and this would allow anyone in the organization who has the role assigned to manage IAM policied within their projects.\n",
+    "answer_id": 59777450,
+    "tags": [
+      "google-cloud-platform",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 59381793,
+    "title": "Google Project with consent set to internal / Who is a &quot;member of my organization&quot; and how do I manage members?",
+    "question_text": "Disclaimer: https://console.cloud.google.com/support/community leads here. Google's documentation is horrific so giving this a whirl on the off chance that I don't get downvoted to the depths of dev/null\nOut of impending necessity I am migrating a private application that monitors our Gmail accts to OAuth 2, and as part of this process it was necessary to create an OAuth consent screen. Since this application will only be used internally it makes the most sense to choose \"Internal\" for Application Type - which is described as follows:\n\nOnly users with a Google Account in your organization can grant access to the scopes requested by this app.\n\nThe users on this Project consist of two \"owners\" \u2014 myself using my personal Gmail acct, and\nanother employee who is part of the company G Suite account.\nMy question is who qualifies as a \"user in my organization\"? Is this based on the project owners? Does my non-G-Suite account (which is an owner of the project) qualify? Does the inclusion of one member in a G Suite account automatically associated the other employee accounts? Is the anywhere to actually see these users or manage them directly?\nI'd actually like to add another couple accounts to the mix but still keep the application private, but I'm confused about how Google determines which gmail accounts will be able to authorize the app.\nUPDATE: To clarify, when I visit the consent page while logged in as a member of our G Suite on the same domain as the project owner, everything is fine.  However, we have other members managed in the same G Suite account who are under a different domain and for these I get the message:\n\nError 403: org_internal\n  This client is restricted to users within its organization.\n\nFurthermore, I am not even able to grant access using my own email which is the creator and owner of the application. I'd like to know how I can add myself and the other G Suite members to be able to grant access to the application without making it public. It was suggested below that I add them (or their domain) to Google Cloud IAM but I'm unclear about how to get this working. My own email does already exist in IAM with role of \"owner\" and apparently that doesn't satisfy the requirement. \n",
+    "question_score": 11,
+    "answer_text": "In order for internal apps to be used for OAuth, the project must belong to the organization associated with the same GSuite customer as all the users.\nnon-GSuite accounts cannot be used by internal apps. There's more information about this here: https://support.google.com/cloud/answer/6158849#public-and-internal.\n",
+    "answer_id": 59400833,
+    "tags": [
+      "google-cloud-platform",
+      "google-oauth",
+      "google-workspace",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 67907211,
+    "title": "How to resolve &quot;googleapi: Error 403: The caller does not have permission, forbidden&quot;",
+    "question_text": "I am using terraform to build infra in GCP. I am trying to assign roles to a service account using terraform but unable to do so. Below is my code:\nsa.tf:\nresource \"google_service_account\" \"mojo-terra\" {\n  account_id   = \"mojo-terra\"\n  description  = \"Service account used for terraform script\"\n}\n\nresource \"google_project_iam_member\" \"mojo-roles\" {\n  count = length(var.rolesList)\n  role =  var.rolesList[count.index]\n  member = \"serviceAccount:${google_service_account.mojo-terra.email}\"\n}\n\ndev.tfvars:\nrolesList = [\n    \"roles/iam.serviceAccountUser\"\n]\n\ncloudbuild logs:\nStep #2: Error: Error when reading or editing Resource \"project \\\"poc-dev\\\"\" with IAM Policy: Error retrieving IAM policy for project \"poc-dev\": googleapi: Error 403: The caller does not have permission, forbidden\nStep #2: \nStep #2: \nStep #2: \nStep #2: Error: Error when reading or editing Resource \"project \\\"poc-dev\\\"\" with IAM Member: Role \"roles/iam.serviceAccountUser\" Member \"serviceAccount:asadsfs@poc-dev-1221.iam.gserviceaccount.com\": Error retrieving IAM policy for project \"poc-dev\": googleapi: Error 403: The caller does not have permission, forbidden\nStep #2: \n\nBelow are the roles attached to my cloudbuild service account:\nCustom Role cloudbuild, Cloud Build Service Account, Service Account Admin, Create Service Accounts, Delete Service Accounts, Service Account User, Storage Admin\n",
+    "question_score": 10,
+    "answer_text": "The service account providing authorization to Terraform is missing the permission resourcemanager.projects.getIamPolicy which is the source of the error message.\nThe service account is also missing the permission resourcemanager.projects.setIamPolicy which is required to change IAM policies.\nThose permissions are part of the role roles/resourcemanager.projectIamAdmin (Project IAM Admin).\nTo list the roles assigned to the service account:\ngcloud projects get-iam-policy <YOUR GCLOUD PROJECT ID> \\\n--flatten=\"bindings[].members\" \\\n--format='table(bindings.role)' \\\n--filter=\"bindings.members:<YOUR SERVICE ACCOUNT>\"\n\nTo list the permissions that a role contains:\ngcloud iam roles describe roles/resourcemanager.projectIamAdmin\n\nTo add the required role to the service account:\ngcloud projects add-iam-policy-binding <YOUR GCLOUD PROJECT ID> \\\n--member=serviceAccount:<YOUR SERVICE ACCOUNT> \\\n--role=roles/resourcemanager.projectIamAdmin\n\n",
+    "answer_id": 67909808,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "terraform-provider-gcp",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 58866085,
+    "title": "How do I give a GCP service account storage.buckets.list access with read only access?",
+    "question_text": "I'm trying to do gsutil ls however that results in:\nubuntu@ip:~$ gsutil ls\nAccessDeniedException: 403 xxxxxxxxxxxx@xxxxxxxxxx.iam.gserviceaccount.com does not have storage.buckets.list access to project xxxxxxxxxxxxxxx.\n\n\nCan I give this permission with only read / viewer access IAM roles?\n",
+    "question_score": 10,
+    "answer_text": "You certainly can.  At a minimum, you can always create a custom role with exactly the permissions you want.  You do this by clicking the Create Role button at the top of the roles tab.  Then, once it is created, apply that role to your service account on the IAM page, like any other role.\nAlternatively, you can use the same roles tab in the cloud console to search for that permission explicitly to see which roles contain it and see if any would work for you.\nIn this case, I don't see an obvious default one that is limited, however.  That said,you could look at Storage Legacy Bucket Reader (roles/storage.legacyBucketReader) as a starting point for a custom role in this case -- if you select this role on the roles tab, you can 'Create Role from Selection' to use it as a starting point).\n",
+    "answer_id": 58866229,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 46473293,
+    "title": "Can I restrict access to a Google Cloud SQL instance to specific service account?",
+    "question_text": "I have multiple environments in Google Compute Engine (dev, staging, and production), each with its own Google Cloud SQL instance. The instances connect via Cloud SQL Proxy and authenticate with a credential file that is tied to a service account. I want to have a separate service account for each environment, which would be restricted to accessing the SQL instance specific to that environment. Currently, it appears that any service account with role Cloud SQL Client can access any Cloud SQL instance within the same project.\nI cannot find any way to restrict access on a Cloud SQL Instance to a specific service account. Is it possible, and if so, how? If not, is there a different way to achieve the goal of preventing a server in one environment from accessing a Cloud SQL instance in another environment?\nNOTE: this configuration is possible with Google Cloud Storage; one can assign a specific service account to have various permissions on each bucket, so that the dev service account cannot accidentally access Production files.\n",
+    "question_score": 10,
+    "answer_text": "As of the August 2021 release of Google Cloud SQL:\n\nYou can use IAM Conditions to define and enforce conditional, attribute-based access control for Google Cloud resources, including Cloud SQL instances\n\nSee the documentation for IAM Conditions for information about how to restrict a user or service account to specific Cloud SQL instances.\n",
+    "answer_id": 68925241,
+    "tags": [
+      "google-compute-engine",
+      "google-cloud-sql",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 58143060,
+    "title": "you do not have permission to create projects in this location",
+    "question_text": "SOLVED:\nIn Google cloud platform I need to create a new project to create a new oauth credential for an app.\nBut it will not let me create any more projects under my organisation.\nIt says I do not have permission to create projects in this location.\nI only have 2 projects currently and there is only 1 org. No I cannot use an exisitng project since I need to setup a different oauth consent screen.\nI am the admin, with owner permissions, so there is nobody else I can contact.\nI have a g suite account, so I am wondering if this is the cause. More and more Google services seem to be breaking for g suite users and only work on free gmail accounts.\n",
+    "question_score": 9,
+    "answer_text": "You need the permission resourcemanager.projects.create. This permission is defined in the role roles/resourcemanager.projectCreator aka \"Project Creator.\nAdd this role at the Organization level.\n",
+    "answer_id": 58176566,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 61253369,
+    "title": "Can I use gcloud activate-service-account with impersonation (not static keys)?",
+    "question_text": "gcloud has a --impersonate-service-account flag\ngsutil has a -i flag\nBut I want to configure impersonation once in my current session and then know that all future commands are using that service account. So what I want is to gcloud activate-service-account some-service-account-to-impersonate WITHOUT a static key. Is this possible? Can gcloud setup impersonation for my current session like this without me having to specify --impersonate-service-account for every command?\nAdditionally I want to develop locally and run my app locally as a service account using impersonation. If I have the app configured to use implicit creds (google SDK should look for GOOGLE_APPLICATION_CREDENTIALS or use the user's oath creds by default) I'm thinking it would be possible to run gcloud activate-service-account with impersonation then run my app in that same session and it will run with the impersonated account.\nEDIT: per comments looks like this is what I want: gcloud config set auth/impersonate_service_account [SA_FULL_EMAIL]\n",
+    "question_score": 9,
+    "answer_text": "I wrote an article that goes into detail on how to setup and use service account impersonation.\nGoogle Cloud \u2013 Improving Security with Impersonation\nTo configure the CLI to use impersonation by default:\ngcloud config set auth/impersonate_service_account [SA_FULL_EMAIL]\n\nTo clear this setting\ngcloud config unset auth/impersonate_service_account\n\n",
+    "answer_id": 61255309,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "service-accounts",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 71498895,
+    "title": "Organization Admin somehow doesn&#39;t have access to create a folder in GCP?",
+    "question_text": "I'm pretty sure this is an actual bug with GCP at the moment. I'm the Organization Admin for the GCP organization (I've quadruple checked this, and that I'm signed in with the correct account).\nBut when I go to Manage Resources, And try to create a new folder, it doesn't let me select the organization as the location, because I \"don't have the required resourcemanager.folders.create permission\". If I try to create the folder in a project that's in the organization, I get \"Unknown error\".\nI'm the user who created the organization and all projects in the first place, and the only G-Suite user that even exists on this domain.\n",
+    "question_score": 9,
+    "answer_text": "If you review the permissions that Organization Administrator has, resourcemanager.folders.create is not one of them.\nIAM Roles\nOrg Admin by itself has almost infinite power because it can set IAM policies. This means the Org Admin can grant any IAM permission to any identity.\nGrant yourself the required role such as roles/resourcemanager.folderAdmin.\nNote: I recommend keeping the Org Admin as a separate identity that you lock away and only use to manage the organization. Create separate identities for day-to-day operations, development, and deployment.\n",
+    "answer_id": 71501061,
+    "tags": [
+      "google-cloud-platform",
+      "google-iam",
+      "google-cloud-iam",
+      "gcp-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 61520636,
+    "title": "Google BigQuery: grant service account permissions to create jobs in only some specific datasets",
+    "question_text": "Problem: I have a project in BigQuery where all my data is stored. Within this project I created multiple datasets containing different views. Now I want to use different service accounts to query the different datasets containing different views via grafana (if that matters). These users should only be able to query the views (and therefore a specific dataset) meant for them.\nWhat I tried: I granted BigQuery User, Viewer or Editor permissions (I tried all of them) at a dataset level (and also BigQuery Meatadata Viewer at a project level). When I query a view, I receive the error:\nUser does not have bigquery.jobs.create permission in project xy. \nQuestions: It is not clear to me if granting bigquery.jobs.create permission on project level, will allow the user to query all datasets instead of only the one I want him to access to.\nIs there any way to allow the user to create jobs only on a single dataset? \n",
+    "question_score": 9,
+    "answer_text": "Update October 2021\nI've just seen that this question did go unanswered for me back then but still gets a lot of views. I believe the possibilities changed a bit since I asked the question so here is how I'm handling it now:\n\nI give the respective service account the role roles/bigquery.jobUser on project level. This allows it to create jobs in general, however since I don't give any other permissions yet it cannot query data yet.\nThen I give the role roles/bigquery.dataViewer on the dataset level. That makes it possible for the service account to query only the dataset I granted the permission on.\nIt is also possible to grant roles/bigquery.dataViewer on table level, what will restrict access to only the specific table.\n\nIn case you want the service account not only to query (view) the data, but also to insert or change it for example, replace roles/bigquery.dataViewer with the role having the necessary permissions (or assign that role in addition).\nHow to grant the permissions:\n\nOn dataset level\nOn table or view level\n\n",
+    "answer_id": 69750434,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery",
+      "grafana",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 70024078,
+    "title": "Connecting to Cloud SQL from Cloud Run via cloud-sql-proxy with IAM login enabled",
+    "question_text": "I would like to connect to a Cloud SQL instance from Cloud Run, using a service account. The connection used to be created within the VPC and we would just provide a connection string with a user and a password to our PostgreSQL client. But now we want the authentication to be managed by Google Cloud IAM, with the service account associated with the Cloud Run service.\nOn my machine, I can use the enable_iam_login argument to use my own service account. The command to run the Cloud SQL proxy would look like this:\n./cloud_sql_proxy -dir=/cloudsql -instances=[PROJECT-ID]:[REGION]:[INSTANCE] \\\n-enable_iam_login -credential_file=${HOME}/.config/gcloud/application_default_credentials.json\n\nThe problem is that I can't seem to find a way to use the IAM authentication method to run the Cloud SQL Proxy from Cloud Run, I can just provide an instance name. Has anyone face this problem before?\n",
+    "question_score": 8,
+    "answer_text": "Unfortunately, there isn't a way to configure Cloud Run's use of the Cloud SQL proxy to do this for you.\nIf you are using Java, Python, or Go, there are language specific connectors you can use from Cloud Run. These all have the option to use IAM DB AuthN as part of them.\n",
+    "answer_id": 70026369,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-run",
+      "google-cloud-iam",
+      "cloud-sql-proxy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 49127629,
+    "title": "Google Managed Services (BigQuery,Cloud Storage etc) via a VPC/VPN",
+    "question_text": "We are planning to use Big Query and Cloud Storage but have questions regarding access via VPN/VPC.\nAs Big Query, GCS are managed services is it correct to assume that it is not possible to restrict access to project level buckets and data sets to connections inbound to the VPC. \nAs we understand it, these services authenticate against Googles Global API Infrastructure and by definition are publicly exposed.\nIs it possible to restrict access to Google Managed Services to a inbound VPC connection and remove public / internet based authentication and authorization for our projects?\n",
+    "question_score": 8,
+    "answer_text": "I think this can be achieved through something now called \"Private Service Connect\" under GCP\nhttps://cloud.google.com/vpc/docs/private-service-connect\nhttps://medium.com/google-cloud/private-service-connect-c99e3e94537b\n",
+    "answer_id": 72417643,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery",
+      "google-cloud-iam",
+      "aaa-security-protocol"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 62754227,
+    "title": "Firebase hosting deploy with serviceaccount fails with 403",
+    "question_text": "I'm trying to deploy a Firebase hosted project with a Service Account (that I created myself, not one provided by Google/Firebase as default) via a pipeline (Gitlab, but that shouldn't matter for this issue).\nWhen I run the following command locally (same happens in the pipeline):\nGOOGLE_APPLICATION_CREDENTIALS=\"/path/to/serviceaccount.json\" firebase deploy --only hosting\n\nI'm getting the following error:\n=== Deploying to 'my-firebase-project'...\n\ni  deploying hosting\n\nError: HTTP Error: 403, The caller does not have permission\n\nThe --debug does not provide any more details, other than the 403. I've set the following roles to the serviceaccount:\n\nFirebase Hosting Admin\nFirebase Rules Admin\nAPI keys viewer\n\nDeploying the rules (using --only firestore) works without issues. I've read the documentation about the roles of Firebase hosting, but assigning these don't work either.\nDoes anyone know which roles I'm missing?\nNote: a service account is used here to do a deployment, so any firebase login / firebase logout actions won't have any effect. See Login to firebase using gcloud service account for details.\n",
+    "question_score": 8,
+    "answer_text": "With the help of Firebase support, I was pointed to the Deploying to Firebase page, which provides an enumeration of all required roles. To sum it up here:\n\nCloud Build Service Account\nFirebase Admin\nAPI Keys Admin\n\nI was missing the first one, which resulted in this error. Hope that this'll help others as well!\n",
+    "answer_id": 63053347,
+    "tags": [
+      "firebase",
+      "firebase-hosting",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 60480678,
+    "title": "How to list, find, or search iam policies across services (APIs), resource types, and projects in google cloud platform (GCP)?",
+    "question_text": "In Google Cloud Platform (GCP), you can only get the IAM policy for a specific resource by calling getIamPolicy (get-iam-policy in gcloud).\nIs there a way to list, search, list, search, or find IAM policies across resources, services, or projects?\nThis is needed to answer questions like:\n\nWhat roles does a service account have?\nWhich resources are shared publicly?\nDo policies contain deleted users?\nDoes a user still appear in any policies after they leave my company?\nDoes a user has a given role?\n\n",
+    "question_score": 7,
+    "answer_text": "You can use search-all-iam-policies to search all the IAM policies across services, resource types, projects within a project, folder, or organization.\nTo browse policies in a project with number 123 (note that only policies for the listed resource types are supported):\ngcloud asset search-all-iam-policies --scope=projects/123\n\nWho has the role Owner in my org?\ngcloud asset search-all-iam-policies --scope=organizations/456 --query=\"policy:roles/owner\"\n\nWho can change project IAM policies in my org?\n--query='policy.role.permissions:resourcemanager.projects.setIamPolicy'\n\nWhich roles does an account has?\n--query=\"policy:123-compute@developer.gserviceaccount.com\"\n\nWhich resources are shared publicly?\n--query=\"policy:(allUsers OR allAuthenticatedUsers)\"\n\nAre there deleted accounts in policies?\n--query=\"policy:deleted\"\n\nDoes amy@bar.com appear in any policy?\n--query=\"policy:amy@bar.com\"\n\nDoes amy@bar.com have the Owner role?\n--query=\"policy:(roles/owner amy@bar.com)\"\n\nHow to find all the IAM policies for a given resource type (e.g., projects)?\n--query=\"policy:roles/owner resource://cloudresourcemanager.googleapis.com/projects\"\n\nIs there any gmail account having the role Owner?\n`--query=\"policy:(roles/owner *gmail*)\"\n\nYou can change the scope to a folder or a project.\nTo use the command, you must:\n\nEnable Cloud Asset API, and\n\nHave cloudasset.assets.searchAllIamPolicies permission upon the scope, which is included in these roles:\n\nroles/cloudasset.viewer\nroles/cloudasset.owner\nroles/viewer\nroles/editor\nroles/owner\n\n\n\nDocumentation:\n\nMore gcloud examples: https://cloud.google.com/asset-inventory/docs/searching-iam-policies-samples\nGuide: https://cloud.google.com/asset-inventory/docs/searching-iam-policies\nAPI reference: https://cloud.google.com/asset-inventory/docs/reference/rest/v1p1beta1/iamPolicies/searchAll\nSearchable resource types: https://cloud.google.com/asset-inventory/docs/supported-asset-types#searchable_asset_types\n\n",
+    "answer_id": 60480679,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "google-iam",
+      "google-cloud-iam",
+      "google-cloud-resource-manager"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 67385902,
+    "title": "Service Account does not have storage.objects.get access to the Google Cloud Storage object",
+    "question_text": "I have set up a new Firestore environment, and when attempting to upload and then read data from storage via cloud functions, I get the following error:\nproject_id@appspot.gserviceaccount.com does not have storage.objects.get access to the Google Cloud Storage object.\nI have looked online and within the Google cloud console I have added the IAM permission of Storage Admin to this service account, but I am still getting this same error.\nHas anyone had this issue before? I have also tried just giving Owner role to the service account, but still get the same error.\n",
+    "question_score": 6,
+    "answer_text": "Storage Admin role  has storage.objects.* permissions and thus should be more than enough.\nI recommend you to try the following options:\n\nCheck whether Cloud Storage API is enabled or not. If not, enable API.\n\nRemove the Storage Admin role from your service account and then add it again. Make sure to wait for a couple of minutes so that the roles could propagate properly.\n\nIf the above option doesn't work for you, try giving the service account the Storage Object Viewer role separately\n\n\n",
+    "answer_id": 67497977,
+    "tags": [
+      "firebase",
+      "google-cloud-functions",
+      "google-cloud-storage",
+      "google-developers-console",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 53585128,
+    "title": "How to attach a service account to a GKE deployment/servic like you can an ECS service?",
+    "question_text": "I'm coming from AWS and not sure how to do this with GCP. Previously I asked a more general question about service accounts, this is specific to GKE.\nIn AWS I can create an ECS service role. I attach policies to that role to give it the access it needs. Then I attach the role to an ECS service. So I can deploy multiple services to the same ECS cluster and give them different access with No static keys being used, no secrets being passed around.\nHow do I do this with GKE? How do I attach a GCP iam service account to a GKE deployment/service, etc? Can you used annotations in the deployment YAML to attach a service account?\nI want to have multiple deployments and services on the same GKE cluster using different service accounts implicitly (no keys being used).\n",
+    "question_score": 6,
+    "answer_text": "Introduction:\nA Google Cloud Kubernetes Cluster consists of Compute Engine VM instances. When you create a cluster a default service account is attached to each VM instance. These credentials are stored in the instance metadata and can be accessed by using a default application Client() instantiation (Application Default Credentials) or by specifying the credential location.\nADC Credentials Search:\nfrom google.cloud import storage\nclient = storage.Client()\n\nOR only from metadata:\nfrom google.auth import compute_engine\nfrom google.cloud import storage\ncredentials = compute_engine.Credentials()\nclient = storage.Client(credentials=credentials, project=project)\n\n[Update]\nI do not want to promote poor security practices. The above techniques should be blocked on secure production Kubernetes clusters.\n\nUse a minimally privileged service account for the Kubernetes cluster.\nDisable legacy metadata server APIs and use metadata concealment.\nUse a Pod Security Policy.\nUse separate service accounts for node pools.\nRestrict traffic between pods with a Network Policy.\n\n[End Update]\nThe Google Kubernetes Method:\nThe recommended technique for Kubernetes is to create a separate service account for each application that runs in the cluster and reduce the scopes applied to the default service account. The roles assigned to each service account vary based upon the permissions that the applications require.\nService account credentials are downloaded as a Json file and then stored in Kubernetes as a Secret. You would then mount the volume with the secret (the credentials). The application running in the container will then need to load the credentials when creating Google Application Clients such as to access Cloud Storage.\nThis command will store the downloaded credentials file into a Kubernetes secret volume as the secret named service-account-credentials. The credentials file inside Kubernetes is named key.json. The credentials are loaded from the file that was downloaded from Google Cloud named `/secrets/credentials.json\nkubectl create secret generic service-account-credentials --from-file=key.json=/secrets/credentials.json\n\nIn your deployment file add the following to mount the volume.\nspec:\n  volumes:\n  - name: google-cloud-key\n    secret:\n      secretName: service-account-credentials\n...\n  containers:\n    volumeMounts:\n    - name: google-cloud-key\n      mountPath: /var/secrets/google\n\nInside the container, the credentials are loaded from /var/secrets/google/key.json\nPython Example:\nfrom google.cloud import storage\nclient = storage.Client.from_service_account_json('/var/secrets/google/key.json')\n\nThis document provides step-by-step details on service account credentials with Kubernetes.\nAuthenticating to Cloud Platform with Service Accounts\n",
+    "answer_id": 53585875,
+    "tags": [
+      "kubernetes",
+      "google-cloud-platform",
+      "amazon-ecs",
+      "google-kubernetes-engine",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 73943183,
+    "title": "Which fields should be kept private in a Google Cloud service account key in JSON format?",
+    "question_text": "This is the shape of my JSON service account key from Google.\n{\n  \"type\": \"service_account\",\n  \"project_id\": \"\",\n  \"private_key_id\": \"\",\n  \"private_key\": \"\",\n  \"client_email\": \"\",\n  \"client_id\": \"\",\n  \"auth_uri\": \"\",\n  \"token_uri\": \"\",\n  \"auth_provider_x509_cert_url\": \"\",\n  \"client_x509_cert_url\": \"\",\n}\n\nWhich fields should be secret? I mean, I would add most of it to my Git repo, and I would add the private bits as env variables.\nIs protecting the private_key enough?\nFor example:\naccount.ts\n{\n  \"type\": \"service_account\",\n  \"project_id\": \"VALUE\",\n  \"private_key_id\": \"VALUE\",\n  \"private_key\": process.env.PRIVATE_KEY,  // Populating it via env variables\n  \"client_email\": \"VALUE\",\n  \"client_id\": \"VALUE\",\n  \"auth_uri\": \"VALUE\",\n  \"token_uri\": \"VALUE\",\n  \"auth_provider_x509_cert_url\": \"VALUE\",\n  \"client_x509_cert_url\": \"VALUE\",\n}\n\nShould I also hide the private_key_id?\n",
+    "question_score": 6,
+    "answer_text": "The private_key must be protected. If that value is disclosed along with the project_id, someone could easily create authorization tokens and breach your Google Cloud project. If the service account has the correct IAM roles, they could take control of your project.\nIt is still possible to create authorization tokens without disclosing the project_id but that would require more time as the Project ID can be deduced by other means.\nThe private_key_id is used to look up the RSA Public Key to validate the signature created by the private_key. Key IDs are public and their disclosure is not a problem.\nOnly the private_key is a secret. The other values are either sensitive data or public data.\nBest Practice: protect the entire service account.\n",
+    "answer_id": 73945233,
+    "tags": [
+      "security",
+      "google-cloud-platform",
+      "service-accounts",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 71481297,
+    "title": "What is the location argument of GCP workload identity pools",
+    "question_text": "According to the documentation:\nan example of creating an identity pool would be\n\ngcloud iam workload-identity-pools create my-workload-identity-pool --location=\"global\" --display-name=\"My workload pool\" --description=\"My workload pool description\" --disabled\n\nWhat does the location global mean? What is the purpose of this argument? It is apparently not a location like us-central1 but a logical location.\nWhich values are available? I don't find any good documentation on this so i am asking.\n",
+    "question_score": 6,
+    "answer_text": "The gcloud iam workload-identity-pools create command you mentioned ultimately calls the API method projects.locations.workloadIdentityPools.create which states that the only supported location is global. This makes sense since workload-identity-pools is a feature of the IAM (Identity and Access Management) service, which is a global product replicated across regions.\nNow as per why this argument is required in the gcloud command while it isn't even asked in the corresponding Cloud Console form, this seems to be a design decision but in any case the only option is indeed global.\n",
+    "answer_id": 71483836,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-iam",
+      "workload-identity"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 72628400,
+    "title": "Role-based access control with Google authentication",
+    "question_text": "I have an application which allows OpenID Connect login. I need to be able to give the users admin/read-only access based on their roles or group membership. With Keycloak, I can configure the Client settings to include roles and groups in the JSON Web Key my application receives, and I can set up mappings within the application to assign the correct permissions to various roles or groups of users (depending on the mapping).\nI'm surprised that I have not been able to find any clear answers to this mundane problem. Is nobody using Google in such a setup within their organization or am I missing something obvious?\nI tried requesting various scopes related to groups or roles based on this document, but even though the consent page has changed to reflect this, the JWK did not contain any useful information.\nHow do I configure Google's authentication to return group membership or assigned roles in the token?\n",
+    "question_score": 6,
+    "answer_text": "I don't think you can add more information to the ID Token that you get from Google. According to Google's OIDC discovery document, these are the claims that can be present in the ID token:\n\"claims_supported\": [\n  \"aud\",\n  \"email\",\n  \"email_verified\",\n  \"exp\",\n  \"family_name\",\n  \"given_name\",\n  \"iat\",\n  \"iss\",\n  \"locale\",\n  \"name\",\n  \"picture\",\n  \"sub\"\n ]\n\nApparently, an organization administrator can limit which claims do end up in the ID token, so you might get a subset of these.\nYou should be able to get information about the user's group from one of the myriad APIs that Google exposes. Not sure if Cloud Identity is the one you're after, but there is an endpoint that returns information about groups: https://cloud.google.com/identity/docs/reference/rest/v1/groups.memberships/get If that's not the one, I think you could search the scopes page that you linked, and you should find the relevant scope there. The scope will be tied to a concrete API and this will be the API that you have to call to get the user's groups, roles, etc.\n",
+    "answer_id": 72714414,
+    "tags": [
+      "google-cloud-platform",
+      "oauth-2.0",
+      "google-oauth",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 63208682,
+    "title": "Create an alias for a Google Service Account Email?",
+    "question_text": "I've shared a Google Sheet with my Google Service account email, which looks something like:\nmyappname-service@myappname-266229.iam.gserviceaccount.com\nThis permits my application to access that Google Sheet.\nI'd like to be able to share the Google Sheet with a custom email address (e.g. google@myappname.com) aliased to that ugly autogenerated service account email (myappname-service@myappname-266229.iam.gserviceaccount.com).\nHow could I go about doing this?\nedit:\nExample of code used for interacting with Google APIs\nfrom google_auth_httplib2 import AuthorizedHttp\nfrom google.oauth2 import service_account\nimport pygsheets\n\ndef _get_gc():\n    scope = ['https://www.googleapis.com/auth/spreadsheets']\n    credentials = service_account.Credentials.from_service_account_file(\n        settings.GOOGLE_SERVICE_AUTH_FILE,\n        scopes=scope,\n    )\n    http = AuthorizedHttp(credentials, http=HTTP)\n    logger.info('Created GC creds, returning...')\n    return pygsheets.authorize(custom_credentials=credentials, http=http)\n\n\ndef do_something(url):\n    gc = _get_gc()\n    spreadsheet = gc.open_by_url(url)\n\n\n",
+    "question_score": 6,
+    "answer_text": "Issue \u2013 Service accounts cannot have aliases:\nUnlike regular accounts, service accounts cannot have aliases. Their email address is defined by:\n\nThe name of the corresponding project.\nThe name of the service account.\n\nYou cannot give it additional aliases.\nWorkaround \u2013 Impersonate a regular account:\nIf you want to avoid sharing the Google Sheets with the autogenerated service account email address, but you want to keep using the service account to interact with the API, your best option would be to share the Sheets with a regular account that has an acceptable email address, and use the service account to impersonate this regular account, when interacting with the API.\n1. Delegating domain-wide authority:\nOne of the most useful things about a service account is that you can grant it the ability to impersonate any user in your domain and access data on behalf of it. This is called domain-wide delegation, and it can be activated for a service account by following these steps:\n\nImportant: You need to be an administrator of the G Suite domain in order to delegate domain-wide authority.\n2. Impersonating:\nAt this point, your service account can impersonate any user in the account. To actually impersonate an account, you would just need to specify which account you want to impersonate when building the credentials.\nIn your specific case, you would need to provide the parameter subject when calling from_service_account_file, as you can see on the domain-wide delegation section of this page:\n    credentials = service_account.Credentials.from_service_account_file(\n        settings.GOOGLE_SERVICE_AUTH_FILE,\n        scopes=scope,\n        subject=\"your-account@your-domain.com\"\n    )\n\nReference:\n\nDelegating domain-wide authority to the service account\n\n",
+    "answer_id": 63248784,
+    "tags": [
+      "google-sheets",
+      "google-authentication",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 70900347,
+    "title": "(Terraform, GCP) Error 403: Permission denied to list services for consumer container [projects/335478934851]",
+    "question_text": "On GCP, I'm trying to enable \"Identity and Access Management (IAM) API\" with this Terraform code below:\nprovider \"google\" {\n  credentials = file(\"myCredentials.json\")\n  project     = \"myproject-173831\"\n  region      = \"asia-northeast1\"\n}\n\nresource \"google_project_service\" \"project\" {\n  service = \"iam.googleapis.com\"\n}\n\nBut I got this error:\n\nError when reading or editing Project Service : Request List Project Services myproject-173831 returned error: Failed to list enabled\nservices for project myproject-173831: googleapi: Error 403:\nPermission denied to list services for consumer container\n[projects/335478934851]\n\nThen, I couldn't enable it\n\nSo now, I'm trying to add a role to solve this error above but there are too many roles to choose:\n\nWhat role do I need to choose?\n",
+    "question_score": 6,
+    "answer_text": "Choose the role \"Quota Administrator\":\n\nThen, apply your Terraform code again:\nprovider \"google\" {\n  credentials = file(\"myCredentials.json\")\n  project     = \"myproject-173831\"\n  region      = \"asia-northeast1\"\n}\n\nresource \"google_project_service\" \"project\" {\n  service = \"iam.googleapis.com\"\n}\n\nFinally, you can enable \"Identity and Access Management (IAM) API\":\n\n",
+    "answer_id": 70900348,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "devops",
+      "terraform-provider-gcp",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 58366396,
+    "title": "Google Cloud Platform: List available projects using api",
+    "question_text": "I want to achieve the same effect of the gcloud projects list via an api call (python) specifically.\nHowever, the only thing I can come across by browsing docs is this.\nIs this operation tied specifically to the Resource Manager API?\nWhat happens regarding visibility to other projects? If the RM is tied to a project, how can it view (and therefore list) the other ones?\n",
+    "question_score": 5,
+    "answer_text": "You can only list projects for which you have permissions to access. This means that you cannot see all projects unless you have the rights to access them. In my examples below I show which scopes are required. This also means that you can list projects across accounts. This allows you to see which projects you have access to using the credentials specified in the examples. I show how to use Application Default Credentials (ADC) and Service Account Credentials (Json file format).\nFor more information you can read my article here about projects.\nThese examples have been tested with Python 3.6 on Windows 10 Professional. These examples will display the project list exactly as the CLI.\nExample 1 using the Python Client Library (services discovery method):\nfrom googleapiclient import discovery\nfrom oauth2client.client import GoogleCredentials\nfrom google.oauth2 import service_account\n\n# Example using the Python Client Library\n\n# Documentation\n# https://github.com/googleapis/google-api-python-client\n# https://developers.google.com/resources/api-libraries/documentation/cloudresourcemanager/v2/python/latest/\n\n# Library Installation\n# pip install -U google-api-python-client\n# pip install -U oauth2client\n\n# Requires one of the following scopes\n# https://www.googleapis.com/auth/cloud-platform\n# https://www.googleapis.com/auth/cloud-platform.read-only\n# https://www.googleapis.com/auth/cloudplatformprojects\n# https://www.googleapis.com/auth/cloudplatformprojects.readonly\n\nprint('{:<20} {:<22} {:<21}'.format('PROJECT_ID', 'NAME', 'PROJECT_NUMBER'))\n\n# Uncomment to use Application Default Credentials (ADC)\ncredentials = GoogleCredentials.get_application_default()\n\n# Uncomment to use Service Account Credentials in Json format\n# credentials = service_account.Credentials.from_service_account_file('service-account.json')\n\nservice = discovery.build('cloudresourcemanager', 'v1', credentials=credentials)\n\nrequest = service.projects().list()\n\nwhile request is not None:\n    response = request.execute()\n\n    for project in response.get('projects', []):\n        print('{:<20} {:<22} {:<21}'.format(project['projectId'], project['name'], project['projectNumber']))\n\n    request = service.projects().list_next(previous_request=request, previous_response=response)\n\nExample 2 using the Python Google Cloud Resource Manager API Client Library:\nfrom google.cloud import resource_manager\n\n# Example using the Python Google Cloud Resource Manager API Client Library\n\n# Documentation\n# https://pypi.org/project/google-cloud-resource-manager/\n# https://github.com/googleapis/google-cloud-python\n# https://googleapis.github.io/google-cloud-python/latest/resource-manager/index.html\n# https://googleapis.github.io/google-cloud-python/latest/resource-manager/client.html\n# https://googleapis.github.io/google-cloud-python/latest/resource-manager/project.html\n\n# Library Installation\n# pip install -U google-cloud-resource-manager\n\n# Requires one of the following scopes\n# https://www.googleapis.com/auth/cloud-platform\n# https://www.googleapis.com/auth/cloud-platform.read-only\n# https://www.googleapis.com/auth/cloudplatformprojects\n# https://www.googleapis.com/auth/cloudplatformprojects.readonly\n\nprint('{:<20} {:<22} {:<21}'.format('PROJECT_ID', 'NAME', 'PROJECT_NUMBER'))\n\n# Uncomment to use Application Default Credentials (ADC)\nclient = resource_manager.Client()\n\n# Uncomment to use Service Account Credentials in Json format\n# client = resource_manager.Client.from_service_account_json('service-account.json')\n\nfor project in client.list_projects():\n    print('{:<20} {:<22} {:<21}'.format(project.project_id, project.name, project.number))\n\n",
+    "answer_id": 58366820,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 69338896,
+    "title": "google cloud run Failed to trigger build: Permission &#39;cloudbuild.builds.create&#39; denied",
+    "question_text": "I am trying to setup a trigger to deploy a repository (synced from Bitbucket), to Cloud Run when master branch is pushed.\nThe trigger is giving me the following warning:\nFailed to trigger build: Permission 'cloudbuild.builds.create' denied on resource\n\nAfter looking through GCP documentation I tried adding the Cloud Build Editor role to the service account that runs the trigger (https://cloud.google.com/build/docs/iam-roles-permissions), but I am still getting the same error.\nIs there something aI am missing\n",
+    "question_score": 5,
+    "answer_text": "Build triggers use the Cloud Build service account to create a build. The error above indicates that the Cloud Build service account is missing the cloudbuild.builds.create IAM permission, which is required for the service account to run a build trigger.\nAccording to GCP documentation:\n\nYou can resolve this error by granting the Cloud Build Service Account IAM role to your default Cloud Build service account (ex. [PROJECT_NUMBER]@cloudbuild.gserviceaccount.com).\n\nThis also applies if you specified your own service account. It must have the Cloud Build Service Account role.\nFor instructions on granting this role, see Configuring access for Cloud Build service account.\n",
+    "answer_id": 69340201,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-run",
+      "google-iam",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 65393957,
+    "title": "Cannot impersonate GCP ServiceAccount even after granting &quot;Service Account Token Creator&quot; role",
+    "question_text": "I have 2 ServiceAccounts in my Google Cloud Platform (GCP) Project\n\nowner\nexecutor\n\nThe owner ServiceAccount has 1 project-wide role attached to it:\n\n\"Owner\" - for the project\n\nThe executor ServiceAccount has ONLY 2 specific roles attached to it (as shown below):\n\n\"Service Account Token Creator\" - on the Owner ServiceAccount\n\"Service Account User\" - on the Owner ServiceAccount\n\n\n\nNow, I have a JSON key file of the Executor ServiceAccount. I will be using that credential file to \"impersonate\" the Owner ServiceAccount. And then I will run gcloud commands.\n\nHere is what i am doing.\n#!/bin/bash\n\n# --------------------------------------------------------------\n\nexport GOOGLE_APPLICATION_CREDENTIALS=\"$(pwd)/my-executor-sa-key.json\"\necho $GOOGLE_APPLICATION_CREDENTIALS\ncat $GOOGLE_APPLICATION_CREDENTIALS\n\nOWNER_EMAIL=\"owner@my-gcp-project.iam.gserviceaccount.com\"\necho $OWNER_EMAIL\n\n# --------------------------------------------------------------\n\nCLUSTER=\"my-k8s-cluster\"\nZONE=\"asia-east1-a\"\nPROJECT=\"my-gcp-project\"\n\nMY_COMMAND=\"gcloud container clusters get-credentials ${CLUSTER} --zone ${ZONE} --project ${PROJECT} --impersonate-service-account=${OWNER_EMAIL}\"\necho $MY_COMMAND\n\n# --------------------------------------------------------------\n\n`$MY_COMMAND`\n\n# --------------------------------------------------------------\n\nUpon running the above, here is the output I am getting\n\n# --------------------------------------------------------------\n\n/Users/rakib/tmp/my-executor-sa-key.json\n{\n  \"type\": \"service_account\",\n  \"project_id\": \"my-gcp-project\",\n  \"private_key_id\": \"3208--------------------------------5d63\",\n  \"private_key\": \"-----BEGIN PRIVATE KEY-----\\nMIIEv\\n----\\nEAE9S\\n-----END PRIVATE KEY-----\\n\",\n  \"client_email\": \"executor@my-gcp-project.iam.gserviceaccount.com\",\n  \"client_id\": \"1099--------------5533\",\n  \"auth_uri\": \"https://accounts.google.com/o/oauth2/auth\",\n  \"token_uri\": \"https://oauth2.googleapis.com/token\",\n  \"auth_provider_x509_cert_url\": \"https://www.googleapis.com/oauth2/v1/certs\",\n  \"client_x509_cert_url\": \"https://www.googleapis.com/robot/v1/metadata/x509/executor%40my-gcp-project.iam.gserviceaccount.com\"\n}\n\nowner@my-gcp-project.iam.gserviceaccount.com\n\n# --------------------------------------------------------------\n\ngcloud container clusters get-credentials my-k8s-cluster --zone asia-east1-a --project my-gcp-project --impersonate-service-account=owner@my-gcp-project.iam.gserviceaccount.com\n\n# --------------------------------------------------------------\n\nWARNING: This command is using service account impersonation. All API calls will be executed as [owner@my-gcp-project.iam.gserviceaccount.com].\nERROR: (gcloud.container.clusters.get-credentials) Failed to impersonate [owner@my-gcp-project.iam.gserviceaccount.com]. Make sure the account that's trying to impersonate it has access to the service account itself and the \"roles/iam.serviceAccountTokenCreator\" role.\n\n\nWhat am I missing here? I have indeed granted the Executor ServiceAccount with roles/iam.serviceAccountTokenCreator role on the Owner ServiceAccount.\nWhy can't it impersonate then?\n",
+    "question_score": 5,
+    "answer_text": "Turns out, I needed to add the gcloud auth activate-service-account --key-file=$GOOGLE_APPLICATION_CREDENTIALS command (more details here). Setting the $GOOGLE_APPLICATION_CREDENTIALS environment variable alone was not enough for the gcloud CLI tool.\nAll along, I knew that having the ServiceAccount path in $GOOGLE_APPLICATION_CREDENTIALS would suffice. Everywhere i read i see that ADC uses $GOOGLE_APPLICATION_CREDENTIALS for that:\n\nhttps://cloud.google.com/docs/authentication/production#automatically\nhttps://cloud.google.com/docs/authentication/getting-started#setting_the_environment_variable\netc\n\nHowever, turns out gcloud does not use ADC then. The ADC is used only by the client-libraries like C#, Java, Python, Go, Ruby etc.\nI have filed a new case in google's issue-tracker for Google to help improve their documentation to avoid mixup / confusion.\n",
+    "answer_id": 65420537,
+    "tags": [
+      "google-cloud-platform",
+      "gcloud",
+      "impersonation",
+      "service-accounts",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 63903198,
+    "title": "Is it bad to use roles/storage.legacyBucketWriter to read/write in a bucket?",
+    "question_text": "I find myself using a lot roles/storage.legacyBucketWriter which has the following permissions:\n\nstorage.buckets.get\nstorage.objects.create\nstorage.objects.delete\nstorage.objects.list\n\nMay be it's okay but it feels odd to me to be using a role with legacy in its name ...\nI don't want to create a custom role either because it seems overkill since there is this role fitting the need.\nAnd yes there is a role roles/storage.objectAdmin but it lacks the storage.buckets.get permission.\nWhat do you think ?\n",
+    "question_score": 5,
+    "answer_text": "Remember legacy roles are related to primitive roles on GCP, It is 'Legacy' because it exactly matches the pre-IAM permissions granted via the legacy role on an Object. It all depends on your use case, the best recommended practice is to follow the principle of least privilege.\nKeep in mind as is mentioned at the official documentation:\n\nLegacy Bucket IAM roles work in tandem with bucket ACLs: when you add\nor remove a Legacy Bucket role, the ACLs associated with the bucket\nreflect your changes.\n\nAlso, consider the scope of the read/write legacy roles as is described on this table.\nFinally take a look at the section of Security, ACLs, and access control for follow the best practices recommended for Cloud Storage service.\n",
+    "answer_id": 63906615,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 65478907,
+    "title": "I can&#39;t deploy Firebase functions because I don&#39;t have &quot;Service Account User&quot; Role",
+    "question_text": "I'm trying to deploy Firebase Functions like so:\nfirebase deploy --only functions\n\nHowever, I'm getting the following error:\n\nError: Missing permissions required for functions deploy. You must have permission iam.serviceAccounts.ActAs on service account xyz@appspot.gserviceaccount.com.\nTo address this error, ask a project Owner to assign your account the \"Service Account User\" role from this URL:\nhttps://console.cloud.google.com/iam-admin/iam?xyz\n\nI've already given myself Service Account User permission by going to\nIdentity -> Service Accounts -> xyz@appspot.gserviceaccount.com -> Permissions -> + Grant Access\nI've added my email and service account linked in GOOGLE_APPLICATION_CREDENTIALS. I'm still getting the same error.\nAny ideas?\n",
+    "question_score": 5,
+    "answer_text": "Can you verify that you are logged with the correct account and that you are linked to the project?\nYou can double check by creating a new project and then in cli\n$ firebase logout\n$ firebase login\n$ firebase init\n\n",
+    "answer_id": 65479061,
+    "tags": [
+      "firebase",
+      "google-cloud-functions",
+      "service-accounts",
+      "google-cloud-iam",
+      "google-cloud-identity"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-iam",
+    "question_id": 67181297,
+    "title": "How can a Google Cloud API Gateway endpoint deliver data from a Cloud Storage file?",
+    "question_text": "I'm in the process of building a large API that will use Google Cloud API Gateway to route various endpoints to different services \u2013 some may be serverless Cloud Functions, others will be served by a Rails app in our Kubernetes clusters, and so on.\nWe will have a selection of informational endpoints that require unauthenticated access from the client, where the information will rarely change \u2013 once every few months as a ballpark. I was hoping to write the contents of those endpoints out to Google Cloud Storage (in a bucket that isn't world-readable), then allow the API Gateway config to point specific endpoints to them (a world-readable bucket wouldn't meet the security criteria for this project).\nI've created a custom service account for the API gateway and given it a Storage Object Viewer role for the bucket concerned.\nHowever, after creating the API config using that service account and requesting the endpoint in Postman, instead of getting the JSON output that I expected I see the HTML of a Google sign-in page.\nThe endpoint definition in my OpenAPI configuration:\npaths:\n  /products:\n    get:\n      x-google-backend:\n        address: https://storage.cloud.google.com/<BUCKET_NAME>/products.json\n      summary: List of products in JSON format\n      operationId: listProductsJson\n      produces:\n        - application/json\n      responses:\n        \"200\":\n          description: a product list\n          schema:\n            type: array\n            items:\n              $ref: '#/definitions/Product'\n\nAnd this is the Postman response:\n\nAre there ways to get this set up working, or even to debug what's going on here? I've seen people have similar woes around Cloud Functions and the JWT aud value, but following what worked for them doesn't seem to have any effect on Cloud Storage.\nAny help would be much appreciated! (I'm a newbie to GCloud world, so if anybody has alternative implementations for these kinds of mostly static endpoints, that'd be cool too.)\n",
+    "question_score": 5,
+    "answer_text": "You aren't using the correct URL. Use https://storage.googleapis.com/<BUCKET_NAME>/products.json instead of https://storage.cloud.google.com/<BUCKET_NAME>/products.json\n",
+    "answer_id": 67184893,
+    "tags": [
+      "google-cloud-storage",
+      "google-cloud-iam",
+      "google-cloud-api-gateway"
+    ]
+  }
+]

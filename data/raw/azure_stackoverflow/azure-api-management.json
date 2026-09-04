@@ -1,0 +1,1056 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 51519687,
+    "title": "API management URL is giving Missing subscription key Issue",
+    "question_text": "I am new to API management. I have created a Basic WEB API & hosted to the API APP(App service). URL is working as expected & it's returning the data. i.e. http://xyz.azurewebsites.net/api/webapi\nBut when I am adding the API App in the API management, I am getting different URL  with Extra suffix I am adding, But when I am trying to open in browser  Link--> https://abc.azure-api.net/God am getting the below error\n{ \"statusCode\": 401, \"message\": \"Access denied due to missing subscription key. Make sure to include subscription key when making requests to an API.\" }\nIf its no issue with API APP then it shouldn't be with API management. Please guid me if something I am missing. \nNB--> I have tried adding the Subscription Key in fiddler its different issue is coming. but to access a URL it doesn't require Subscription Key basically. \n",
+    "question_score": 30,
+    "answer_text": "If you enable the option to Require subscription for the product settings, then you must pass the below header Ocp-Apim-Subscription-Key.\nEven you provide subscription key, the key should belong to the product which the API includes.\nIf you don't want the subsciption option, disable it in the product settings.\n",
+    "answer_id": 51519778,
+    "tags": [
+      "azure",
+      "azure-api-management",
+      "azure-api-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 46920832,
+    "title": "How to debug 500 error from Azure API Management call?",
+    "question_text": "I have my API hooked up to Azure's API Management service. When I try to call one of my endpoints, I get the following error:\n{\n  \"statusCode\": 500,\n  \"message\": \"Internal server error\",\n  \"activityId\": \"79c1bef9-a05d-4734-b729-0657c1749e40\"\n}\n\nI enabled tracing and this is the trace json\n{\n\"traceId\": \"79c1bef9a05d4734b7290657c1749e40\",\n\"traceEntries\": {\n    \"inbound\": [\n    {\n        \"source\": \"api-inspector\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002259\",\n        \"data\": {\n        \"request\": {\n            \"method\": \"GET\",\n            \"url\": \"https://mysite.azure-api.net/partner/api/partner/ClientsActions\",\n            \"headers\": [\n            {\n                \"name\": \"Ocp-Apim-Subscription-Key\",\n                \"value\": \"...\"\n            },\n            {\n                \"name\": \"Connection\",\n                \"value\": \"Keep-Alive\"\n            },\n            {\n                \"name\": \"Host\",\n                \"value\": \"mysite.azure-api.net\"\n            }\n            ]\n        }\n        }\n    },\n    {\n        \"source\": \"api-inspector\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002352\",\n        \"data\": {\n        \"configuration\": {\n            \"api\": {\n            \"from\": \"/partner\",\n            \"to\": null,\n            \"version\": null,\n            \"revision\": \"1\"\n            },\n            \"operation\": {\n            \"method\": \"GET\",\n            \"uriTemplate\": \"/api/partner/ClientsActions\"\n            },\n            \"user\": {\n            \"id\": \"1\",\n            \"groups\": [\n                \"Administrators\",\n                \"Developers\"\n            ]\n            },\n            \"product\": {\n            \"id\": \"57c59e76ea12f3007f060002\"\n            }\n        }\n        }\n    },\n    {\n        \"source\": \"cors\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002544\",\n        \"data\": \"Origin header was missing or empty and the request was classified as not cross-domain. CORS policy was not applied.\"\n    },\n    {\n        \"source\": \"choose\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002633\",\n        \"data\": {\n        \"message\": \"Expression was successfully evaluated.\",\n        \"expression\": \"context.Request.Url.Query.ContainsKey(\\\"key\\\")\",\n        \"value\": false\n        }\n    },\n    {\n        \"source\": \"set-header\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002744\",\n        \"data\": {\n        \"message\": \"Expression was successfully evaluated.\",\n        \"expression\": \"(string)context.User.Id\",\n        \"value\": \"1\"\n        }\n    },\n    {\n        \"source\": \"set-header\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002802\",\n        \"data\": {\n        \"message\": \"Specified value was assigned to the header (see below).\",\n        \"header\": {\n            \"name\": \"x-client-id\",\n            \"value\": \"1\"\n        }\n        }\n    }\n    ],\n    \"backend\": [\n    {\n        \"source\": \"forward-request\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0002909\",\n        \"data\": {\n        \"message\": \"Backend service URL is not defined.\"\n        }\n    },\n    {\n        \"source\": \"forward-request\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0004824\",\n        \"data\": {\n        \"messages\": [\n            null,\n            \"Backend service URL is not defined.\"\n        ]\n        }\n    }\n    ],\n    \"outbound\": [\n    {\n        \"source\": \"transfer-response\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0007989\",\n        \"data\": {\n        \"message\": \"Response headers have been sent to the caller.\"\n        }\n    },\n    {\n        \"source\": \"transfer-response\",\n        \"timestamp\": \"2017-10-24T21:50:09.6322945Z\",\n        \"elapsed\": \"00:00:00.0008730\",\n        \"data\": {\n        \"message\": \"Response body streaming to the caller is complete.\"\n        }\n    }\n    ]\n}\n}\n\nThe \"Backend service URL is not defined.\" messages look suspicious to me but I can't find any information on what they might mean. If I had to guess I'd say API Management is having issues talking to my real API but I can access it fine directly.\nAnyone have any idea what might be going on or what I should look at? I'm running the tests directly through the developer portal provided by Azure.\nJason\n",
+    "question_score": 27,
+    "answer_text": "In your Swagger file, make sure it mentions the correct host, basePath and schemes entries.\nSwashbuckle generated Swagger files tend not to contain those.\nHere is an example: \n{\n\"swagger\": \"2.0\",\n\"info\": {\n    \"title\": \"Your title\",\n    \"version\": \"1.0\",\n    \"description\": \"Your description\"\n},\n\"host\": \"server.host.com\",\n\"basePath\": \"/api\",\n\"schemes\": [\n    \"https\"\n],\n\"consumes\": [\n    \"application/json\"\n],\n\"produces\": [\n    \"application/json\"\n],\n\nTake specific interest in \"host\", \"basePath\" and \"schemes\" and change those according to your API.\n",
+    "answer_id": 46956376,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 41263553,
+    "title": "How to create an array in a for loop in Liquid?",
+    "question_text": "I'm trying to create an array from a list of objects using Liquid syntax:\n{% for operation in menuItems %}\n      {% assign words1 = operation.Title | split: '_' %}\n      {% assign controllerName = words1 | first %}\n      {% assign controllersTmp = controllersTmp | append: '_' | append: controllerName %}\n{% endfor %}\n\nI want to split the controllersTmp to get my array, but at this point my controllersTmp is empty.\nAny help ?\n",
+    "question_score": 27,
+    "answer_text": "You can directly create a new empty array controllers and concat to it your controllerName converted into an array using the workaround split:''. The result is directly an array, without the extra string manipulations.\n{% assign controllers = '' | split: '' %}\n{% for operation in menuItems %}\n    {% assign controllerName = operation.Title | split: '_' | first | split: '' %}\n    {% assign controllers = controllers | concat: controllerName %}\n{% endfor %}\n\n",
+    "answer_id": 41266780,
+    "tags": [
+      "arrays",
+      "liquid",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 66262752,
+    "title": "Azure Auth Token - AADSTS500113: No reply address is registered for the application",
+    "question_text": "I am trying to obtain a token through postman using the following tutorial:\nhttps://learn.microsoft.com/en-us/azure/healthcare-apis/access-fhir-postman-tutorial\nI have successfully filled out the credentials then a pop up appears asking for my credentials. This then throws the following error:\n\nDoes anyone know why this error is occurring or how I can fix it?\nThanks\n",
+    "question_score": 24,
+    "answer_text": "According to your error message: no reply address is registered for the application. So, try to set the callback url for your application, usually the url is the reply address.\nGo to AAD>App registrations>your app>Authentication\n\nPlease note that the reply url configured in the Azure portal needs to be the same as the url you used in postman.\n",
+    "answer_id": 66275320,
+    "tags": [
+      "azure",
+      "azure-api-management",
+      "azure-authentication"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 58316573,
+    "title": "Aggregation of data on API Gateway",
+    "question_text": "I am working on microservice architecture and I want to aggregate data from two microservices.\nFor example, Frontend calls the API Gateway and API Gateway calls two microservices Customer and Order microservices. Customer microservice returns customer details and Order microservice returns all ordered products by customer. \nThis is the format returned by API Gateway after aggregation from two microservice using Ocelot or Azure API Management. \nFormat 1\n{ \n   \"Customers\":[ \n      { \n         \"customerId\":1001,\n         \"customerName\":\"Tom\"\n      },\n      { \n         \"customerId\":1002,\n         \"customerName\":\"Jerry\"\n      }\n   ],\n   \"Orders\":[ \n      { \n         \"CustomerId\":1001,\n         \"Orders\":[ \n            { \n               \"ProductId\":\"PRO1\",\n               \"ProductName\":\"Books\"\n            },\n            { \n               \"ProductId\":\"PRO2\",\n               \"ProductName\":\"Pens\"\n            }\n         ]\n      },\n      { \n         \"CustomerId\":1002,\n         \"Orders\":[ \n            { \n               \"ProductId\":\"PRO3\",\n               \"ProductName\":\"Pencils\"\n            },\n            { \n               \"ProductId\":\"PRO4\",\n               \"ProductName\":\"Toys\"\n            }\n         ]\n      }\n   ]\n}\n\nThe Format that I want is format 2.\nFormat 2\n{\n   \"OrderDetails\":[\n      {\n         \"customerId\":1001,\n         \"customerName\":\"Tom\",\n         \"Orders\":[\n            {\n               \"ProductId\":\"PRO1\",\n               \"ProductName\":\"Books\"\n            },\n            {\n               \"ProductId\":\"PRO2\",\n               \"ProductName\":\"Pens\"\n            }\n         ]\n      },\n      {\n         \"customerId\":1002,\n         \"customerName\":\"Jerry\",\n         \"Orders\":[\n            {\n               \"ProductId\":\"PRO3\",\n               \"ProductName\":\"Pencils\"\n            },\n            {\n               \"ProductId\":\"PRO4\",\n               \"ProductName\":\"Toys\"\n            }\n         ]\n      }\n   ]\n}\n\nThe second format is achievable using Ocelot but the merging of data is based on the ids on Gateway and it requires some processing.\nIs it a good practice to aggregate data on Gateway using business logic. If not what practices should be followed for this kind of aggregation?\nIt would be nice if you can provide some references for achieving this aggregation using the Azure API Management. \n",
+    "question_score": 20,
+    "answer_text": "This is known as API composition or Backend for Frontend. I would say it is fine to aggregate data using the API Gateway because it allows your API clients to use a simpler API interface. The actual mapping would be done in the API Gateway.\nHowever, when you chain multiple microservices together in one Web API, the failure of one service will cause the entire Web API to fail. An alternative (and more complex) solution is to create a dedicated microservice that aggregates the datasets from the other microservices and expose a single API that shows the joined data. See - CQRS pattern. \nA reference for how you might implement this in Azure is API Aggregation Using Azure API Management.\n",
+    "answer_id": 58318678,
+    "tags": [
+      "microservices",
+      "aws-api-gateway",
+      "azure-api-management",
+      "api-gateway",
+      "ocelot"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 24934756,
+    "title": "In Azure API Management can i use the subscription-key as part of Request headers instead of Query string parameter?",
+    "question_text": "I am migrating a service to Azure API Management. This service is being called from mobile devices (native apps). Problem is that appending the subscription-key to the query string can take much longer for updating the app than just using it in the request headers. \nSo is it possible to use it there?\n",
+    "question_score": 15,
+    "answer_text": "The subscription key can be passed either in the header or in the URL query parameter. The header is checked first. The query parameter is checked only if the header is not present. The header name is Ocp-Apim-Subscription-Key by default though you can change it; the same holds for the query parameter whose default name is subscription-key.\n",
+    "answer_id": 24940073,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 62364877,
+    "title": "What is the difference between API Gateway provided by Azure API Management and Azure Application Gateway?",
+    "question_text": "I'm new to Azure and I skimmed through Azure official documentation.\n\nWhat I would like to understand is the difference and similarities\nbetween the API Gateway provided by Azure API Management and Azure\nApplication Gateway?\nWhen do we require Application Gateway in front of API Gateway (provided by Api Management)?\n\nWhen API Gateway hosted normally.\nWhen API Gateway hosted inside VNet.\n\nWhen do we require Azure Front Door in front of Application Gateway?\nDo we need to chain Azure Front Door --> Application Gateway --> API Gateway in what scenario, instead can't we do this Azure Front Door -->  API Gateway, if yes in which scenario?\n\nI want to understand solution to above questions based on below two compute solutions:\n\nWhen my API is hosted in Containers.\nWhen my API is composed of only Azure Functions.\n\n",
+    "question_score": 15,
+    "answer_text": "Good question, I'll try to answer.\nAPI Gateway is a pattern very common in API scenarios. It act's as a facade where you can transform the incoming/outcoming requests. There are many services which you can use for it:\n\nKong\nOcelot\nApigee\n\nand on Azure, API Management.\nAzure Front Door and Azure Application Gateway (to me), offer more or less the same thing:\nLoad balancer to your services + Web Application Firewall (WAF). If I have to choose one, I will go with Front Door as I think it's easier to setup.\n\nWhen do we require Application Gateway in front of API Gateway (provided by Api Management)?\n\nWhenever your API will be exposed to the internet. As I said, the benefit is having WAF in front of your APIs, it will block most common attacks (SQL Injection, XSS, etc).\n",
+    "answer_id": 62395510,
+    "tags": [
+      "azure",
+      "microservices",
+      "azure-api-management",
+      "azure-application-gateway",
+      "azure-front-door"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 42018591,
+    "title": "Azure Functions and Azure Application Gateway or API Management",
+    "question_text": "I have several Microsoft Azure functions developed. \nI would like to use a gateway with firewall to make my Azure functions available and protected using one public IP only. \nIs there way to use Azure Functions with Azure Application Gateway or API Management?\nWhat would be the best approach in this case? \n",
+    "question_score": 15,
+    "answer_text": "Azure API management allows you to provide a single access point for all your customers.\nIf you've made a HTTP triggered Azure Function (or any SOAP or REST service for that matter), you can use API management to provide a central access point for this function. This allows you to do load balancing / hot swapping / rate limiting / authentication and authorization / IP whitelisting and more. \nSee here for some more info on HTTP triggered functions: https://learn.microsoft.com/en-us/azure/azure-functions/functions-create-serverless-api\nSee here for how to create an Open API for your Azure Function: https://learn.microsoft.com/en-us/azure/azure-functions/functions-openapi-definition\n",
+    "answer_id": 47200656,
+    "tags": [
+      "azure",
+      "azure-functions",
+      "azure-api-management",
+      "azure-api-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 56027231,
+    "title": "Can Azure Api Management expose OpenAPI documentation?",
+    "question_text": "We have some Azure Functions exposed through Api Management? Can Api Management expose a /swagger endpoint automatically, the same way the Swashbuckle package does for api's in Asp.Net.\n",
+    "question_score": 13,
+    "answer_text": "Azure API management cannot automatically generate the swagger page. Azure API management only can provide you the API definition file. Then you can use other tools (such as Swagger UI) with the definition file to generate the page you need.\nBesides, Azure API management has provided you the UI(https://youapimanagementname.portal.azure-api.net) to tell you how to use all the APIs. \n",
+    "answer_id": 56032907,
+    "tags": [
+      "azure",
+      "azure-api-management",
+      "openapi"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 54127675,
+    "title": "Is there a way to programmatically restart an azure function",
+    "question_text": "I have an Azure function running on a timer every few minutes that after a varied amount of time of running will begin to fail every time it runs because of an external API and hitting the restart button manually in the azure portal fixes the problem and the job works again.\nIs there a way to either get an azure function to restart itself or have something externally restart an azure function via a web hook or API request or running on a timer\nI have tried using Azures API Management service which can be used to restart other kinds of app services in azure but it turns out there is no functionality in the API to request a restart of an azure function, Also looked into power shell and it seems to be the same problem you can restart different app services but not azure functions\ni have tried working with the API\nhttps://learn.microsoft.com/en-us/rest/api/azure/\nExample API request where you can list functions within an azure function \nGET https://management.azure.com/subscriptions/{subscriptionId}/resourceGroups/{resourceGroupName}/providers/Microsoft.Web/sites/{name}/functions?api-version=2016-08-01\nbut there is no functionality to restart an azure function from what i have researched\nBasically i want to Restart the Azure function as if i was to hit this button \nAzure functions manual stop/start and restart buttons in azure portal\nbecause there is a case where the job gets into a bad state every time it runs because of an external API i have no control over and hitting restart manually gets the job going again\n",
+    "question_score": 11,
+    "answer_text": "You can use the Azure CLI for that:\naz functionapp restart --name MyFunctionApp --resource-group MyResourceGroup\n\nYou can confirm it does the same as the manual restart button on the portal by inspecting the Activity Log of the function:\n\n\nAlso looked into power shell and it seems to be the same problem you can restart different app services but not azure functions\n\nNowaday this is possible using PowerShell:\nGet-AzFunctionApp -Name MyAppName -ResourceGroupName MyResourceGroupName | Restart-AzFunctionApp -Force\n\n(You could create a PowerShell Azure Function if you want to automate things)\n",
+    "answer_id": 76595413,
+    "tags": [
+      "azure",
+      "azure-functions",
+      "azure-api-management",
+      "azureportal"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 50415554,
+    "title": "Policy rewrite-uri To Append Context Variable in Azure APIM",
+    "question_text": "What is the approach to a simple append to the url of a context variable such as context.Variables[\"accountKey\"] during a policy rewrite? \nThe end result should be /accounts/232.\nI have success earlier in setting it\nset-variable (0.003 ms)\n{\n    \"message\": \"Context variable was successfully set.\",\n    \"name\": \"accountKey\",\n    \"value\": \"232\"\n}\n\nOne of the things tried:\n<policies>\n    <inbound>\n        <base />\n        <rewrite-uri template=\"/accounts/{accountKey}\" />\n    </inbound>\n\nBut I get this error\n> Error Receive\n>     rewrite-uri (0.260 ms) {\n>     \"messages\": [\n>         null,\n>         \"Variable accountKey has no value.\",\n>         \"Variable accountKey has no value.\"\n>     ] }\n\n",
+    "question_score": 10,
+    "answer_text": "Configure the inbound rule in the policy as follows:\n<inbound>\n    <base />\n    <set-variable name=\"accountKey\" value=\"232\" />\n    <rewrite-uri template=\"@{\n        return \"/account/\" + context.Variables.GetValueOrDefault<string>(\"accountKey\");\n    }\"/>\n</inbound>\n\n{} in rewrite-uri are for query string parameters in the original request URL.\nFind more details about rewrite-uri section in the Microsoft docs at Rewrite URL - API Management transformation policies.\n",
+    "answer_id": 50419606,
+    "tags": [
+      "azure",
+      "url-rewriting",
+      "policy",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 52264027,
+    "title": "Azure API Management Template parameters used in the UriTemplate must be defined in the Operation, and vice-versa",
+    "question_text": "I have a number of Azure functions, that I would like to now put Azure API Management in front of.\nI have imported all the functions from 2 or 3 of my other function apps in my account with no issues, but I am having issues with one of the function apps. This function app has 6 functions, 3 of which I can import fine if I select the specifically. Something within the other 3 functions is throwing an error:\nAll template parameters used in the UriTemplate must be defined in the Operation, and vice-versa.\nHere the the relevant part of my Swagger api document created by the Azure Function itself:\n    paths:\n'/api/api-keys/{customerId}':\n    delete:\n    operationId: '/api/api-keys/{customerId}/delete'\n    produces: []\n    consumes: []\n    parameters:\n        - name: customerId\n        in: path\n        required: true\n        type: string\n    description: >-\n        Replace with Operation Object\n        #http://swagger.io/specification/#operationObject\n    responses:\n        '200':\n        description: Success operation\n    security:\n        - apikeyQuery: []\n'/api/api-keys/{customerId}/{apiKeyId}':\n    delete:\n    operationId: '/api/api-keys/{customerId}/{apiKeyId}/delete'\n    produces: []\n    consumes: []\n    parameters:\n        - name: customerId\n        in: path\n        required: true\n        type: string\n        - name: apiKeyId\n        in: path\n        required: true\n        type: string\n    description: >-\n        Replace with Operation Object\n        #http://swagger.io/specification/#operationObject\n    responses:\n        '200':\n        description: Success operation\n    security:\n        - apikeyQuery: []\n'/api/password-hashes/{customerId}/{prefix}':\n    get:\n    operationId: '/api/hashes/{customerId}/{prefix}/get'\n    produces: []\n    consumes: []\n    parameters:\n        - name: customerId\n        in: path\n        required: true\n        type: string\n        - name: prefix\n        in: path\n        required: true\n        type: string\n    description: >-\n        Replace with Operation Object\n        #http://swagger.io/specification/#operationObject\n    responses:\n        '200':\n        description: Success operation\n    security:\n        - apikeyQuery: []\n\nLooking through this, I have verified that all items in the parameters are in the paths. I am not sure if there is anything I am missing here, but looking around on the internet I did not see much regarding the issue.\n",
+    "question_score": 10,
+    "answer_text": "Update (10/1/18): The issue is fixed. Clear browser cache if still reproducible.\nFunction App import at the moment does not use OpenAPI spec you've defined for Function App at all. Instead it consumes FunctionApp definition directly. The problem is caused by your functions having routes with parameters, like /route/{param}. This will be fixed shortly.\nThis should work now.\n",
+    "answer_id": 52302240,
+    "tags": [
+      "azure",
+      "swagger",
+      "azure-functions",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 30796751,
+    "title": "Can I run SignalR hub through Azure API Management?",
+    "question_text": "I have the same question as this guy: can I run my SignalR hub through the Azure API management service?\n\nI cannot seem to configure it in the service: it only allows me to forward HTTP/HTTPS traffic. That matches the answer of the person in the forum post. \nI followed the link down to the Microsoft forum, but it seems the question wasn't followed up there. Since the response was from 2014, I thought - maybe it is possible now.\n",
+    "question_score": 9,
+    "answer_text": "API Management supports Web Sockets now.\n\nNavigate to the API Management instance in the Azure Portal\nAdd Api\nUnder Define a new API, select WebSocket\nIn the dialog box, select Full and complete the required form fields\nClick create\n\nhttps://learn.microsoft.com/en-us/azure/api-management/websocket-api?tabs=portal\n(WebSocket APIs are not supported yet in the Consumption tier.)\n",
+    "answer_id": 75697763,
+    "tags": [
+      "c#",
+      "azure",
+      "signalr",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 41769079,
+    "title": "How to use Let&#39;s Encrypt with Azure&#39;s API Management",
+    "question_text": "I have began developing by microservices architecture utilizing Azure's API management service as the reverse proxy. To provide custom URLs for the API management, you must specify a URL + include a certificate.\n \nI understand that there is a manual way to receive certificates through let's encrypt, but is it possible to automate this for the Azure API Management?\n",
+    "question_score": 9,
+    "answer_text": "It isn't possible, please vote for the feature request for the API management team.\nhttps://feedback.azure.com/forums/248703-api-management/suggestions/17815891-support-for-let-s-encrypt\nSome way to make it work manual:\n\nrequest certificate\ncreate API to prove to Letsencrypt you are the owner (domain verification)\n\nSome way to create the certificate manual:\nsudo certbot certonly --manual\n",
+    "answer_id": 41809988,
+    "tags": [
+      "azure",
+      "encryption",
+      "https",
+      "lets-encrypt",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 59826328,
+    "title": "AADSTS900144: The request body must contain the following parameter: &#39;scope&#39; when using legacy Developer Portal",
+    "question_text": "I was trying to implement AAD in my APIM instance based on this article and this article. Unfortunately when it came down to Developer console, right after I picked Authorization code as the Authorization method a popup showed up and showed me the following error:\nAADSTS900144: The request body must contain the following parameter: 'scope'.\n\nIt failed on https://login.microsoftonline.com/{Directory (tenant) ID\n}/oauth2/v2.0/authorize?response_type=code&client_id={client id}&redirect_uri=https://{my-apim-instance}/docs/services/{authorization method}/console/oauth2/authorizationcode/callback&state={state}.\nSince all of this is part of Azure Portal (at this point the legacy Developer Portal) I do not fill the scope parameter. How can you set that property? Or is the problem somewhere else?\n",
+    "question_score": 9,
+    "answer_text": "Since you are using V2 endpoints, you need to use the scope you created for the backend-app in the Default scope field.\n\nYou can find the scope from your webapi application.\n\n",
+    "answer_id": 59832885,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 72881498,
+    "title": "How to get the host url of a linux app service in azure bicep deployment templates",
+    "question_text": "I've created an app service using a bicep resource shown below\n  name: '${appName}'\n  location: location\n  kind: 'linux,container,fnapp'\n  properties: {\n    serverFarmId: servicePlan.id\n    siteConfig: {\n      linuxFxVersion: 'DOCKER|${dockerLocation}'\n      healthCheckPath: '/api/healthcheck'\n      alwaysOn: true\n      appSettings: [\n        ...\n      ]\n    }\n  }\n}\n\nWhich works as expected, however I'd like to get the url for that app service to use as a backend url for my apim service.\nI'm currently using var fnAppUrl = 'https://${fnApp.name}.azurewebsites.net/api'. Is there any way I can get the default url from the direct output of the function app resource i.e. var fnAppUrl = fnApp.url or something similar?\nTIA\n",
+    "question_score": 9,
+    "answer_text": "There is no specific property for this base path as it is set by configuring the value of extensions.http.routePrefix in  host.json.\n(Docs: https://learn.microsoft.com/en-us/azure/azure-functions/functions-bindings-http-webhook?tabs=in-process%2Cfunctionsv2&pivots=programming-language-csharp#hostjson-settings)\nIf the /api prefix is not required, then it would suffice to use the following output in your Bicep file:\nresource myFunctionApp 'Microsoft.Web/sites@2021-03-01' = {\n   // ...\n}\n\noutput functionBaseUrl string = 'https://${myFunctionApp.properties.defaultHostName}'\n\nThen in your host.json ensure the routePrefix is set to an empty string:\n{\n    \"extensions\": {\n        \"http\": {\n            \"routePrefix\": \"\"\n        }\n    }\n}\n\nIf you do want to use a route prefix, you need to combine it with the default host name:\nresource myFunctionApp 'Microsoft.Web/sites@2021-03-01' = {\n   // ...\n}\n\noutput functionBaseUrl string = 'https://${myFunctionApp.properties.defaultHostName}/api'\n\n",
+    "answer_id": 72886866,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "azure-web-app-service",
+      "azure-api-management",
+      "azure-bicep"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 36168597,
+    "title": "Static IP address in Azure API management Service",
+    "question_text": "I have done some googling but couldn't get a confirmed answer for this: \nDoes Azure API management service provides a Static IP address? If not, how do i configure it?\nReason i am asking is because my on-premise server only accepts request from whitelisted IP address and therefore we need a static ip address from request coming from Azure API management. \n",
+    "question_score": 9,
+    "answer_text": "Azure api management shows a fixed ip address when you create the service.\nWe use this for the same scenario and we see all traffic from this ip.\nNot much background info on it but this: https://www.nimbo.com/blog/azure-api-management-service-high-availability-disaster-recovery-backup-restore/\nIt is \nHere the Faq on that\nhttps://learn.microsoft.com/en-us/azure/api-management/api-management-faq#is-the-api-management-gateway-ip-address-constant-can-i-use-it-in-firewall-rules\n",
+    "answer_id": 36178178,
+    "tags": [
+      "azure",
+      "static-ip-address",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 58916393,
+    "title": "Preserve Client IP address in Azure API Management with Application Gateway scenario",
+    "question_text": "I have Azure Application Gateway and API Management configured in this setup\nhttps://learn.microsoft.com/en-us/azure/api-management/api-management-howto-integrate-internal-vnet-appgateway - Application Gateway is the public endpoint and only defined routes are passed through to API Management.\nI want to use the ip-filter policy to restrict calls to certain IP addresses. However when calls are coming through Application Gateway, the original client IP address is lost or obfuscated to IP 0.0.0.0.\nIs there a way to keep the original client IP address and pass it through from Application Gateway to API Management?\n",
+    "question_score": 9,
+    "answer_text": "You might find this article useful: https://learn.microsoft.com/en-us/azure/application-gateway/how-application-gateway-works#modifications-to-the-request\n\nAn application gateway inserts four additional headers to all requests\n  before it forwards the requests to the backend. These headers are\n  x-forwarded-for, x-forwarded-proto, x-forwarded-port, and\n  x-original-host. The format for x-forwarded-for header is a\n  comma-separated list of IP:port.\n\n",
+    "answer_id": 58921192,
+    "tags": [
+      "azure-api-management",
+      "azure-application-gateway"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 34762918,
+    "title": "Adding Applications programmatically in Azure AD using Client Credentials Flow",
+    "question_text": "For use with the Azure API Management, I am trying to add Applications to an Azure Active Directory (AAD) programmatically, in my case by using the Graph API.\nMy scenario is the following: In order to secure a Web API I want to manage with Azure API Management, I want to leverage AAD's OAuth functionality to do the heavy lifting regarding authentication and issuing JWT Tokens, and then just use the validate-jwt policy to verify everything is okay in Azure API Management. This has the advantage I can more or less omit authentication in my backend service.\nThis works fine, as long as I have created an application in the Azure AD for the consuming web application, but this has to be done manually from the Azure Portal; Azure APIm does not do it automatically.\nNow for what I am trying to do to get the done automatically: I wanted to delegate the subscription to APIs in APIm to some other web app I am writing, and from there I want to leverage the Graph API to create an Application in the Azure AD and grant permissions to the Application of the API. \nThe first thing I tried to do was to have a third application (my service application) to have full application permissions to the Windows Azure Active Directory application in the Azure AD; this lets my application access AAD using the Graph REST API. I manage to get an Access Token using the client_credentials grant (from login.microsoft.com), but this Token does not let me do a POST on https://graph.windows.net/(my AAD ID)/applications?api-version=1.5:\n    {\n        \"odata.error\": {\n            \"code\": \"Authorization_RequestDenied\",\n            \"message\": {\n                \"lang\": \"en\",\n                \"value\": \"Insufficient privileges to complete the operation.\"\n            }\n        }\n    }\n\nI found (https://msdn.microsoft.com/Library/Azure/Ad/Graph/howto/azure-ad-graph-api-permission-scopes) that even if I grant the Directory.ReadWrite.All permission, the application (app-only) will not be able to create or update Applications:\n\nNote: Specifically excludes create or update for entities not listed above.\n  This includes: Application, Oauth2PermissionGrant, AppRoleAssignment, Device,\n  ServicePrincipal, TenantDetail, domains, etc.\n\nThe next thing I tried was the Resource Owner Password Grant (grant_type=password), passing my own credentials additionally, so that I can impersonate myself in the Graph API. Now, my POST to the applications end point succeeds.\nMy bottom-of-the-line question is: Can I grant sufficient permissions to my application so that I can add applications programmatically using the client credentials flow, and not any flow which acts on behalf of a user? And if so, how is it done?\n",
+    "question_score": 9,
+    "answer_text": "Sorry Don.  We don't currently have any permission scopes for the client credential flow (app-only) that can be used to create applications or service principals or create any oauth2 permission grants (or any of the other entities that you mentioned above through the Directory.ReadWrite.All permission).  We are working on additional app-only permissions that will enable you to light up this scenario, but I don't have an ETA that I can give you.\nThis operation should be possible if you use the app+user (code flow) and grant the app the Directory.AccessAsUser.All permission - as long as there is a user using your app AND that they are a tenant admin.  Not sure if this is an acceptable workaround for you (and I guess is similar to what you are using with  the password flow - although I would recommend you use the code flow here).\nUPDATE:  There are a couple of new app only permissions we added for AAD Graph.  Application.ReadWrite.OwnedBy (which allows an app to create/own another app - but only update the apps it created - it won't be able to touch any other apps it doesn't own) AND Application.ReadWrite.All (which allows an app to create/manage ALL apps in a tenant).  Seems like the first one would be appropriate.  You can see these show in the Azure Portal for the AAD Graph resource.\n",
+    "answer_id": 35073714,
+    "tags": [
+      "azure",
+      "oauth-2.0",
+      "azure-api-management",
+      "azure-ad-graph-api"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 60216664,
+    "title": "Update Azure keyvault secret through Azure API",
+    "question_text": "I am trying to update keyvault secret in Azure through Postman. But getting Authorization error.\nAny suggestions. Anything I am missing. Thanks in advance\n{\n  \"error\": {\n    \"code\": \"Unauthorized\",\n    \"message\": \"AKV10022: Invalid audience. Expected https://vault.azure.net, found: https://management.azure.com/.\"\n  }\n}\n\nUsing the below to update the secret:\nPUT https://demokv.vault.azure.net/secrets/secretname?api-version=7.0\n\nin Body:\n{\n  \"value\": \"mysecretvalue\"\n}\n\n",
+    "question_score": 8,
+    "answer_text": "As mentioned in another  reply, the audience of your token is not correct, to call Azure Keyvault REST API - Set Secret - Set Secret, the audience should be https://vault.azure.net.\nTo get the token, you could use the client credential flow in the postman.\n1.Register an AD App in azure ad, then get values for signing in and create a new application secret.\n2.Navigate to the keyvault in the portal, add the service principal of the AD App to the Access policies.\nIn the postman, follow the screenshot below, fix the properties that got from step 1.\nPOST https://login.microsoftonline.com/<tenant-id>/oauth2/v2.0/token\n\nclient_id=<client_id>\n&scope=https://vault.azure.net/.default\n&client_secret=<client_secret>\n&grant_type=client_credentials\n\n\nThen copy the token to call the REST API to set secret, it will work fine.\n\n",
+    "answer_id": 60221087,
+    "tags": [
+      "azure",
+      "azure-api-management",
+      "azure-keyvault"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 70278751,
+    "title": "What is the difference between &#39;xml&#39; and &#39;rawxml&#39; formats when defining APIM policies in ARM/Bicep Templates",
+    "question_text": "When defining an Azure API Management policy in a Bicep or ARM template, the format of the policy value may be set to rawxml (and rawxml-link) or xml (and xml-link). I know what the link formats are, however there is an unclear difference between rawxml and xml.\nI have looked through the MS Docs on this (ApiManagement Policy Template Definition) but have not found any indicator as to the differences or purposes of either format. Googling around has not produced a straight answer anyway, at least to my google skills.\nWhat is the difference between rawxml and xml?\n",
+    "question_score": 8,
+    "answer_text": "Policy in xml format must be a valid XML, i.e. all characters that are not valid in XML must be properly escaped. For example, that is how simple expression must look\n<set-variable name=\"var\" value=\"@(&quot;user id:&quot; + context.User?.Id)\"/>\n\nPolicy in rawxml format utilizes razor syntax and it is what you see in Azure Portal when you edit policy code. In this format you don't need to escape XML invalid characters in expressions, like so:\n<set-variable name=\"var\" value=\"@(\"user id:\" + context.User?.Id)\"/>\n\nOtherwise there is no difference, you can choose whatever format fits your needs best.\n",
+    "answer_id": 70310169,
+    "tags": [
+      "azure-api-management",
+      "azure-rm-template",
+      "azure-bicep"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 60540667,
+    "title": "Azure AppInsights - Http Result code Faulted",
+    "question_text": "We have configured APIM, WebApp in Azure and then connected AppInsights Log to get the details in case of failure.\nWe are doing load testing on APIM.\nAt one point, we started getting 500 error code which means that there is issue at application level.\nWhen we looked in details, at one point, we got http result code as \"Faulted\" & we do not get any errors underneath API, servers.\nSo I would like to know what means by \"Faulted\"?\n\n",
+    "question_score": 8,
+    "answer_text": "Here's an explanation from the ApplicationInsights-dotnet repo issues on HttpCoreDiagnosticListener tracks exceptions\n\nThis issue is about DependencyCollection module tracking an Exception event along with a DependencyTelemetry in the event of client side errors like DNS. The exception is sent to user ikey, along with DependencyTelemetry.\nIf this exception is not tracked, then the only information DependencyCollector has is that call failed, and resultCode as \"Faulted\". We should modify the result code to be more useful, before removing the actual exception.\nBtw, DependencyCollection for .NET Framework does not track this exception, so making netcore also behave same is good for consistency point.\n\n",
+    "answer_id": 60983266,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "load-testing",
+      "azure-application-insights",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 56597347,
+    "title": "Azure API Management - How to get original IP when APM is behind WAF",
+    "question_text": "We have below technical stack\n\nImperva WAF\nAPI Management\nWebApi in WebApp\n\nThis is current implementation\n\nClient IPs are authenticated at WAF level\nWAF IPs are whitelisted at APIM \nAPIM IP is whitelisted at WebApp level\n\nEverything is working fine and as expected.\nNow when i went to APIM -> Analytics -> Request, i see WAF IPs are listed here and not the client ones. So in this case we will not be able to track who is using what\nI know we have option to track thru subscription key, but that is not enough.\nCan anybody please suggest how to configure to get correct IPs?\n\n",
+    "question_score": 8,
+    "answer_text": "After raising support request to Microsoft, we got what we want\nThis is how we accomplished\n\nWhen Imperva WAF calls APIM endpoint, it also passes Incap-Client-IP in header\nWithin APIM -> APIs -> All APIs -> Settings -> Enter header property you want to add in request log of App Insights\n\nUnder request log -> custom dimension -> you can see InCap-Client-IP property is added in App Insights \n\n\nNow we can export this in csv format and can track usage based on client IP.\n",
+    "answer_id": 57494231,
+    "tags": [
+      "azure",
+      "ip-address",
+      "azure-api-management",
+      "web-application-firewall",
+      "x-forwarded-for"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 58554013,
+    "title": "Azure API Management Policy - Dynamic named value select",
+    "question_text": "I have stored a named value based on the user id, so I can identify the payload submitter, with a reference of my choosing.\nWhen I use the policy below, I get the value as a string, rather than actually looking up the named value. If I simply write the user id inside the double curly brackets rather than getting it dynamically from the context, the lookup works fine and it substitues with the named value I want.\nIs it not possible to do in a simple manner?\n<policies>\n  <inbound>\n    <set-header name=\"x-request-context-data\" exists-action=\"override\">\n      <value>{{@(context.User.Id)}}</value>\n    </set-header>\n  </inbound>\n</policies>\n\nOutput:\nx-request-context-data: {{@(context.User.Id)}}\n\n",
+    "question_score": 8,
+    "answer_text": "Answered at MSDN.\n\nWhile you can use named values in policy expressions, the other way\n  around is not supported and not possible to support as described in\n  this feature request.\nWorkarounds would be to either\n\nStore named values as a JSON string or a CSV string with key=value pairs. Then use policy expressions to parse and fetch the required value.\nUse control flow policies for run time decisions.\nFor complex cases, offload to a function app but use value caching policies for improved latency if possible\n\n\n",
+    "answer_id": 58590560,
+    "tags": [
+      "azure-api-management",
+      "policy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 45600323,
+    "title": "CosmosDb with DocumentDB API through Azure API Management",
+    "question_text": "I am attempting to query my new CosmosDB collection through API management. Once proved out, this will be a front-end for user access to logged data. For that reason, I have the data partitioned by subscription ID. In Azure Portal for the Logs collection of my WebApi DB I see partition key as /api_subscription_key. I have the data going in from API Mgt. -> Event Hub -> Stream Analytics -> Cosmos.\nUsing the query explorer in Azure portal, I can try a query like:\nSELECT * FROM c WHERE c.api_subscription_key = '573a1c65bceb52192c140131'\n\nthis brings back expected documents I have been successfully writing to CosmosDB for many days\n    [\n      {\n        \"eventenqueuedutctimesecond\": \"2017-07-27T15:09:02Z\",\n        \"business_unit_key\": null,\n        \"user_key\": null,\n        \"api_message_id\": \"1718ea66-d225-45ec-b3fc-5daff4c7f426\",\n        \"api_identifier\": \"21926e9d-9206-42b0-b4b1-7e7f1eb4e7dd\",\n        \"api_id\": \"58d94cc622be39392343d4b6\",\n        \"api_operation_id\": \"58e682bde055cd0ba4215d4b\",\n        \"api_adapter_id\": \"573a1c64bceb520aac127ee5\",\n        \"api_subscription_id\": \"573a1c65bceb52192c140131\",\n        \"api_policy_id\": \"64BC4270-54AC-42DA-835C-E285F35BCA81\",\n        \"basic_username\": \"\",\n        \"message_version\": \"10\",\n        \"claim_business_unit_key\": null,\n        \"claim_user_key\": null,\n    ...\n        \"lasterrorsource\": null,\n        \"lasterrorreason\": null,\n        \"lasterrorscope\": null,\n        \"lasterrorsection\": null,\n        \"lasterrorpolicyid\": null,\n        \"id\": \"7/27/2017 3:09:02 PM\",\n        \"_rid\": \"9Fc0ANW4fwAoAAAAAAAADA==\",\n        \"_self\": \"dbs/9Fc0AA==/colls/9Fc0ANW4fwA=/docs/9Fc0ANW4fwAoAAAAAAAADA==/\",\n        \"_etag\": \"\\\"0700d90c-0000-0000-0000-597a020e0000\\\"\",\n        \"_attachments\": \"attachments/\",\n        \"_ts\": 1501168140\n      }...\n\nMy CosmosDB instance is plexconnectcosmos. Thru API management and its policies I am POSTing to \nhttps://plexconnectcosmos.documents.azure.com/dbs/WebApi/colls/Logs/docs\n\nwith these headers (many vestigial and hopefully having no effect): \n[\n{\nname: \"Postman-Token\",\nvalue: \"756c2c21-ef23-4e5a-a63a-ae6aed961d35\"\n},\n{\nname: \"Ocp-Apim-Subscription-Key\",\nvalue: \"a2a05eff128943bc89f62b81a63aa368\"\n},\n{\nname: \"Accept-Charset\",\nvalue: \"UTF-8\"\n},\n{\nname: \"Cache-Control\",\nvalue: \"no-cache\"\n},\n{\nname: \"Content-Type\",\nvalue: \"application/query+json\"\n},\n{\nname: \"Accept\",\nvalue: \"application/json;odata=nometadata\"\n},\n{\nname: \"Accept-Encoding\",\nvalue: \"gzip,deflate\"\n},\n{\nname: \"Cookie\",\nvalue: \"x-ms-gateway-slice=008; stsservicecookie=ests; BIGipServerpmc_rest_webservices_http_prod=1242575370.20480.0000\"\n},\n{\nname: \"User-Agent\",\nvalue: \"PostmanRuntime/6.2.5\"\n},\n{\nname: \"x-ms-date\",\nvalue: \"Wed, 09 Aug 2017 20:10:09 GMT\"\n},\n{\nname: \"x-ms-version\",\nvalue: \"2017-02-22\"\n},\n{\nname: \"MaxDataServiceVersion\",\nvalue: \"3.0\"\n},\n{\nname: \"DataServiceVersion\",\nvalue: \"1.0;NetFx\"\n},\n{\nname: \"Api-Message-Id\",\nvalue: \"12427ae7-7704-44cb-b4af-d7e622898b99\"\n},\n{\nname: \"Api-Identifier\",\nvalue: \"461f0c19-8df3-4272-9ac7-c64bb776dd56\"\n},\n{\nname: \"Api-Id\",\nvalue: \"58987927bceb5204c4e59168\"\n},\n{\nname: \"Api-Operation-Id\",\nvalue: \"598b3c72e055cd14fc3abdd1\"\n},\n{\nname: \"Api-Adapter-Id\",\nvalue: \"573a1c64bceb520aac127ee5\"\n},\n{\nname: \"Api-Subscription-Id\",\nvalue: \"573a1c65bceb52192c140131\"\n},\n{\nname: \"Api-Policy-Id\",\nvalue: \"64BC4270-54AC-42DA-835C-E285F35BCA81\"\n},\n{\nname: \"X-Basic-Username\",\nvalue: \"\"\n},\n{\nname: \"x-ms-documentdb-isquery\",\nvalue: \"True\"\n},\n{\nname: \"x-ms-documentdb-query-enablecrosspartition\",\nvalue: \"False\"\n},\n{\nname: \"x-ms-max-item-count\",\nvalue: \"1000\"\n},\n{\nname: \"x-ms-documentdb-partitionkey\",\nvalue: \"573a1c65bceb52192c140131\"\n},\n{\nname: \"x-ms-partition-key\",\nvalue: \"573a1c65bceb52192c140131\"\n},\n{\nname: \"Authorization\",\nvalue: \"type=master&ver=1.0&sig=Ke...Q=\"\n},\n{\nname: \"X-Forwarded-For\",\nvalue: \"75.39.38.67\"\n}\n]\n\nThe response I get back is either\n{\n    \"code\": \"BadRequest\",\n    \"message\": \"Partition key 573a1c65bceb52192c140131 is invalid.\\r\\nActivityId: 61836599-fe4b-4232-b55b-2c568eecc767\"\n}\n\nor\n{\n    \"code\": \"Unauthorized\",\n    \"message\": \"The input authorization token can't serve the request. Please check that the expected payload is built as per the protocol, and check the key being used. Server used the following payload to sign: 'post\\ndocs\\ndbs/WebApi/colls/Logs\\nwed, 09 aug 2017 20:35:41 gmt\\n\\n'\\r\\nActivityId: 429....2e2\"\n}\n\nThese seems to give me two problems to solve. In the first place how do I go about troubleshooting this partition? It seems to be from my analysis, it is a valid partition, validating by queries in the portal and the headers \"x-ms-documentdb-partitionkey\" and \"x-ms-partition-key\". (I have seen both header names in MS documentation, so I am covering my bases with both.)\nThe \"The input authorization token can't serve the request.\" message suggests to me something variably wrong in my query. I suspect maybe the data value? My policy is little different from one I use for Azure Table Storage REST API and I never have that problem. I am using my read-only primary key taken from Azure portal and stored in API Management's Named Values:\n<policies>\n    <inbound>\n        <base />\n        <set-variable name=\"Content-Type\" value=\"application/query+json\" />\n        <set-variable name=\"x-ms-documentdb-isquery\" value=\"True\" />\n        <set-variable name=\"x-ms-documentdb-query-enablecrosspartition\" value=\"False\" />\n        <set-variable name=\"x-ms-max-item-count\" value=\"1000\" />\n        <set-variable name=\"x-ms-version\" value=\"2017-02-22\" />\n        <set-header name=\"Content-Type\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"Content-Type\"])</value>\n        </set-header>\n        <set-header name=\"x-ms-documentdb-isquery\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"x-ms-documentdb-isquery\"])</value>\n        </set-header>\n        <set-header name=\"x-ms-documentdb-query-enablecrosspartition\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"x-ms-documentdb-query-enablecrosspartition\"])</value>\n        </set-header>\n        <set-header name=\"x-ms-max-item-count\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"x-ms-max-item-count\"])</value>\n        </set-header>\n        <set-header name=\"x-ms-version\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"x-ms-version\"])</value>\n        </set-header>\n        <!-- MS docs may conflict here. Possibly \"x-ms-documentdb-partitionkey\" req'd and \"x-ms-partition-key\" not supported -->\n        <set-header name=\"x-ms-documentdb-partitionkey\" exists-action=\"override\">\n            <value>@(context.Subscription.Id)</value>\n        </set-header>\n        <set-header name=\"x-ms-partition-key\" exists-action=\"override\">\n            <value>@(context.Subscription.Id)</value>\n        </set-header>\n        <set-variable name=\"StringToSign\" value=\"@(string.Format(\"post\\ndocs\\ndbs/WebApi/colls/Logs\\n{0}\\n\\n\", ((string)context.Variables[\"x-ms-date\"]).ToLowerInvariant()))\" />\n        <set-variable name=\"cosmosreadonlykey\" value=\"{{CosmosReadOnlyKey}}\" />\n        <set-variable name=\"SharedKey\" value=\"@{\n        // https://learn.microsoft.com/en-us/rest/api/documentdb/access-control-on-documentdb-resources#constructkeytoken\n        System.Security.Cryptography.HMACSHA256 hasher = new System.Security.Cryptography.HMACSHA256(Convert.FromBase64String((string)context.Variables[\"cosmosreadonlykey\"]));\n        return Convert.ToBase64String(hasher.ComputeHash(System.Text.Encoding.UTF8.GetBytes((string)context.Variables[\"StringToSign\"])));\n}\" />\n        <set-variable name=\"Authorization\" value=\"@(string.Format(\"type=master&ver=1.0&sig={0}\", (string)context.Variables[\"SharedKey\"]))\" />\n        <set-header name=\"Authorization\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"Authorization\"])</value>\n        </set-header>\n        <set-backend-service base-url=\"https://plexconnectcosmos.documents.azure.com\" />\n        <rewrite-uri template=\"/dbs/WebApi/colls/Logs/docs\" />\n    </inbound>\n\nSome thins I wonder: Could the returned ActivityId help me get any more details, some how? Even without it, is there some logging in Azure I haven't found that would reveal more details.\nIf anything is obviously wrong here that I am doing, please someone let me know.\n",
+    "question_score": 8,
+    "answer_text": "I got it running with some minor adjustments.\n<policies>\n<inbound>\n    <base />\n    <set-variable name=\"Content-Type\" value=\"application/query+json\" />\n    <set-variable name=\"x-ms-documentdb-isquery\" value=\"True\" />\n    <set-variable name=\"x-ms-documentdb-query-enablecrosspartition\" value=\"False\" />\n    <set-variable name=\"x-ms-max-item-count\" value=\"1000\" />\n    <set-variable name=\"x-ms-version\" value=\"2017-02-22\" />\n    <set-variable name=\"x-ms-date\" value=\"@( DateTime.UtcNow.ToString(\"R\") )\" />\n    <set-header name=\"Content-Type\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"Content-Type\"])</value>\n    </set-header>\n    <set-header name=\"x-ms-documentdb-isquery\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"x-ms-documentdb-isquery\"])</value>\n    </set-header>\n    <set-header name=\"x-ms-documentdb-query-enablecrosspartition\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"x-ms-documentdb-query-enablecrosspartition\"])</value>\n    </set-header>\n    <set-header name=\"x-ms-max-item-count\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"x-ms-max-item-count\"])</value>\n    </set-header>\n    <set-header name=\"x-ms-version\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"x-ms-version\"])</value>\n    </set-header>\n    <set-header name=\"x-ms-documentdb-partitionkey\" exists-action=\"override\">\n        <value>@(\"[\\\"\"+context.Subscription.Id+\"\\\"]\")</value>\n    </set-header>\n    <set-header name=\"x-ms-date\" exists-action=\"override\">\n        <value>@( (string)context.Variables[\"x-ms-date\"] )</value>\n    </set-header>\n    <set-variable name=\"StringToSign\" value=\"@(string.Format(\"post\\ndocs\\ndbs/WebApi/colls/Logs\\n{0}\\n\\n\", ((string)context.Variables[\"x-ms-date\"]).ToLowerInvariant()))\" />\n    <set-variable name=\"cosmosreadonlykey\" value=\"{{CosmosReadOnlyKey}}\" />\n    <set-variable name=\"SharedKey\" value=\"@{\n    // https://learn.microsoft.com/en-us/rest/api/documentdb/access-control-on-documentdb-resources#constructkeytoken\n    System.Security.Cryptography.HMACSHA256 hasher = new System.Security.Cryptography.HMACSHA256(Convert.FromBase64String((string)context.Variables[\"cosmosreadonlykey\"]));\n    return Convert.ToBase64String(hasher.ComputeHash(System.Text.Encoding.UTF8.GetBytes((string)context.Variables[\"StringToSign\"])));\n}\" />\n    <set-variable name=\"Authorization\" value=\"@(string.Format(\"type=master&ver=1.0&sig={0}\", ((string)context.Variables[\"SharedKey\"]).Replace(\"&\",\"%26\").Replace(\"+\",\"%2B\").Replace(\"=\",\"%3D\")))\" />\n    <set-header name=\"Authorization\" exists-action=\"override\">\n        <value>@((string)context.Variables[\"Authorization\"])</value>\n    </set-header>\n    <set-backend-service base-url=\"https://mycosmosdb.documents.azure.com\" />\n    <rewrite-uri template=\"/dbs/WebApi/colls/Logs/docs\" />\n</inbound>\n</policies>\n\n\nthe partition key needs to be formatted as an array\ndate is put into the header and the StringToSign based on the same value\ndid some hacky URL hex encoding - could be improved with proper hex encoding\n\n",
+    "answer_id": 45605032,
+    "tags": [
+      "azure-api-management",
+      "azure-cosmosdb"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 49421027,
+    "title": "Developing Azure functions locally",
+    "question_text": "I am leading a large team of azure functions developers. So, most of the examples quoted by Microsoft using the azure web interface don't work for me. I am developing Azure functions locally using emulators to save some costs. I publish all my functions through visual studio into my integration environment. \nI am developing a bunch of azure functions that need the api gateway to handle the authentication workflows using Azure AD B2C. Now, there's no api gateway emulator or an Azure AD B2C emulator that I can run locally. My authentication workflows involve intercepting requests to the api, redirecting them to AD B2C for authentication and the subsequent addition of the auth-token to the http header and then invoking the http-triggered azure functions.\nNow, the question becomes, how do I test authentication workflows?\nHow can I setup the api gateway to register my functions running locally in visual studio as api endpoint for my api gateway in the cloud?\n",
+    "question_score": 7,
+    "answer_text": "What I did:\n\nAdded an \"authorize\" API that handles general-purpose authorization against foreign authorities.  This API returns my own JWT with my own custom claims that lasts for a some limited amount of time.\nChanged all of my other API's to use my custom JWT.\n\nAdvantages:\n\nSuper easy to test locally.   I just add #if DEBUG sections to the authorization API to skip normal authorization and give me a JWT of my design.\nI can put whatever I want in the claim, so I use it as a cache to reduce external authorization calls.   \n\n",
+    "answer_id": 49990804,
+    "tags": [
+      "azure",
+      "azure-functions",
+      "restful-authentication",
+      "azure-ad-b2c",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 59406998,
+    "title": "How to separate Development and Production environment on Azure API management?",
+    "question_text": "I am developing an application using microservice-based architecture. I Know that on Azure API management we can register our APIs. Now the problem I am facing is that my micro-services(development and production ) are deployed on AKS(Azure Kubernetes Service) and both have different IP Addresses as provided by the AKS. How do I differentiate between the two environments so that my front end team has two separate URLs for development and production? The base URI of the API Gateway on azure is pre-configured and cannot be changed, how do I get two URLs?\nMy main concern is do I need to create two instances of Azure API Management Service?\n",
+    "question_score": 7,
+    "answer_text": "If you don't want to create several instances, you might also try using versions and revisions.\n\nRevisions\n\nYou can create revisions by right-clicking an API and tap \"Add revision\".\n\nThe revision can be accessed via the rev=2 url specifier as shown in the picture above. After successful testing, you can easily set a revision to be the \"current\" API, which won't need a revision specifier anymore.\n\nVersions\n\nYou can create a version by right-clicking an API and tap \"Add version\".\n\nIn the \"Versioning scheme\" dropdown, you can also choose how the version should be specified. The options are:\n\nPath\nQuery string\nHeader\n\nso you can target each version separately.\n",
+    "answer_id": 59908878,
+    "tags": [
+      "azure",
+      "microservices",
+      "azure-api-management",
+      "azure-aks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 58006974,
+    "title": "What&#39;s the difference between transfer-response and forward-request errors in API management?",
+    "question_text": "A large number requests over our Azure API Management result in the ClientConnectionFailure exception. \nBy querying the logs I see two variants of the error:\nexceptions\n| where cloud_RoleName == \"...\" \n|\u00a0summarize num = count(itemCount) by problemId, outerMessage \n| order by num\n\n\nproblemId: ClientConnectionFailure at transfer-response, outermessage: A task was canceled, count 403,249    \nproblemId: ClientConnectionFailure at forward-request, outermessage: The operation was canceled, count 55,531\n\nBased on this post, the problem could be time-outs or that clients abandon connections. With response times generally within 500ms I'm inclined to rule out the first. \nThe question is: what is the difference between transfer-response and forward-request, and does it provide any clues as to what is going on?\n",
+    "question_score": 7,
+    "answer_text": "Transfer-response means that the client dropped the connection after it started receiving the response.\nForward-request means that the client dropped the connection while the APIM gateway was sending the request to the backend or waiting for a response from the backend.\n",
+    "answer_id": 58020277,
+    "tags": [
+      "azure-application-insights",
+      "azure-api-management",
+      "azure-log-analytics"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 51376248,
+    "title": "Azure Api management Is it possible to disable Subscription Key",
+    "question_text": "Is it a must that Subscription Key sent as part of the request when call through API Managment? is there a way to disable this option?\n",
+    "question_score": 7,
+    "answer_text": "Create a new product and uncheck \"Require subscription\" in its settings. Any API added to such product will be callable without a key, i.e. anonymously.\n\n\n",
+    "answer_id": 51386722,
+    "tags": [
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 69445513,
+    "title": "Fetch Azure API Management subscription key using azure cli",
+    "question_text": "I am trying to get the subscription keys for my products as well as default subscription key using cli. I have gone through the documentation https://learn.microsoft.com/en-us/cli/azure/apim/api?view=azure-cli-latest , but right now I don't see any commands to get me the subscription key.\nWhile I can see there are powershell way of getting it, we run the tasks in ubuntu pipeline, and the commands listed below is not working in the linux agent. It says Set-AzContext is not a known command\n$subscriptionId = \"id\"\n$RG = \"rg\"\n$service = \"apim-name\"\n\nSet-AzContext -Subscription $subscriptionId\u00a0\n\n$apimContext = New-AzApiManagementContext -ResourceGroupName $RG -ServiceName $service\n\nGet-AzApiManagementSubscriptionKey -Context $apimContext -SubscriptionId \"master\"\n\nUpdate\nI am able to fetch the details through powershell task for Azure in the DevOps pipeline. If there is no option in azure cli I will use this as a workaround.\n",
+    "question_score": 7,
+    "answer_text": "Currently it is not possible to fetch subscription key using AZ CLI commands. The PowerShell command used is the correct way to go. Just in case if it helps another way to get the subscription key is by using Management API call\n",
+    "answer_id": 69456836,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "azure-api-management",
+      "azure-cli",
+      "powershell-core"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 69753439,
+    "title": "Azure App Service access restrictions with service tag not working",
+    "question_text": "I want to limit the access to one of my app services to Azure API Mangement. In order to be independent from a single IP I created the following setting using service-tag-based restriction:\n\nHowever if I test my API using the Developer Portal I still receive 403 messages.\nIf I now add a restriction-rule to allow the IP address of the API Management it will work.\nThe documentation claims that service tags are adding the IP ranges for the provided Azure services to the restrictions. This is exactly what I want to achieve but it does not seem to work.\n",
+    "question_score": 7,
+    "answer_text": "After I contacted the MS support I know can tell an answer to this.\nOn central message in the answer was\n\nUnfortunately, there is no tag for all of the API Management outbound IP addresses.\n\nThe support highlighted that the documentation for service tags points out that\n\nThis enables customers to perform management operations on the APIs, Operations, Policies, NamedValues configured on the API Management service.\n\nWhat this means is that the service tag is only for backend operations. Problem with this is that it doesn't help you at all. I already noticed that after I switched on the service tag rule I could not update an API using the direct OpenAPI endpoint via the portal which is the documented way. This is because the explorative request against the OpenAPI would be performed using the local browser as a XHR-request. This means I would have to add my local IP to the restriction list every time.\nThe supports suggests to put everything inside a VNET and configure the access using this technique. I had this solution in place and then considered it as too clumpsy. I guess I have to do it now.\n",
+    "answer_id": 69851284,
+    "tags": [
+      "azure",
+      "azure-api-management",
+      "azure-appservice"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57111256,
+    "title": "Azure API Management - How to secure Subscription key",
+    "question_text": "Technical stack\n\nAPI deployed in WebApp\nAPI Management deployed and WebApp is configured as Web service URL.\nUI developed in Angular application which calls API Management endpoints to display data on UI.\nIP Authentication is implemented to make sure only allowed users has access to UI & API\nSubscription is enabled at Product level and key is shared with client for API call \nSeparate product is created for UI and subscription key is used in UI to call API and display data\n\nNow in this case, subscription key will be visible thru Browser -> Inspect -> Network tab\nWe want to make sure that user can't use UI key to make API call\nUsing Proxy will hide the key but now anyone can call proxy url to get data.\nHow to make it secure?\n\n",
+    "question_score": 7,
+    "answer_text": "As mentioned by nmbrphi, garethb, we can't control what end user see in browser network tab.\nAnd as we do not have user authentication available in system and only have IP authentication, can't control usage of UI key directly from API.\nTo make sure we have more secured UI call, we have implemented custom logic which can be used for any javascript application\nReference\nhttp://billpatrianakos.me/blog/2013/09/12/securing-api-keys-in-a-client-side-javascript-app/\nThis helped me to at least distinguish UI calling API and API directly called from other  application/tools like postman.\nThanks all for your help.\n",
+    "answer_id": 57269706,
+    "tags": [
+      "angular",
+      "security",
+      "azure-web-app-service",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 65200525,
+    "title": "The Swagger version specified is unknown. Azure APIM ARM Template",
+    "question_text": "I am facing the issue only when I Deploy through ARM Template, when I try from portal its successful. I thought the issue might be with the version I am using so I have changed last 3 versions(https://learn.microsoft.com/en-us/azure/templates/microsoft.apimanagement/service/apis) in the template, still same issue. can some one please point me whats going wrong here? I have added minimal reproduction.\nSwagger:\n{\n  \"openapi\": \"3.0.1\",\n  \"info\": {\n    \"title\": \"Test\",\n    \"description\": \"Test\",\n    \"version\": \"1.0\"\n  },\n  \"paths\": {\n    \"/api/v1/test\": {\n      \"get\": {\n        \"tags\": [\n          \"Test\"\n        ],\n        \"summary\": \"Test\",\n        \"parameters\": [\n          {\n            \"name\": \"TestName\",\n            \"in\": \"query\",\n            \"schema\": {\n              \"minLength\": 3,\n              \"type\": \"string\",\n              \"nullable\": true\n            }\n          }\n        ],\n        \"responses\": {\n          \"500\": {\n            \"description\": \"Server Error\",\n            \"content\": {\n              \"text/plain\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Error\"\n                }\n              },\n              \"application/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Error\"\n                }\n              },\n              \"text/json\": {\n                \"schema\": {\n                  \"$ref\": \"#/components/schemas/Error\"\n                }\n              }\n            }\n          }\n        }\n      }\n    }\n  },\n  \"components\": {\n    \"schemas\": {\n\n      \"Error\": {\n        \"type\": \"object\",\n        \"properties\": {\n          \"errorCode\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          },\n          \"errorDescription\": {\n            \"type\": \"string\",\n            \"nullable\": true\n          }\n        },\n        \"additionalProperties\": false\n      }\n\n    }\n  }\n}\n\nARM Template\n{\n  \"$schema\": \"https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#\",\n  \"contentVersion\": \"1.0.0.0\",\n  \"parameters\": {\n    \"ApimServiceName\": {\n      \"type\": \"string\"\n    }\n  },\n  \"resources\": [\n    {\n      \"properties\": {\n        \"serviceUrl\": \"https://test.url\",\n        \"path\": \"projects\",\n        \"value\": ***\"swaggerstorageaccounturl.json\",***\n        \"format\": \"swagger-link-json\"\n      },\n      \"name\": \"[concat(parameters('ApimServiceName'), '/Test')]\",\n      \"type\": \"Microsoft.ApiManagement/service/apis\",\n      \"apiVersion\": \"2020-06-01-preview\",\n      \"dependsOn\": []\n    }\n  ]\n}\n\nWhen I tried with the petstore example as mentioned here https://github.com/Azure/azure-quickstart-templates/blob/master/201-api-management-create-all-resources/azuredeploy.json#L139, its successful from the template as well as from the portal.\n",
+    "question_score": 6,
+    "answer_text": "I have got it working. The issue is, for the open API 3.0.1 we should specify format as openapi-link instead of swagger-json-link. Here its mentioned,\nhttps://github.com/pulumi/pulumi-azure-nextgen/issues/160\n \"properties\": {\n                \"serviceUrl\": \"https;//test.url\",\n                \"path\": \"test\",\n                \"value\": \"https://storageaccurl.json\",\n                \"format\": \"openapi-link\"\n            }\n\n",
+    "answer_id": 65200959,
+    "tags": [
+      "azure-devops",
+      "openapi",
+      "azure-api-management",
+      "azure-rm-template"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 49313665,
+    "title": "View Request Body in Application Insights",
+    "question_text": "I'm using Application insights with API-Management to monitor my API's. Application Insights is great tool but I'm not able to see body.\nI want to see Post request body parameter. Is there any way to add body data on application insights??\n",
+    "question_score": 6,
+    "answer_text": "\nI can't do code changes in existing api. any option without code change would help me\n\nUnfortunately, it is not supported by Application Insights.\nI also find the feedback, you could vote it.  \nIt now supports custom Telemetry Initializer as I have shown to you.\n",
+    "answer_id": 49316618,
+    "tags": [
+      "azure",
+      "azure-application-insights",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 63700252,
+    "title": "Validate multiple issuers in Azure APIM policy",
+    "question_text": "The company I work for has acquired multiple products over the years.\nWe've been developing a shared microservice ecosystem.\nThe products (currently) authenticate to different IDPs (e.g. Auth0, Azure B2C).\nThe back-end microservices can handle multiple issuers just fine, but we also want to do authN checks at the API gateway - Azure APIM, and short-circuit if the JWT acces-token is invalid.\nHow do I validate multiple issuers in Azure APIM?\nIn the docs, I can see that I can specify multiple issuers, but there's only 1 openid-config. How would it be getting the public signing keys for multiple issuers if there's only 1 openid-config? Presumably it goes to this to get the JWKS endpoint and then the info to verify token signatures...\nHere's part of the APIM (inbound) policy I'm talking about:\n<validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized\" require-expiration-time=\"true\" require-signed-tokens=\"true\">\n    <openid-config url=\"https://example-company.au.auth0.com/.well-known/openid-configuration\" />\n    <audiences>\n        <audience>test</audience>\n        <audience>blah</audience>\n    </audiences>\n    <issuers>\n        <issuer>https://example-company.au.auth0.com</issuer>\n        <issuer>http://contoso.com/</issuer>\n    </issuers>\n</validate-jwt>\n\n",
+    "question_score": 6,
+    "answer_text": "Just to clarify; the company I work for has multiple products and each product has a separate IDP and/or tenant - basically there's no cross over of uses between products.\nThe validate-jwt policy only allows 1 openid-config element, but for my scenario I've got multiple OpenId configs...\nI managed to get around this by doing the following:\n<choose>\n    <when condition=\"@(context.Request.Headers.GetValueOrDefault(\"X-ProductCode\",\"\") == \"XYZ\")\">\n        <validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized\" require-expiration-time=\"true\" require-signed-tokens=\"true\">\n            <openid-config url=\"https://xyz.au.auth0.com/.well-known/openid-configuration\" />\n            <audiences>\n                <audience>xyz-audience1</audience>\n            </audiences>\n        </validate-jwt>\n    </when>\n    <when condition=\"@(context.Request.Headers.GetValueOrDefault(\"X-ProductCode\",\"\") == \"ABC\")\">\n        <validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized\" require-expiration-time=\"true\" require-signed-tokens=\"true\">\n            <openid-config url=\"https://abc.au.auth0.com/.well-known/openid-configuration\" />\n            <audiences>\n                <audience>abc-audience1</audience>\n                <audience>abc-audience2</audience>\n            </audiences>\n        </validate-jwt>\n    </when>\n</choose>\n\n",
+    "answer_id": 64475306,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 58099128,
+    "title": "How to use a variable when returning response in policy definition?",
+    "question_text": "I'm configuring inbound policies in an instance of Azure API Management.\nFirst, I set a variable:\n<set-variable name=\"var1\" value=\"\" />\n\nThen I send a request\n<send-request mode=\"new\" response-variable-name=\"var1\" timeout=\"20\" ignore-error=\"false\">\n\nWhich returns a JSON. When testing I get the following message in trace tab:\n\nGET request to 'https://my-api.azure-api.net/api/data' has been sent, result stored in 'var1' variable.\n\nI guess the send-request policy works and the result is stored in the variable.\nThen I want to return a response (still in inbound, I get 500 when trying to do it in outbound):\n<return-response response-variable-name=\"existing response variable\">\n    <set-status code=\"200\" reason=\"OK\" />\n    <set-header name=\"Content-Type\" exists-action=\"override\">\n        <value>application/json</value>\n    </set-header>\n    <set-body>\n    {\n        \"success\": true,\n        \"var1\": context.Variables[\"var1\"]\n    }\n    </set-body>\n</return-response>\n\nMy problem is it doesn't work... It just renders context.Variables[\"var1\"].\nAnd so does:\n\n@context.Variables[\"var1\"]\n@{ context.Variables.GetValueOrDefault<string>(\"var1\") }\n@context.Variables.GetValueOrDefault(\"var1\")\n\nAll of them are rendered as written, no value is being extracted.\nEdit: I also tried adding a placeholder string and then using \n<find-and-replace from=\"Placeholder\" to=\"context.Variables.GetValueOrDefault(\"var1\")\" />\n\nAnd try to place it in inbound and outbound alike. But this policy did not launch.\nIt's a JSON object that I want to append to the response (small detail: in reality I have this issue with multiple variables).\nMy question is: how can I add my declared variable to the response? \n",
+    "question_score": 6,
+    "answer_text": "There are two ways you can go about this. You could to use policy expressions for that: https://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions. The thing to remember is that they can only be used to construct whole value for policy, not part of it, so:\n<set-body>@(\"{\\\"success\\\": true, \\\"var1\\\": \" + ((IResponse)context.Variables[\"var1\"]).Body.As<string>() + \"}\"</set-body>\n\nOr with set-body policy you could use liquid template:\n<set-variable name=\"var1body\" value=\"@((IResponse)context.Variables[\"var1\"]).Body.As<string>())\" />\n<set-body template=\"liquid\">\n{\n    \"success\": true,\n    \"var1\": {{context.Variables[\"var1body\"]}}\n}\n</set-body>\n\n",
+    "answer_id": 58122835,
+    "tags": [
+      "azure",
+      "string-concatenation",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 67230822,
+    "title": "Update api in apim using az apim api",
+    "question_text": "In my azure devops pipeline i have a task AzureCLI@2 that deploys an api to apim. How can i use the same task using the az apim api to update the api? I know that there is an operation to do this but the documentantion don't show how to and i didn't find any example. I'm using an open api file generated in the pipeline to create and i would like to use it to update the api either.\n",
+    "question_score": 6,
+    "answer_text": "Just use az apim api import again. It will replace existing API with new one, preserving policies for operations with the same template. --path and --api-id parameters must be the same as existing API. Provide url/path to the swagger/openapi and correct specification format. Example:\naz apim api import --path \"/myapi\" --api-id \"myapiid\" --resource-group \"test-rg\" --service-name \"test-apim\" --specification-url \"https://petstore.swagger.io/v2/swagger.json\" --specification-format Swagger \nIf you want to add revision instead of updating existing one, add additional --api-revision parameter\naz apim api update is suited for updating single properties or fields like description, api type etc.\n",
+    "answer_id": 67361284,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "azure-api-management",
+      "azure-cli",
+      "apim"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 51254160,
+    "title": "How to specify rewrite url for query string parameters in Azure API Management",
+    "question_text": "I'm using the Azure API Management to transform the incoming query string into another query string. \nMy transformation code is:\n<policies>\n    <inbound>\n        <rewrite-uri template=\"api/primes?a={a}&b={b}\" />\n        <base />\n    </inbound>\n    <backend>\n        <base />\n    </backend>\n    <outbound>\n        <base />\n    </outbound>\n    <on-error>\n        <base />\n    </on-error>\n</policies>\n\nWhen I try to save the edits, the error appears:\nOne or more fields contain incorrect values: \n'=' is an unexpected token. The expected token is ';'. Line 15, position 50.\n\nwhich refers to the equals symbol as in a={a}. How do I correct the template of the rewrite-uri? The input url is for example https://example.com/sum?a=7&b=5.\n",
+    "question_score": 6,
+    "answer_text": "Try replacing:\n<rewrite-uri template=\"api/primes?a={a}&b={b}\" />\n\nWith:\n<rewrite-uri template=\"api/primes?a={a}&amp;b={b}\" />\n\n\nFind more details at https://azure.microsoft.com/en-us/blog/policy-expressions-in-azure-api-management/.\n",
+    "answer_id": 51254324,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 59153464,
+    "title": "Does Azure APIM support GraphQL?",
+    "question_text": "We have microservices setup with Azure APIM as gateway and routers to all the services in the back. Is there anyway I can introduce GrpahQl before APIM or within APIM ?\n",
+    "question_score": 6,
+    "answer_text": "To answer your immediate question, there is no support for GraphQL via Azure APIM to date.\nIts one of these feature this has been upvoted by me and many others on Azure uservoice @ GraphQL introspective support within API Management / feedback forums.\nAlso see What additional services should Azure provide?\nUPDATED MAY 2022\nPreview Features\nSynthetic GraphQL allows you to easily create a GraphQL API based on your existing HTTP (SOAP or REST) APIs. This allows you to quickly upgrade your API to support modern client application development without affecting your existing infrastructure.\nWith this availability, you can:\nChange your existing APIs into GraphQL to support modern client application development. Build a GraphQL API from existing SOAP, REST, and other HTTP APIs.\nAugment your existing GraphQL API with third party APIs such as Microsoft Graph, Dynamics, Shopify, and Zendesk.\nAnnouncement: https://azure.microsoft.com/services/api-management/#overview\nDocumentation: https://azure.microsoft.com/updates/public-preview-synthetic-graphql/\n",
+    "answer_id": 59159510,
+    "tags": [
+      "azure",
+      "graphql",
+      "azure-web-app-service",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 38288378,
+    "title": "How do I extract an ip address in the azure api management policy?",
+    "question_text": "\nIs there an out of the box policy to extract the incoming ip address? I could not find one.\nDo I need to write code to do that? If so, how do I go about it? What are the other alternatives?\n\n",
+    "question_score": 6,
+    "answer_text": "You can extract IP address in any policies using policy expressions. The expression would be context.Request.IpAddress\n",
+    "answer_id": 38312252,
+    "tags": [
+      "policy",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57413756,
+    "title": "Azure API Management &quot;Could not complete the request. Please try again later.&quot;",
+    "question_text": "Whenever I try to test an API (using the Test tab of the API blade) I get \nCould not complete the request. Please try again later.\nThis has been happening on my API Management services for at least two hours.\nI've created an additional API Management Service and another subscription (with its own APIM).\nI'm on the Consumption tier (which has a 99.9% SLA) and the Azure Status Page is showing green across the board. My own personal dashboard (Service Health) is showing No service issues found.\nThis leads me to think it's something I've done. \nHow do I go about investigating this?\n",
+    "question_score": 6,
+    "answer_text": "Solved. I was on a VPN which was changing the certificate.\nI worked this out by going to the URL in Chrome (rather than requesting from the Azure Portal or Postman). Chrome told me that the connection was not secure which led me to realise it was the effect of the VPN.\nThis server could not prove that it is myapimservice.azure-api.net; \nits security certificate is from *.myworkapimservice.azurewebsites.net. \nThis may be caused by a misconfiguration or an attacker intercepting your connection.\n\n",
+    "answer_id": 57415786,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 55700326,
+    "title": "What goes in the Authority field for API Management Identity Provider",
+    "question_text": "Problem\nI'm in the process of building out an API using Azure API Management Service. I've created an Azure AD B2C tenant by which I'd which to authorize calls to said API.\nI was able to setup the tenant successfully; however, I'm running into an issue when attempting to add an Identity Provider of type Azure Active Directory B2C.\nI'm following this walkthrough from 2017: https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-aad-b2c\nThe problem is that something has changed in the actual creation wizard that is not covered in the Azure documentation. There is an additional field that is required: Authority; what goes there?\nWhat I've Tried\nSo far, I've searched the web and the only thing that I could find were ASP.NET applications referencing the following schema for an Authority:\nhttps://login.microsoftonline.com/tfp/{tenant}/B2C_1_{signup_policy}\nI attempted this (filling in the missing values unique to my tenant and sign-up policy) and I get the error: \"One or more fields contain incorrect values: Azure Active Directory B2C authority is not valid.\"\nCan someone tell me what should go there or at least point me in the direction of the updated Azure documentation that does? Again, the linked documentation above is from 2017 and doesn't mention an Authorize field.\n",
+    "question_score": 6,
+    "answer_text": "Authority field is there to control authority of your login URL. For Azure B2C login URL used to start with https://.onmicrosoft.com, recently they've introduced a new primary authority: https://learn.microsoft.com/en-us/azure/active-directory-b2c/b2clogin.\nThis field let's you customize which one you want to use. It should prefil to {tenant}.b2clogin.com, but that seems to be broken. Will be fixed shortly.\nUpdate: I updated your example above the < > characters weren't rendering, so I switched to { }.\n",
+    "answer_id": 55714281,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "azure-ad-b2c",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 42494925,
+    "title": "Azure API Management CORS: Why do I get &quot;Headers starting with &#39;Access-Control-&#39; were removed...&quot;",
+    "question_text": "With a simple policy below:\n<policies>\n    <inbound>\n        <cors>\n            <allowed-origins>\n                <origin>http://microfost.com/</origin>\n            </allowed-origins>\n            <allowed-methods preflight-result-max-age=\"300\">\n                <method>GET</method>\n                <method>POST</method>\n                <method>PATCH</method>\n                <method>DELETE</method>\n            </allowed-methods>\n            <allowed-headers>\n                <header>content-type</header>\n                <header>accept</header>\n                <header>Authorization</header>\n            </allowed-headers>\n        </cors>\n    </inbound>\n</policies>  \n\nHTTP request\nOPTIONS https://XXXX.azure-api.net/demo/XXX/XXX/* HTTP/1.1\nHost: XXXX.azure-api.net\nOcp-Apim-Trace: true\nOcp-Apim-Subscription-Key: <secret>\nOrigin: http://microfost.com\nAccess-Control-Request-Headers: Authorization\nAccess-Control-Request-Method: GET\n\nResponse content\nAccess-Control-Allow-Origin: http://microfost.com\nOcp-Apim-Trace-Location: <trace>\nDate: Mon, 27 Feb 2017 20:09:14 GMT\nContent-Length: 0\n\nI get this message and expect Origin response header I do not receive anything for 2 out of 3 APIs (1 API is working with the same policy as expected).\n**Inbound**\n[...]\ncors (0 ms)\n\"Cross domain request was well formed and was allowed to proceed. CORS related headers were added to the response.\"\n\n**Backend**\n\nNo records.\nOutbound\n\ncors (0 ms)\n{\n    \"message\": \"Headers starting with 'Access-Control-' were removed from the response. \",\n    \"headers\": []\n}\ntransfer-response (0 ms)\n{\n    \"message\": \"Response headers have been sent to the caller.\"\n}\n\nThis seems to me a nonsense behavior and might be a bug. Before submitting it I would like to ask you if there is any explanation? Why do I get this?\n\nHeaders starting with 'Access-Control-' were removed from the\n  response.\n\n",
+    "question_score": 6,
+    "answer_text": "There a two ways to do CORS in Azure API Management. Automatic - just drop and configure CORS policy in a desired scope and APIM will take care of responding on OPTIONS requests that match existing operations.\nOr you can choose manual way - create a separate operation that responds to OPTIONS method and form response manually right in the policy, possibly using return-response policy.\nThe problem you're having is because you have both. They're basically in conflict. CORS policy identifies request as cross origin and schedules processing on after request is complete, but return-response policy on OPTIONS operation level breaks this processing pipeline and returns response immediately before CORS policy can take action.\nSince you're using CORS policy you should remove OPTIONS operation from your API to make things work.\n",
+    "answer_id": 42521712,
+    "tags": [
+      "azure",
+      "cors",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 47024831,
+    "title": "Dynamically calling several back-end endpoints from within Azure APIM policy",
+    "question_text": "I'm calling a back-end API from Azure API Management (APIM) and I need to provide the JSON schema for my custom connector in Logic Apps/Flow.\nDepending on the content of the response I'm getting, I need to perform additional calls in order to provide an enumeration/drop down.\nConsider a response from the back-end API, like this:\n{\n  \"member1\": {\n    \"prop\": \"content\"\n  },\n  \"member2\": {\n    \"prop\": \"content\",\n    \"datasource\": \"http://someurl.com/api/member2/content\"\n  },\n  \"member3\": {\n    \"prop\": \"content\"\n  },\n  \"member4\": {\n    \"prop\": \"content\"\n    \"datasource\": \"http://someurl.com/api/memberfour/content\"\n  }\n}\n\nI need to perform additional calls to the URLs in the \"datasource\" members in order to provide additional data, but these are obviously dynamic, depending on the call I'm performing. I'm a bit stuck since I can't seem to perform a send-request policy for a dynamic number of calls and URLs. How would I best approach this?\n",
+    "question_score": 6,
+    "answer_text": "If I understand the scenario correctly, I don't think you want to use APIM to make the calls to the datasource URLs because then you wouldn't be able to get those results back to logic apps.  I think what you are looking for is the x-ms-dynamic-values which is documented here\nYou can use this extension to describe both the primary operation which will provide your content and some secondary operations that will return the lists used to fill the drop downs for the Logic Apps UI.  You will probably need to create additional APIM operations to surface those lists.\n",
+    "answer_id": 47142587,
+    "tags": [
+      "azure",
+      "azure-logic-apps",
+      "azure-api-management",
+      "power-automate"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 59200846,
+    "title": "Export/Import Azure API Management Developer Portal Configurations",
+    "question_text": "Microsoft has released a new developer portal for Azure API Management.\nI'm looking for a way to export all the files and configurations from an API Developer portal and be able to import it to another one. So, I can apply the same customization to all my APIM instances.\nIs there way to achieve that?\n",
+    "question_score": 6,
+    "answer_text": "You could use Git Repository to export and import configuration.\nIn the local Git repository, portalStyles folder contains the configuration for the developer portal customizations in the service instance.\n\nNote: Developer portal entities other than styles cannot be configured using Git.\n",
+    "answer_id": 59206395,
+    "tags": [
+      "azure-api-management",
+      "apim"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57512222,
+    "title": "In Azure API Management How are product level policies resolved for APIs when subscriptions are not required?",
+    "question_text": "I have the following setup in Azure API Management:\nTwo products: Internal and Starter.\nOne api: Finance, that is included in both the above products. The Finance api also has the Subscription required checkbox cleared, so a subscription is not required.\nThe Internal product has a policy that does JWT validation. The Starter product does not.\nIn the test tab of APIs, I can choose a product scope via the Apply Product Scope dropdown. Presumably this decides which product policies are applied.\nWhen calling the API, if I don't supply a valid token, the JWT validation kicks in and rejects my request. However, since I have no subscription key to identify the product, it could be either the Internal or Starter product - how does the system determine it should apply the Internal policy containing the jwt-validation rule rather than the Starter policy which doesn't?\n",
+    "question_score": 5,
+    "answer_text": "When request comes in, first API and operation are identified. Then APIM tries to identify subscription. If product subscription key is provided, it's used to identify product and it's policies are executed. If API subscription key is provided, it's checked to match identified API and no product policies would be executed at all.\nIf no subscription key is present in request, APIM checks if there is a product with Subscription required set to false, and if such product includes identified API. If there is such match, product will be used and it's policies executed. If no such match found, APIM will check if API has Subscription required set to false, and if so then call will proceed without product.\nThe Test tab uses a special key - master key, among other things this key allows you to force a certain product to be used for a call even if API is not included into one. This is mostly useful for testing purposes, and master key should not really be used in production.\n",
+    "answer_id": 57549210,
+    "tags": [
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 42255094,
+    "title": "Work with URL template parameter values in policy templates",
+    "question_text": "In API Management, how do you access URL template parameters through a policy?\nIn this instance, my operation is called test, the HTML verb is GET, and the URL template is as below -\n\n/test/{variable_name1}/{variable_name2}\n\nI was under the impression that accessing the value of a parameter was as simple as {variable_name1}.  However, the example below does not set the variable \"rowkey\" as expected.  Rather it has a value of {variable_name1}-{variable_name2}.\nWhat am I doing wrong here?\n<policies>\n    <inbound>\n        <set-variable name=\"rowkey\" value=\"{variable_name1}-{variable_name2}\" />\n    </inbound>\n    <backend>\n        <base />\n    </backend>\n    <outbound>\n        <set-header name=\"Row-Key\" exists-action=\"override\">\n            <value>@((string)context.Variables[\"rowkey\"])</value>\n        </set-header>\n    </outbound>\n</policies>\n\n",
+    "question_score": 5,
+    "answer_text": "You'd have to use expressions to achieve what you want, like:\n<set-variable \n   name=\"rowkey\" \n   value=\"@(context.Request.MatchedParameters[\"variable_name1\"] + \"-\" + context.Request.MatchedParameters[\"variable_name2\"])\" />\n\nor use string interpolation:\n<set-variable \n   name=\"rowkey\" \n   value=\"@($\"{context.Request.MatchedParameters[\"variable_name1\"]}-{context.Request.MatchedParameters[\"variable_name2\"]}\")\" />\n\n",
+    "answer_id": 42261322,
+    "tags": [
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 67867949,
+    "title": "Azure Function Timer Trigger &amp; API management - Manual execution returns 404",
+    "question_text": "I have a function app with:\n\na few functions triggered by a Timer Trigger\nand some triggered by the HTTP Trigger.\n\nI have also an Azure API Management service set up for the function app, where the HTTP Triggered functions have their endpoints defined.\nI am trying to trigger one of my timer triggered functions manually as per the guide here https://learn.microsoft.com/en-us/azure/azure-functions/functions-manually-run-non-http\nI am however getting a 404 result in Postman, despite the seemingly correct URL and x-functions-key.\nThe function:\n\nThe key:\n\nThe request:\n\nI also noticed that:\n\nif I don't include the x-functions-key header, then I get 401 Unauthorized result\nand if I include an incorrect key, then I get 403 Forbidden.\n\nCould it be related to the API management service being set up for the function app?\nHow can I troubleshoot this further?\n",
+    "question_score": 5,
+    "answer_text": "I have managed to solve it.\nIt turns out that Azure Functions timer trigger requires six parts cron expression (I was only aware of the five part style)\nWithout that, it does not work - sadly this is not easily noticeable in the UI.\nI have realized that by investigating Application Insights logs:\n\nThe function page shows that everything is fine:\n\nChanging the CRON format has fixed the 404 issue and I started getting 202 Accepted response.\nAs a bonus note, I have to add:\nEven though the response was 202 Accepted, the triggering didn't work correctly, because my function return type was Task<IActionResult> which is not accepted for timer triggered functions.\nAgain, only ApplicationInsights showed that anything is wrong:\n\nThe 'MonkeyUserRandom' function is in error: Microsoft.Azure.WebJobs.Host: Error indexing method 'MonkeyUserRandom'. Microsoft.Azure.WebJobs.Host: Cannot bind parameter '$return' to type IActionResult&. Make sure the parameter Type is supported by the binding. If you're using binding extensions (e.g. Azure Storage, ServiceBus, Timers, etc.) make sure you've called the registration method for the extension(s) in your startup code (e.g. builder.AddAzureStorage(), builder.AddServiceBus(), builder.AddTimers(), etc.).\n\nThat's a bonus tip for a 'manual triggering of non-http function does not work'.\n",
+    "answer_id": 67874677,
+    "tags": [
+      "azure",
+      "azure-functions",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57484111,
+    "title": "How Do I Throw An Error In Azure API Management Policy?",
+    "question_text": "In my Azure API Management Policy I am checking for some headers and do certain actions depending on what is found.\nHow do I throw an error when none of the conditions are matched (i.e. in the otherwise block)\n<policies>\n  <inbound>\n    <choose>\n      <when condition=\"\">\n\n      </when>\n      <when condition=\"\">\n\n      </when>\n      <otherwise>\n\n      </otherwise>\n    </choose>\n    <base/>\n  </inbound>\n\n  <backend>\n    <base/>\n  </backend>\n  <outbound>\n    <base/>\n  </outbound>\n  <on-error>\n    <base/>\n  </on-error>\n</policies>\n\nI probably want to return a 401 since I am checking groups in the headers.\n",
+    "question_score": 5,
+    "answer_text": "You can use a <choose> policy to detect and report failure, return a 401 response.   \n<otherwise>\n    <return-response >\n        <set-status code=\"401\" reason=\"Unauthorized\" />\n        <set-header name=\"WWW-Authenticate\" exists-action=\"override\">\n            <value>Bearer error=\"invalid_token\"</value>\n        </set-header>\n    </return-response>\n</otherwise>\n\nHere is also a similar SO thread you could refer to.\n",
+    "answer_id": 57492291,
+    "tags": [
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57074155,
+    "title": "ToString() error with C# expression via Azure API Management",
+    "question_text": "I got errors below trying to converting a type to string, like below:\n  <set-variable name=\"a\" value=\"@(context.Variables[\"a\"].ToString())\" />\nError in element 'set-variable' on line 16, column 10: Usage of member 'ToString' of type 'System.Object' is not supported within expressions\n\n\n <set-variable name=\"a\" value=\"@(context.Variables[\"a\"])\" />\n    Error in element 'set-variable' on line 16, column 10: Expression return type 'System.Object' is not allowed\n\nhttps://learn.microsoft.com/en-us/azure/api-management/api-management-policy-expressions\n",
+    "question_score": 5,
+    "answer_text": ".ToString() will not work.\nUse this expression instead:\n@(context.Variables.GetValueOrDefault<string>(\"a\"))\n\nor if you want to have and empty default string in case the variable is not existing or null:\n@(context.Variables.GetValueOrDefault<string>(\"a\",\"\"))\n\n",
+    "answer_id": 57077147,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 49557463,
+    "title": "Disabling Ocp-Apim-Trace in the Azure API Management Services",
+    "question_text": "Is there a way to disable Ocp-Apim-Trace in the Azure API Management Services?\n",
+    "question_score": 5,
+    "answer_text": "There is no way to disable tracing funtionality, not sending this header will disable tracing collection for one request only. But do know, that only admin users are capable of collecting traces, if this header is supplied along with subscription key that does not belong to admin account (or no subscription key at all) no traces will be collected. The idea here is that traces may expose information service owner may not be willing to share with developers.\n",
+    "answer_id": 49577431,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 45244998,
+    "title": "Azure AD Authentication Python Web API",
+    "question_text": "I'm trying to get the user authenticated using OAuth2 and access resources. However, I'm having some issues doing so. Here are the details.\n\nI've registered the app as a Web Api on the Azure portal\nI want to write a python script through which I can request an authorization code and then the access token\n\nChallenges:\n\nI don't have redirect url. I'm not sure what I can use here\nWhen I use the link to get the authorization code in the browser, it asks me to sign in to Azure. How can I make sure that it asks me to login through the Python API as well? \n\nHere's the python script that I'm using just to get the authentication code:\nimport requests\nimport json\n\n'''Request Authorization code template\n\nhttps://login.microsoftonline.com/{tenant}/oauth2/authorize?\nclient_id=6731de76-14a6-49ae-97bc-6eba6914391e\n&response_type=code\n&redirect_uri=http%3A%2F%2Flocalhost%2Fmyapp%2F\n&response_mode=query\n&resource=https%3A%2F%2Fservice.contoso.com%2F\n&state=12345\n\n'''\n\npayload = {'client_id': '***', 'response_type': 'code', 'response_mode': 'query',\n           'resource': '***'}\nget_authorization_code = requests.get('https://login.microsoftonline.com/tenant/oauth2/authorize',\n                        params=payload, verify=False)\nprint get_authorization_code\n\nResponse for this code I get is : Response [200]\n",
+    "question_score": 5,
+    "answer_text": "The Authorization Code Grant flow (response_type=code) expects you to actually send the user, in a user-agent (i.e. a browser or a browser control) to that URL. The user will be presented with the sign-in process (e.g. username, password, multi-factor authentication, etc.) and when all that is done, the browser will be redirected to the redirect_uri.\nThis is all very simple if you're coding a web app as the client (you just send the user (in their browser) to the URL you've constructed, and you host a page at the redirect_uri to receive the authorization code after the sign-in completes). It seems, however, that you are maybe scripting a console app (or other app where it's impractical to send the user to a browser control where you can catch the eventual redirect). You have a few options, depending on whether or not the script is running in a highly-secure environment.\nTo call the API as an application\nThis is probably the simplest to implement, but requires the client to be running in a high-trust secure environment. The application will authenticate as itself (not as a user), obtain an access token, and make the API request. This is the OAuth 2.0 Client Credentials Grant flow.\nYou will need to:\n\nRegister your client app in Azure AD as a web app/web API (this is important, as it tells Azure AD that this is a confidential client, and allows you to associate credentials (a password or a certificate) for the app.\nDeclare that your client app requires access to your API (which would be registered as a different web app/web API).\n\nWith Python, the easiest way to do this is to use ADAL for Python. For example, to obtain an access token while authenticating with a certificate:\nimport adal\ncontext = adal.AuthenticationContext('https://login.microsoftonline.com/{tenant-id}')\ntoken = context.acquire_token_with_client_certificate(\n    \"https://api.example.com\",\n    \"{client-id}\",  \n    '{certificate-content}', \n    '{certificate-thumbprint}')\n\nSee additional details on GitHub.\nTo call the API as a user, using the device code flow\nThe device flow allows limited-input experiences (e.g. think a TV, or a seldom-used console app) to obtain an OAuth 2.0 access token in the context of a user, while allowing the user to perform the actual sign-in on a different device with better input capabilities (e.g. on a smartphone or desktop computer).\nYou will need to:\n\nRegister your client app in Azure AD as a native client app (this is important, as it tells Azure AD that this is a public client, which allows the app to get an access token with delegated permissions without the app authenticating (because public clients can't keep a secret from the user).\nDeclare that your client app requires access to your API (which would be registered as a separate web app/web API).\n\nThe device code flow consists of:\n\nThe client app makes a request to Azure AD to get an device code. This device code is displayed to the user (along with a URL).\nOn a separate device (or, e.g. in full-fledged browser in the same device), the user visits the given URL, and inputs the given device code. The user is prompted to sign in and is shows a success message when they do so.\nMeanwhile, the client app periodically polls Azure AD to see if the user has redeemed the device code (and signed in). If yes, the client app received the access token.\n\nWith Python, it is again useful to use ADAL for Python. The request to get the device code would look like this:\ncontext = adal.AuthenticationContext('https://login.microsoftonline.com/{tenant-id}')\ncode = context.acquire_user_code('https://api.example.com', '{client-id}')\nprint(code['message'])\n\nThe periodic polling requests look like this:\ntoken = context.acquire_token_with_device_code('https://api.example.com', code, '{client-id}')\n\nSee additional details on GitHub.\n",
+    "answer_id": 45247115,
+    "tags": [
+      "python",
+      "azure",
+      "azure-active-directory",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 25259767,
+    "title": "Is it possible to make a call to an Azure API Rest url without a subscription key?",
+    "question_text": "I just want to be able to do a rest call using Azure Web Api Management without needing to pass the subscription-key in the url. Is that possible?\n",
+    "question_score": 5,
+    "answer_text": "Azure API management allows for anonymous subscriptions.\nCreate a Product without requiring a subscription (Product -> Settings -> Require Subscription)\nAdd your API to this product.\nhttps://azure.microsoft.com/en-us/documentation/articles/api-management-howto-add-products/\n",
+    "answer_id": 34743122,
+    "tags": [
+      "azure",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 74740445,
+    "title": "Migrating from validate-jwt to validate-azure-ad-token policy",
+    "question_text": "I've previously been using the validate-jwt policy successfully in a lot of projects. I would like to try out the new validate-azure-ad-token policy instead.\nI changed one of my policies from:\n<validate-jwt header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized. Access token is missing or invalid.\">\n    <openid-config url=\"https://login.microsoftonline.com/{{tenant-id}}/v2.0/.well-known/openid-configuration\" />\n    <required-claims>\n        <claim name=\"azp\" match=\"all\">\n            <value>{{portal-clientId}}</value>\n        </claim>\n    </required-claims>\n</validate-jwt>\n\nTo:\n<validate-azure-ad-token header-name=\"Authorization\" failed-validation-httpcode=\"401\" failed-validation-error-message=\"Unauthorized. Access token is missing or invalid.\" tenant-id=\"{{tenant-id}}\">\n    <client-application-ids>\n        <application-id>{{portal-clientId}}</application-id>\n    </client-application-ids>\n</validate-azure-ad-token>\n\nThe former works without any issues, but I just can't get the latter to work. The named value portal-clientId in both policy snippets above correspond to the applicationId of both the app registration and the enterprise app.\nAs you can see from the former, the value is in the azp claim. From jwt.ms, it sounds like this should be the correct claim for the new policy as well:\n\nThe application ID of the client using the token. The application can act as itself or on behalf of a user. The application ID typically represents an application object, but it can also represent a service principal object in Azure AD.\n\nI've read both the Azure documentation and the article introducing the new feature, but I just can't figure out what I'm doing wrong. When tracing, the newer policy has the following to say:\nvalidate-azure-ad-token (3.470 ms)\n{\n    \"message\": \"Azure AD JWT Validation Failed: ValidationFailed.\"\n}\n\nAre there some hidden expectations in the new policy? My issuer in the token is https://login.microsoftonline.com/{{tenant-id}}/v2.0.\nViewing logs in application insights connected to this API yields no more useful information than the trace, even when activating verbose logging.\nAny help would be greatly appreciated.\n",
+    "question_score": 5,
+    "answer_text": "(Source: I am on the Azure API Management team and responsible for the APIM policy implementations).\nShort version: Revert back to using validate-jwt (for now).\nThere are two issues here.\n\nYour two statements are not equivalent.  The client application ID is exposed in JWT as an audience.  You are correct on the validate-azure-ad-token version and wrong on the validate-jwt version.\nThere is a current bug (that we are working on and will be fixed \"soon\") whereby the underlying library we are using for Azure Active Directory is not validating v2.0 tokens.\n\n",
+    "answer_id": 74865918,
+    "tags": [
+      "azure",
+      "oauth-2.0",
+      "jwt",
+      "azure-api-management",
+      "azure-oauth2"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 68659311,
+    "title": "How to pass a bearer token correctly in the Azure APIM?",
+    "question_text": "I am trying to pass a bearer token from another API that I have subscribed to via my API into my APIM.\nI had the idea of adding inbound processing that adds a set-header that adds \"authorization\" and \"Bearer xxxxxxxxxxxxxxxxxxxxx\".\nSo I was wondering if this is safe enough, as I don't want my bearer token to be public, I'm not sure if this can be traced outside of the APIM itself.\nCould there be a better solution?\nI found this https://learn.microsoft.com/en-us/azure/api-management/policies/use-oauth2-for-authorization in the Microsoft docs, but I'm not sure if it also works if it's a bearer token not linked to Azure AD. But maybe using \"send-request\" puts me on the right track?\nKind regards\n",
+    "question_score": 5,
+    "answer_text": "You can store your secrets in Azure key vault. Define the secrets in APIM named properties. You should be good to securely send your token - \"myToken\"\n<set-header name=\"Authorization\" exists-action=\"override\">\n     <value>Bearer {{myToken}}</value>\n</set-header>\n\nRef : https://learn.microsoft.com/en-us/azure/api-management/api-management-howto-properties?tabs=azure-portal\n",
+    "answer_id": 68709333,
+    "tags": [
+      "azure",
+      "oauth-2.0",
+      "oauth",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 52173908,
+    "title": "How to prevent direct access to API hosted in Azure app service",
+    "question_text": "I have a backend API that is hosted in Azure app service.  I want to use Azure API management as the front end to this backend API and have successfully configured this in Azure.  I have configured API management to use OAuth when accessing this backend API which works when clients access the API through the Azure API management endpoints, but how do I prevent people from accessing the backend API endpoints directly so that only calls from the API management endpoints are allowed? \n",
+    "question_score": 5,
+    "answer_text": "There are a few options of various levels of security:\n\nShared secret - set a certain header with a certain value in APIM and check that value at your backend.\nManaged identity - you can enable managed identity in APIM service and send its token to your backend where you'll be able to validate it.\nIP filter - check for APIM IP as a source at backend.\nClient certificate auth - upload a client cert auth to APIM and attach it to every request to backend. Check for that cert at backend.\nVNET - put APIM and your backend into same VNET and block access from outside to backend.\n\n",
+    "answer_id": 52174736,
+    "tags": [
+      "azure-web-app-service",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 67061855,
+    "title": "Publish APIM Developer portal through terraform",
+    "question_text": "Hi I have searched through docs on and can't quite find how to publish the developer portal through terraform. My terraform does spool a resource group with an API Management service resource but I want it to also publish the developer portal and enable CORS. Is this possible through terraform or has to be done manually after I have the rg spooled?\n\nUpdated terraform looking at the documentation here: https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/api_management#host_name\nThere is a block for developer portal but I am not sure if this actually publishes it and also not sure what to put in the host_name. Please assist.\n",
+    "question_score": 5,
+    "answer_text": "You can completely configure the APIM and its portal from an ARM template but you can't publish the content. There are scripts in the Github repo to do this using the rest API.\nPublishing content using those scripts will work for the managed portal. If you're hosting your own version of the portal you'll have to take some additional steps, according to the migration script.\nIf you can get Terraform to execute NodeJs scripts, you should be able to use these to push content to the portal and publish it.\nPlease also check the docs that were recently added about the migration script.\n",
+    "answer_id": 68026715,
+    "tags": [
+      "azure",
+      "terraform",
+      "wso2-api-manager",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 65463426,
+    "title": "Authenticate Azure API Management with OAuth2 using Azure AD",
+    "question_text": "I am trying to secure APIM APIs using OAuth2 via AzureAD by reading the article: Protect a web API backend in Azure API Management by using OAuth 2.0 authorization with Azure AD\nAzureAPIM - OAuth2\n\nAuthorization endpoint URL (v1): https://login.microsoftonline.com/{tenant}/oauth2/authorize\nToken endpoint URL (v1): https://login.microsoftonline.com/{tenant}/oauth2/token\nClient ID: client-app id\nRedirect URI: (deprecated portal): https://xxx-api.portal.azure-api.net/docs/services/auth1/console/oauth2/authorizationcode/callback\n\nAzureAD - backend-app:\n\nscope: Files.All\n\nAzureAD - client-app:\n\nsecret key: xxx\nRedirect url: ONLY WORK with deprecated portal in APIM (https://xxx-api.portal.azure-api.net/docs/services/auth1/console/oauth2/authorizationcode/callback)\n\nFor Demo Conference API, Add Validate JWT policy to Inbound processing where 3a0cf09b- is tenant id and b7c31179- is backend-app application id:\n\nIn Developer portal, the authentication to AzureAD is successful with a return token:\n\nHowever the authorization is failed with calling the API:\n\nInspecting the received token in jwt.io, I found that the \"aud\": \"00000003-0000-0000-c000-000000000000\" is not backend-app application id:\n{\n  \"aud\": \"00000003-0000-0000-c000-000000000000\",\n  \"iss\": \"https://sts.windows.net/3a0cf09b-xxx/\",\n  \"app_displayname\": \"client-app\",\n  \"appid\": \"05a245fb-xxx\",\n  \"scp\": \"Files.Read User.Read profile openid email\",\n  \"tenant_region_scope\": \"OC\",\n  \"tid\": \"3a0cf09b-2952-4673-9ace-0e1bf69ee23a\",\n  \"unique_name\": \"user1@xxx.onmicrosoft.com\",\n}\n\nAPI Test HTTP response trace shows the error on validate-jwt:\nvalidate-jwt (-0.138 ms)\n{\n    \"message\": \"JWT Validation Failed: Claim value mismatch: aud=b7c31179-xxx..\"\n}\n\nReplacing aud by the value in the token 00000003-0000-0000-c000-000000000000 or removing the required-claims in the validate-jwt policy to get it working.\nAny idea please?\n",
+    "question_score": 5,
+    "answer_text": "It seems you choose v1 endpoint of OAuth2 authorization but not v2 endpoint, so the value of aud in access token should be like b7c31179-xxxx.... but not api://b7c31179-xxxx..... So there are no mistakes in your steps of get access token.\nAccording to some test in my side, the cause of this problem is you did not specify a parameter resource with the value of the backend-app application id when you configure OAuth2.0 in your APIM. The document you refer to also mentions this (I test with not specify this parameter, it shows same problem with yours)\n\nSo to solve this problem, please go to your APIM and click \"OAuth 2.0\" tab, edit the item you created. Add a parameter resource with value of the backend-app application id.\n\nNote: When you add the parameter resource and click \"Save\" button, please open the item again and check if the \"Client secret\" box is empty. When I test in my side, the \"Client secret\" box shows empty after add parameter resource, it may be a bug on that page. If \"Client secret\" is empty, it might show error message like The request body must contain the following parameter: 'client_assertion' or 'client_secret' when you get the access token in Developer portal.\n",
+    "answer_id": 65472500,
+    "tags": [
+      "oauth-2.0",
+      "azure-active-directory",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 54897254,
+    "title": "Azure API Management issue with OData",
+    "question_text": "We have an OData v4 API that we are putting behind an Azure API Management (AAM) service, but have run into a problem configuring the routes/oerations. In a nutshell, the issue is that AAM will reject a query for a route/operation unless it is explicitly configured (you get a 404 error), but with OData there can be a route for every attribute (property) of every operation (endpoint). The problem quickly becomes unmanageable. \nOData allows you to query an individual attribute/property (eg GET ~/api/Person(1234)/FirstName. If we put this behind AAM, we need to define it as an operation. That's OK as long as there are only a few of these, but it potentially means you quickly have to define hundreds/thousands of operations (unless I've missed something). We have an API with about 35 top level operations. Each resource has 20 attributes on average. That's 700 operations we would need to define. Apart from the work involved, that would be a shocking experience for users of the AAM developer portal. \nI'm hoping someone can tell me an easy way to get around this problem. I know I can script the creation of these. You an also get around this problem to some degree if you use an OData $select query parameter (which is what I've suggested in the meantime). I can't get over the feeling I've missed something here. Is there a way of defining some sort of wildcard portion to the operation (eg /Person/*)? I can't find anything like that in the AAM documentation. \n",
+    "question_score": 5,
+    "answer_text": "Try using URL templates instead of writing them explicitly, i.e. define operations for /{entity}/{property} this way it'll match every entity and every property of every entity. And you could use wildcards as well if you want to capture multiple segments at the end of URL.\n",
+    "answer_id": 54912065,
+    "tags": [
+      "odata",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 35776117,
+    "title": "Azure API Management - API End-Point Domain vs Actual API URL",
+    "question_text": "I have setup an Azure API Management Service and its configured on a custom domain.  Under the API Management Service's Configure Section in the Azure Portal, I have set the following:\n\nBecause this is a client system, I have to block out the details but here are the basics:\n\nAPI ENDPOINT DOMAIN: api.example.com\nDEVELOPER PORTAL DOMAIN: apiportal.example.com\nThere is a SSL uploaded for both.\n\nBecause I have the Type Set to Custom, I am required to enter both the API ENDPOINT and the DEV PORTAL.\nWhen I go into the Publish Portal and setup the API I get this:\n\nI need to be able to run a single Developer Portal but have 2 different API Servers (1-Sandbox, 2-Production) yet they will have different sub-domains (api-sandbox.example.com & api.example.com)\nIs this possible?  Why is the API Settings overriding the Web Service URL/URL Suffix with what I put int the API Management Configure?\n",
+    "question_score": 5,
+    "answer_text": "Web service URL property is used to specify the backend URL for a specific API. That URL is considered private and should be used by the API Management gateway component only for forwarding requests sent to the public URL you defined for your tenant. So, the behavior you are observing is by design. You should manifest your two backends as two distinct APIs in API Management.\n",
+    "answer_id": 35779166,
+    "tags": [
+      "azure",
+      "azure-api-apps",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 63788361,
+    "title": "Blazor (client-side) call to API on different domain",
+    "question_text": "My current scenario is that I have a Blazor WASM (client) app calling a Web API, via Azure API Management, sitting on a different server/domain.  I have both the Blazor App and the Web API secured with Azure Active Directory B2C.  I am also authenticating at the API Manager level using jwt-validate.  I have worked out how to pass the JWT token from the Blazor App to API Management and the Web API (using the CustomAuthorizationMessageHandler solution), but I'm seeing weird behaviour coming from the Blazor App when making the Api call.\nWhen I make a call using the method Http.GetFromJsonAsyn<MyEntity>(\"<api manager endpoint>\"), the GET request is appearing as a OPTIONS request at the API Manager, therefore causing an error (Unable to match incoming request to an operation).  I've tried multiple ways to make the API GET call, but all result in a OPTIONS call.\nI can't work out if this is a Blazor issue, a CustomAuthorizationMessageHandler issue, or something else.  Has anyone come across this before and, more importantly, has anyone solved the problem?\n",
+    "question_score": 5,
+    "answer_text": "The OPTIONS call is a 'pre-flight' call to establish whether the call is allowed.\nIt appears you do not have CORS configured on the API server.\nBut I would have expected a better error message, about CORS.\nSee the docs.\n",
+    "answer_id": 63788960,
+    "tags": [
+      "blazor",
+      "azure-ad-b2c",
+      "azure-api-management",
+      "blazor-client-side"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 39723781,
+    "title": "Is it possible to connect Azure API Management and Azure AD B2C?",
+    "question_text": "I am designing the architecture of a cloud service. I am reviewing Azure API Management and Azure AD B2C. I can't seem to find any good answer to wether it is possible to use Azure AD B2C with all its features (signup, sign in etc.) as a provider for Azure API Management security - is this possible?\n",
+    "question_score": 5,
+    "answer_text": "Azure API Management supports out of the box integration with Azure AD B2C.\nFor instructions on how to integrate Azure AD B2C with the API Management developer portal, check out this document.\nFor instructions on how to validate JWT issued by Azure AD B2C in an API Management policy, check out this document.\nNote that Azure API Management supports integration with Azure AD and Azure AD B2C in both their Developer and Premium tiers. Check out the pricing page for more details.\n",
+    "answer_id": 43723306,
+    "tags": [
+      "azure-api-management",
+      "azure-ad-b2c"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 68901233,
+    "title": "Should I use the Authorization header for API keys",
+    "question_text": "We're going to expose a custom built API (.NET) through Azure API Management. We want to conform to well-known standards where ever possible, so we don't surprise our API consumers. The API is secured through an API key which users generate from APIM's Developer Portal.\nMy understanding is that the Authorization header should be used for authentication and authorization purposes.\nhttps://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Authorization\nBut strangely, API-Key is not included as an authentication scheme.\nhttps://www.iana.org/assignments/http-authschemes/http-authschemes.xhtml#authschemes\nShould API consumers use an authorization header to authenticate?\nE.g. Authorization: API-Key xxx-xxx\nOr a custom header.\nE.g. my-key:xxx-xxx\n",
+    "question_score": 5,
+    "answer_text": "Technically, you shouldn't need any API-key if you have a token in the authorization header. I assume API-key/client and secret key are already used to generate a token. When the client sends token via an authorization header, the API owner validates your token and returns a response.\n",
+    "answer_id": 68939668,
+    "tags": [
+      "rest",
+      "authorization",
+      "azure-api-management",
+      "azure-api-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 57372611,
+    "title": "Client Certificate is not being passed on by Azure Application Gateway",
+    "question_text": "I've picked up something that someone else has set up.\nWe have an API Management instance, siting behind an Application Gateway, which has a policy on an API:\n<inbound>\n        <choose>\n            <when condition=\"@(context.Request.Certificate == null)\">\n                <return-response>\n                    <set-status code=\"403\" reason=\"Client certificate required..d1PD\" />\n                </return-response>\n            </when>\n        </choose>\n        <choose>\n            <when condition=\"@(!context.Request.Certificate.Verify())\">\n                <return-response>\n                    <set-status code=\"403\" reason=\"Client certificate cannot be verified..d2PD \" />\n                </return-response>\n            </when>\n        </choose>\n        <choose>\n            <when condition=\"@(!context.Deployment.Certificates.Any(c => c.Value.Thumbprint == context.Request.Certificate.Thumbprint))\">\n                <return-response>\n                    <set-status code=\"403\" reason=\"Client certificate is untrusted or invalid..d3PD\" />\n                </return-response>\n            </when>\n        </choose>\n        <base />\n    </inbound>\n\nIn Postman I am passing a cert and key. The Postman Console shows\nClient Certificate:\nkeyPath:\"C:\\selfsigned\\internalscm.X.com.key\"\npemPath:\"C:\\selfsigned\\internalscm.X.com.crt\"\npfxPath:\"\"\n\nI'm passing Ocp-Apim-Trace in the header of the request so am getting a trace back which contains:\ntraceEntries        {2}\n  inbound       [10]\n..\n    6       {4}\n        source  :   authentication-certificate\n        timestamp   :   2019-08-06T08:55:31.3435485Z\n        elapsed :   00:00:00.0006857\n            data        {2}\n                message :   Certificate was attached to request per configuration.\n                certificate     {...}\n    7       {4}\n        source  :   choose\n        timestamp   :   2019-08-06T08:55:31.3435485Z\n        elapsed :   00:00:00.0007011\n            data        {3}\n                message :   Expression was successfully evaluated.\n                expression  :   context.Request.Certificate == null\n                value   :   true\n\n\nUPDATE:\nThe authentication-certificate assessment is of the backend's certificate and is nothing to do with the client certificate (.key and .crt) that Postman claims to be including in the request (the same result is returned if I pass a pfx and password instead of .key and .crt). \nWhen I hit the API that the Gateway is protecting, I can see in the trace that it is processing the client certificate (and returning a 200):\n     {\n        \"source\": \"client-certificate-handler\",\n        \"timestamp\": \"2019-08-09T15:47:46.3825928Z\",\n        \"elapsed\": \"00:00:00.0005974\",\n        \"data\": \"Requesting client certificate because next handler requires access to it.\"\n      },\n      {\n        \"source\": \"client-certificate-handler\",\n        \"timestamp\": \"2019-08-09T15:47:46.6950495Z\",\n        \"elapsed\": \"00:00:00.3225172\",\n        \"data\": \"Client certificate thumbprint '6C03F4E7999999999999999999999999'  received.\"\n      },\n      {\n        \"source\": \"choose\",\n        \"timestamp\": \"2019-08-09T15:47:46.6950495Z\",\n        \"elapsed\": \"00:00:00.3225288\",\n        \"data\": {\n          \"message\": \"Expression was successfully evaluated.\",\n          \"expression\": \"context.Request.Certificate == null\",\n          \"value\": false\n        }\n      },\n      {\n        \"source\": \"choose\",\n        \"timestamp\": \"2019-08-09T15:47:46.9606395Z\",\n        \"elapsed\": \"00:00:00.5849700\",\n        \"data\": {\n          \"message\": \"Expression was successfully evaluated.\",\n          \"expression\": \"!context.Request.Certificate.Verify()\",\n          \"value\": false\n        }\n      },\n      {\n        \"source\": \"choose\",\n        \"timestamp\": \"2019-08-09T15:47:46.9606395Z\",\n        \"elapsed\": \"00:00:00.5850060\",\n        \"data\": {\n          \"message\": \"Expression was successfully evaluated.\",\n          \"expression\": \"!context.Deployment.Certificates.Any(c => c.Value.Thumbprint == context.Request.Certificate.Thumbprint)\",\n          \"value\": false\n        }\n      }\n\nSo it looks like AppGateway is dropping the client certificate.\nThe trace doesn't give me enough to start deducing why the client certificate (assuming that Postman is transmitting it to the Gateway as it does the API) is being dropped. Where should I start?\nFor ref, when I remove the policy the request is processed as expected.\n",
+    "question_score": 5,
+    "answer_text": "I'm not sure if you can make AppGateway pass the certificate - you need to check their docs. The reason I'm skeptical is bacuse the whole idea of AppGateway is to look into traffic and provide protection by doing that. And the only way to d othat is to terminate SSL connection at AppGateway level. See here for more information: https://learn.microsoft.com/en-us/azure/application-gateway/ssl-overview there are two modes for AppGateway: SSL temination when AppGateway makes HTTP (not HTTPS) calls to backend, and SSL end-to-end when AppGateway uses own SSL certificate to connect to backend.\nSome client certificate information can be passed to backend via server variables: https://learn.microsoft.com/en-us/azure/application-gateway/rewrite-http-headers-url#mutual-authentication-server-variables\n",
+    "answer_id": 57440043,
+    "tags": [
+      "azure",
+      "ssl",
+      "azure-api-management"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-api-management",
+    "question_id": 32986892,
+    "title": "Azure Web App - Restrict access to API Management",
+    "question_text": "I'm trying to setup a very simple Azure deployment that consists of a few Web Apps and an API Management Gateway through which all traffic is directed. The problem I currently have is that I am unsure as to the best way of blocking traffic from going direct to the Web Apps and bypassing the gateway. Is there a 'best practice' mechanism for ensuring only traffic from the Gateway is allowed through?\nI've seen suggestions for IP range blocking and 'secret key' implementations, however I wonder whether there is a better way?\nThanks\n",
+    "question_score": 5,
+    "answer_text": "I should I would add my own answer as I found that the new portal now has an 'API App' which allows access to API though internal only, e.g. through the gateway.\nThis seems to meet what I was trying to do exactly!\nhttps://azure.microsoft.com/en-gb/documentation/articles/app-service-api-apps-why-best-platform/\n",
+    "answer_id": 33076572,
+    "tags": [
+      "asp.net",
+      "azure",
+      "asp.net-web-api",
+      "azure-api-management"
+    ]
+  }
+]

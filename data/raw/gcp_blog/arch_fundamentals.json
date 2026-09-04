@@ -1,0 +1,7 @@
+{
+  "source": "blog",
+  "cloud": "gcp",
+  "url": "https://cloud.google.com/architecture/fundamentals",
+  "title": "fundamentals",
+  "text": "Home\nDocumentation\nCloud Architecture Center\nSend feedback\nArchitecture fundamentals\nStay organized with collections\nSave and categorize content based on your preferences.\nLast reviewed 2024-01-08 UTC\nThe Architecture Center provides content for a variety of technology categories,\nlike AI and ML, application development, and big data. Use the resources listed\non this page to get fundamental architectural guidance that's applicable to all\nof the technology categories.\nArchitecture fundamentals include the following topics:\nGoogle Cloud Well-Architected Framework\n:\nBest practices and recommendations to help you build well-architected\ncloud topologies that are secure, efficient, resilient, high-performing, and\ncost-effective.\nDeployment archetypes\n:\nAn overview of the basic archetypes for building cloud architectures\n(zonal, regional, multi-regional, global, hybrid, and multicloud) that\ndescribes the use cases and design considerations for each archetype.\nLanding zone design\n:\nDescribes how to design and build a landing zone that includes identity\nonboarding, resource hierarchy, network design, and security controls.\nEnterprise foundations blueprint\n:\nGuidance to help you design and build a cloud foundation that enables\nconsistent governance, security controls, scale, visibility, and access for\nyour enterprise workloads.\nSend feedback"
+}

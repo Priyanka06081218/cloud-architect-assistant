@@ -1,0 +1,1485 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 66629862,
+    "title": "Cannot determine the organization name for this &#39;dev.azure.com&#39; remote URL",
+    "question_text": "So I just updated to a new Visual Studio version and I am no longer able to push/pull from/to my Azure Repo (cloning works fine). The exact error I get is\n\nCannot determine the organization name for this 'dev.azure.com' remote\nurl. ensure the credential.usehttppath configuration value is set,\nor set the organization name as the user in the remote url\n'{org}@dev.azure.com'.\n\nand only the pull command shows me this error, all the others are failing with git fatal error. I messed with my Credentials Manager cos I suspected it might be the one causing the problem but no luck.\n",
+    "question_score": 314,
+    "answer_text": "What fixed the issue for me is going to Tools > Options > Source Control > Git Global Settings, there I changed all 4 dropdowns which were still selected as \"Unset\":\n\nPrune remote branches during fetch - False\nRebase local branch when pulling - False\nCryptographic network provider - OpenSSL\nCredential helper - GCM Core\n\nSource: https://learn.microsoft.com/en-us/visualstudio/ide/git-with-visual-studio?view=vs-2019#personalize-your-git-settings\nNote: These are the settings my organization requires. You might have to tweak them around according to your exact issue.\n",
+    "answer_id": 66650266,
+    "tags": [
+      "git",
+      "azure",
+      "visual-studio",
+      "azure-devops"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 38408167,
+    "title": "Could not load file or assembly &quot;System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a&quot;",
+    "question_text": "I've copied my project to a clean Windows 10 machine with only Visual Studio 2015 Community and SQL Server 2016 Express installed. There are no other framework versions installed apart from those installed with Windows 10 and VS2015 or SQL Server.\nWhen I try to start the WebApi project I get the message:\n\nCould not load file or assembly \"System.Net.Http, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a\" or one of its dependencies. The system cannot find the file specified.\n\nThe project's packages include:\n<package id=\"Microsoft.AspNet.WebApi\" version=\"5.2.3\" targetFramework=\"net45\" />\n<package id=\"Microsoft.AspNet.WebApi.Client\" version=\"5.2.3\" targetFramework=\"net45\" />\n<package id=\"Microsoft.AspNet.WebApi.Core\" version=\"5.2.3\" targetFramework=\"net45\" />\n<package id=\"Microsoft.AspNet.WebApi.Tracing\" version=\"5.2.3\" targetFramework=\"net45\" />\n<package id=\"Microsoft.AspNet.WebApi.WebHost\" version=\"5.2.3\" targetFramework=\"net45\" />\n\nAfter building the project with .NET Framework 4.6.1, System.Net.Http the file is not found in the bin folder.\nThe file's path points to:\n\nC:\\Program Files (x86)\\Reference Assemblies\\Microsoft\\Framework.NETFramework\\v4.6.1\\System.Net.Http.dll\n\nThe file's path of System.Net.Http.Formatting points to:\n\nC:\\Development\\MyApp\\packages\\Microsoft.AspNet.WebApi.Client.5.2.3\\lib\\net45\\System.Net.Http.Formatting.dll\n\nShould the whole project target 4.5.1 or is there another way to reference the right assemblies?\n",
+    "question_score": 312,
+    "answer_text": "Follow the following steps:\n\nUpdate Visual Studio to the latest version (it matters)\n\nRemove all binding redirects from web.config\n\nAdd this to the .csproj file:\n<PropertyGroup>\n  <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>\n  <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>\n</PropertyGroup>\n\n\nBuild the project\n\nIn the bin folder there should be a (WebAppName).dll.config file\n\nIt should have redirects in it:\n\ncopy these to the web.config\n\n\nRemove the above snipped from the .csproj file\n\n\nIt should work.\n",
+    "answer_id": 47923538,
+    "tags": [
+      "c#",
+      "azure",
+      "visual-studio-2015"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 36610952,
+    "title": "Azure Webjobs vs Azure Functions : How to choose",
+    "question_text": "I've created some Azure Webjobs that use triggers and I've just learnt about Azure Functions.\nFrom what I understand Azure Functions seem to overlap with Azure Webjobs features and I have some difficulty to understand when to choose between Function and Webjob:\n\nUnlike Webjobs, Functions can only be triggered, it hasn't been designed to run continuous process (but you can write code to create a continuous function).\nYou can write Webjobs and Functions using many languages (C#, node.js, python ...) but you can write your function from the Azure portal so it is easier and quicker to develop test and deploy a Function.\nWebjobs run as background processes in the context of an App Service web app, API app, or mobile app whereas Functions run using a Classic/Dynamic App Service Plan. \nRegarding the scaling, Functions seems to give more possibilities since you can use a dynamic app service plan and you can scale a single function whereas for a webjob you have to scale the whole web app. \n\nSo for sure there is a pricing difference, if you have an existing web app running you can use it to run a webjob without any additional cost but if I don't have an existing web app and I have to write code to trigger a queue should I use a webjob or a Function ?\nIs there any other considerations to keep in mind when you need to choose ?\n",
+    "question_score": 250,
+    "answer_text": "There are a couple options here within App Service. I won't touch on Logic Apps or Azure Automation, which also touch this space.\nAzure WebJobs\nThis article is honestly the best explanation, but I'll summarize here.\nOn Demand WebJobs aka. Scheduled WebJobs aka. Triggered WebJobs\nTriggered WebJobs are WebJobs which are run once when a URL is called or when the schedule property is present in schedule.job. Scheduled WebJobs are just WebJobs which have had an Azure Scheduler Job created to call our URL on a schedule, but we also support the schedule property, as mentioned previously.\nSummary:\n\n+ Executable/Script on demand\n+ Scheduled executions\n- Have to trigger via .scm endpoint\n- Scaling is manual\n- VM is always required\n\nContinuous WebJobs (non SDK)\nThese jobs run forever and we will wake them up when they crash. You need to enable Always On for these to work, which means running them in Basic tier and above.\nSummary:\n\n+ Executable/Script always running\n- Requires always on - Basic tier and above\n- VM is always required\n\nContinuous WebJobs with the WebJobs SDK\nThese aren't anything from a \"WebJobs the feature\" point of view. Essentially, we have this sweet SDK we wrote targeting WebJobs which lets you execute code based on simple triggers. I'll talk about this more later on.\nSummary:\n\n+ Executable/Script always running\n+ Richer logging/dashboard\n+ Triggers supported along with long running tasks\n- Requires always on - Basic tier and above\n- Scaling is manual to set up\n- Getting started can be a bit tiresome\n- VM is always required\n\nAzure WebJobs SDK\nAzure WebJobs SDK is a completely separate SDK from WebJobs the platform feature. It's designed to be run in a WebJob, but can really be run anywhere. We have customers who run them on worker roles and even on-premises or other cloud environments, though support is only best effort.\nThe SDK is just about making it easy to run some code in reaction to some event and make binding to services/etc. easy. This is honestly best covered in some docs, but the heart of it is that \"event\" + \"code\" nature. We've also done some cool extensibility work, but that's secondary to the core purpose.\nSummary:\n\nMost of these are mentioned above\n+ You can extend and run whatever you want. Full control.\n- HTTP stuff is a little wonky, but it works\n\nAzure Functions\nAzure Functions is all about taking that core purpose of the WebJobs SDK, hosting it as a service, and making it easy to get started with other languages. We also introduce the \"Serverless\" concept here because it made a lot of sense to do so - we know how our SDK scales, so we can do intelligent things for you.\nAzure Functions is a very heavily managed experience. We aren't supporting bringing your own host. Currently, we don't support custom extensions but its something we're investigating. We're opinionated about what you can and can't do, but for the things we enable, they are slick, and easy to use and manage.\nMost of the \"framework\" things we've done to improve Functions go through the WebJobs SDK, though. For instance, we'll be uploading a new NuGet for WebJobs which really drastically increases the speed of logging, which has huge performance benefits for WebJobs SDK users. In shipping Functions as \"WebJobs SDK as a Service\" we've really improved a lot of experience issues.\n\n+ Lots of languages supported\n+ Fully managed, dynamic scaling\n+ Easy to use portal w/ UX for managing connections/etc.\n- Host not customizable (yet)\n~ Runs in a separate \"app\" which requires some configuration in your repo, but makes long term maintenance much easier.\n~ No tooling (yet) Some tooling is now in alpha or preview - https://www.npmjs.com/package/azurefunctions\n(update Feb 2017:\nVisual Studio Tools for Azure Functions now available in preview: https://blogs.msdn.microsoft.com/webdev/2016/12/01/visual-studio-tools-for-azure-functions/)\n\nI'm probably biased since Functions is our latest and greatest, but feel free to shoot more cons for Functions my way.\n",
+    "answer_id": 36611919,
+    "tags": [
+      "azure",
+      "azure-webjobs",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 5475306,
+    "title": "How do I copy SQL Azure database to my local development server?",
+    "question_text": "Does anyone know how I can copy a SQL Azure database to my development machine? I'd like to stop paying to have a development database in the cloud, but it's the best way to get production data. I copy my production database to a new development database but I'd like to have that same database local. \nAny suggestions? \n",
+    "question_score": 247,
+    "answer_text": "There are multiple ways to do this:\n\nUsing SSIS (SQL Server Integration Services). It only imports data in your table. Column properties, constraints, keys, indices, stored procedures, triggers, security settings, users, logons, etc. are not transferred. However it is very simple process and can be done simply by going through wizard in SQL Server Management Studio. \nUsing combination of SSIS and DB creation scripts. This will get you data and all missing metadata that is not transferred by SSIS. This is also very simple. First transfer data using SSIS (see instructions below), then create DB Create script from SQL Azure database, and re-play it on your local database. \nFinally, you can use Import/Export service in SQL Azure. This transfers data (with a schema objects) to Azure Blob Storage as a BACPAC. You will need an Azure Storage account and do this in Azure web portal. It is as simple as pressing an \"Export\" button in the Azure web portal when you select the database you want to export. The downside is that it is only manual procedure, I don't know a way to automate this through tools or scripts -- at least the first part that requires a click on the web page.\n\nManual procedure for method #1 (using SSIS) is the following:\n\nIn Sql Server Management Studio (SSMS) create new empty database on your local SQL instance.\nChoose Import Data from context menu (right click the database -> Tasks -> Import data...)\nType in connection parameters for the source (SQL Azure). Select \".Net Framework Data Provider for SqlServer\" as a provider.\nChoose existing empty local database as destination.\nFollow the wizard -- you will be able to select tables data you want to copy. You can choose to skip any of the tables you don't need. E.g. if you keep application logs in database, you probably don't need it in your backup. \n\nYou can automate it by creating SSIS package and re-executing it any time you like to re-import the data. Note that you can only import using SSIS to a clean DB, you cannot do incremental updates to your local database once you already done it once. \nMethod #2 (SSID data plus schema objects) is very simple. First go though a steps described above, then create DB Creation script (righ click on database in SSMS, choose Generate Scripts -> Database Create). Then re-play this script on your local database.\nMethod #3 is described in the Blog here: http://dacguy.wordpress.com/2012/01/24/sql-azure-importexport-service-has-hit-production/. There is a video clip with the process of transferring DB contents to Azure Blob storage as BACPAC. After that you can copy the file locally and import it to your SQL instance. Process of importing BACPAC to Data-Tier application is described here: http://msdn.microsoft.com/en-us/library/hh710052.aspx.\n",
+    "answer_id": 5481143,
+    "tags": [
+      "sql-server",
+      "azure",
+      "azure-sql-database",
+      "database-migration"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 69919664,
+    "title": "Publish error: Found multiple publish output files with the same relative path",
+    "question_text": "When I publish my ABP project I get the following error:\nC:\\Program Files\\dotnet\\sdk\\6.0.100-rc.1.21458.32\\Sdks\\Microsoft.NET.Sdk\n\\targets\\Microsoft.NET.ConflictResolution.targets(112,5): \nerror NETSDK1152: Found multiple publish output files with the same relative path: \n\nD:\\Github\\volo\\abp\\lepton-theme\\src\\Volo.Abp.AspNetCore.Mvc.UI.Theme.Lepton\\compilerconfig.json,\nD:\\Github\\volo\\abp\\bookstore\\src\\Acme.BookStore.Theme\\compilerconfig.json, \n\nD:\\Github\\volo\\abp\\lepton-theme\\src\\Volo.Abp.AspNetCore.Mvc.UI.Theme.Lepton\\package.json, \nD:\\Github\\volo\\abp\\bookstore\\src\\Acme.BookStore.Web\\package.json. \n\nD:\\Github\\volo\\abp\\bookstore\\src\\Acme.BookStore.Web\\Acme.BookStore.Web.csproj\n\n",
+    "question_score": 238,
+    "answer_text": "Issue:\nThe issue raises after .NET 6 migration.\nThere's a new feature that blocks multiple files from being copied to the same target directory with the same file name.\nSee https://learn.microsoft.com/en-us/dotnet/core/compatibility/sdk/6.0/duplicate-files-in-output\nSolution #1 (workaround):\nYou can add the following build property to all your publishable (*.Web) projects' *.csproj files.\nThis property will bypass this check and works as previously, in .NET5.\n<PropertyGroup>\n <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>\n</PropertyGroup>\n\nSolution #2:\nExclude the problematic files to be copied to the output folder.\nIn this example we'll exclude these files: compilerconfig.json and package.json.\nAdd the following lines to your common.props (located in the root directory of your solution):\n<Content Remove=\"compilerconfig.json;package.json\"/>\n<None Include=\"compilerconfig.json;package.json\">\n  <ExcludeFromSingleFile>true</ExcludeFromSingleFile>\n  <CopyToPublishDirectory>Never</CopyToPublishDirectory>\n</None>\n\n",
+    "answer_id": 69919694,
+    "tags": [
+      "c#",
+      "azure",
+      "publish",
+      ".net-6.0"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 38475104,
+    "title": "Azure Cli how to change subscription default",
+    "question_text": "In my Azure Account, I need to change the default subscription. When I Run:\nazure account list \n\nI have this output:\n\nI have tried to change the default or current subscription on this way, with no results...\nazure config set subscription {{MyIdSubscription}}\n\n",
+    "question_score": 198,
+    "answer_text": "For Azure CLI 2.0 (preview) I had to use\naz account set --subscription <name or id>\n\n",
+    "answer_id": 41513509,
+    "tags": [
+      "azure",
+      "azure-cli2"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 54071385,
+    "title": "Difference between &quot;enterprise application&quot; and &quot;app registration&quot; in Azure",
+    "question_text": "Could someone please tell me what the difference is between \"enterprise application\" and  \"app registration\" in Azure.\nAppreciate if you could give me an example & why some application cannot be registered under blade \"Enterprise application\" and vise versa.\n",
+    "question_score": 180,
+    "answer_text": "An App Registration is a way of reserving your app and URL with Azure AD, allowing it to communicate with Azure AD, hooking up your reply urls, and enabling AAD services on it. When you have an application that you are developing and want to integrate with Azure, you need to register your application in App Registrations, where you will configure your reply URL, logout URL, and API access if needed. When you register your application, Azure AD assigns a unique Application ID to it and allows you to add certain capabilities such as credentials, permissions, and sign-ons. The default settings allow only users from the tenant under which your app is registered to sign into your application.\nThe Enterprise Applications blade might be confused with App Registrations because the Enterprise Application blade contains the list of your service principals. However, the term Enterprise App generally refers to applications published by other companies in the AAD gallery that can be used within your organization. For example, if you want to integrate Facebook and manage SSO within your organization, you can integrate it from the Enterprise Applications dropdown in the applications blade. Your own applications will also be represented in the Enterprise Applications blade as Service Principals, which are instantiations of your applications in the tenant.\nApp Registration: https://learn.microsoft.com/en-us/azure/active-directory/develop/quickstart-v1-add-azure-ad-app\nIntegrating an Enterprise application (G-Suite): https://learn.microsoft.com/en-us/azure/active-directory/saas-apps/google-apps-tutorial\n",
+    "answer_id": 54101853,
+    "tags": [
+      "azure",
+      "azure-active-directory"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 2642919,
+    "title": "Checking if a blob exists in Azure Storage",
+    "question_text": "I've got a very simple question (I hope!) - I just want to find out if a blob (with a name I've defined) exists in a particular container. I'll be downloading it if it does exist, and if it doesn't then I'll do something else.\nI've done some searching on the intertubes and apparently there used to be a function called DoesExist or something similar... but as with so many of the Azure APIs, this no longer seems to be there (or if it is, has a very cleverly disguised name).\n",
+    "question_score": 162,
+    "answer_text": "The new API has the .Exists() function call.  Just make sure that you use the GetBlockBlobReference, which doesn't perform the call to the server.  It makes the function as easy as:\npublic static bool BlobExistsOnCloud(CloudBlobClient client, \n    string containerName, string key)\n{\n     return client.GetContainerReference(containerName)\n                  .GetBlockBlobReference(key)\n                  .Exists();  \n}\n\n",
+    "answer_id": 16485192,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-blob-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 10969012,
+    "title": "How do I delete an Azure storage account containing a leased blob?",
+    "question_text": "I was playing with Windows Azure durable virtual machines. In the end, I deleted the virtual machine (successfully) and tried to delete the associated storage account.\nThe request to delete the storage account fails.\nOn the Preview Portal (manage.windowsazure.com) when I delete the storage account I get this error:\nFailed to delete Storage account 'portalvhdscwtwycpsxxxxx'\n\nDetails:\n\nStorage account portalvhdscwtwycpsxxxxx has 1 container(s) which have an active image and/or disk artifacts. Ensure those artifacts are removed from the image repository before deleting this storage account.\n\nOn the previous portal (windows.azure.com) I get this error:\nSubmit Failed\n\nStorage account portalvhdscwtwycpsxxxxx has 1 container(s) which have an active image and/or disk artifacts. Ensure those artifacts are removed from the image repository before deleting this storage account.\n\nTrying to delete the blob itself (a 30GB VHD) on Azure Storage Explorer I get this error:\nThere is currently a lease on the blob and no lease ID was specified in the request.\n\nSo my assessment is that this blob is leased (by the previous, now deleted virtual machine) and I can't delete it unless I can get this lease ID.\nThe question is: how can I delete this blob and, consequently, the storage account?\n",
+    "question_score": 159,
+    "answer_text": "The key to the solution is the message that the container has an active disk artifact and the advice to remove it from the repository.\nThe procedure to remove the disk image from the blob repository is:\n\nGo to the Windows Azure Management Portal.\nClick on Virtual Machines.\nClick on Disks.\nClick on the disk.\nClick on Delete Disk.\n\nAfter that, the storage account can be deleted.\nNotes: \n\nThis applies even if you've already deleted all of your Virtual Machines and it shows 0; there still will be artifacts under the disks tab.\nDisks are detached from a deleted VM asynchronously, it may take a few minutes after the VM is deleted for this field to clear up.\n\nSee also: Unable to delete VHD, \u201cThere is currently a lease on the blob\u2026\u201d\n",
+    "answer_id": 10969013,
+    "tags": [
+      "azure",
+      "azure-storage",
+      "vhd"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 20304058,
+    "title": "How to re-create database for Entity Framework?",
+    "question_text": "I have got into a bad state with my ASP.Net MVC 5 project, using Code-First Entity Framework. I don't care about losing data, I just want to be able to start fresh, recreate the database and start using Code-First migrations. \nCurrently I am in a state where every attempt to Update-Database results in an exception being thrown or getting an error message. Also the website can't access the database correctly. How can I wipe all migrations, re-create the database and start from scratch without having to create a new project? In other words, I want to keep my code but drop the database.\nLater I will also want to get the deployment database (SQL Server on Azure) in sync. Again, I don't mind dropping all the data - I just want to get it working.\nPlease provide any how-to steps to get back to a clean state. Much appreciated.\n",
+    "question_score": 155,
+    "answer_text": "Follow below steps:\n1) First go to Server Explorer in Visual Studio, check if the \".mdf\" Data Connections for this project are   connected, if so, right click and delete.\n2 )Go to Solution Explorer, click show All Files icon.\n3) Go to App_Data, right click and delete all \".mdf\" files for this project.\n4) Delete Migrations folder by right click and delete.\n5) Go to SQL Server Management Studio, make sure the DB for this project is not there, otherwise delete it.\n6) Go to Package Manager Console in Visual Studio and type:\n\nEnable-Migrations -Force\nAdd-Migration init\nUpdate-Database\n\n7) Run your application\nNote: In step 6 part 3, if you get an error \"Cannot attach the file...\", it is possibly because you didn't delete the database files completely in SQL Server. \n",
+    "answer_id": 20304312,
+    "tags": [
+      "asp.net-mvc",
+      "entity-framework",
+      "azure",
+      "azure-sql-database"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 46556621,
+    "title": "What is the simplest way to run a timer-triggered Azure Function locally once?",
+    "question_text": "I have a few C# Azure Functions that run on a schedule using timer triggers. I've set them up like so, where %TimerSchedule% refers to a cron expression in the app settings:\npublic static void Run([TimerTrigger(\"%TimerSchedule%\")]TimerInfo myTimer, TraceWriter log)\n\nDuring development, I often want to run the functions locally using Azure Functions Tools for Visual Studio + Azure Functions Core Tools. But when I hit F5 to debug the function locally it (usually) doesn't run immediately. Instead, it starts waiting for the next occurrence as per the timer schedule. So for example, if my cron expression says to run daily at 8PM, I'd have to wait until 8PM for the function to actually run on my machine.\nSo my question is: What is the simplest and best way to make a function run once locally?\nThings I have tried or considered:\n\nUse a more frequent timer schedule just for local development\n\n\nThis is OK but not perfect \u2013 you still have to wait a little bit unless it's very frequent, and if it's very frequent then the function might run multiple times. This is what I'm doing now.\n\nWrite a console app or unit test that directly calls the function's Run() method\n\n\nThis isn't 100% straightforward because you have to provide TimerInfo and TraceWriter arguments to Run() \u2013 and I've found surprisingly little documentation for that. \n\n\nMicrosoft's Strategies for testing your code in Azure Functions page is not very helpful on this topic \u2013 it only mentions timer triggers as a way to test other trigger types.\nIn a perfect world, I'd hit F5 and the function would immediately run once \u2013 just like developing a \"normal\" .NET app.\n",
+    "question_score": 146,
+    "answer_text": "I had the same question, and used the DEBUG-flag to have the RunOnStartup only while debugging:\n        public static void Run(\n            [TimerTrigger(\"* 0 7 * * 1-5\"\n#if DEBUG\n            , RunOnStartup=true\n#endif\n            )]TimerInfo myTimer, TraceWriter log)\n        {\n\n",
+    "answer_id": 51775445,
+    "tags": [
+      "c#",
+      "azure",
+      "timer",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 36411536,
+    "title": "How can I use NuGet packages in my Azure Functions?",
+    "question_text": "Using Azure Functions, can I reference and use NuGet packages in my C# function?\n",
+    "question_score": 133,
+    "answer_text": "Yes! Although the Azure Functions portal does not currently provide a mechanism to add and manage NuGet packages, the runtime supports NuGet references and will make sure they are correctly used when compiling and executing your functions.\nIn order to define your dependencies, you need to create a Project.json file with the required NuGet package references. Here is an example that adds a reference to Microsoft.ProjectOxford.Face version 1.1.0:\n{\n  \"frameworks\": {\n    \"net46\":{\n      \"dependencies\": {\n        \"Microsoft.ProjectOxford.Face\": \"1.1.0\"\n      }\n    }\n   }\n}\n\nThe Azure Functions portal provides a convenient way to manage your function files, which we can use to create (or upload) our project.json:\n\nIn the function's develop section, click on view files\nClick on the option to create a file (you can also click on the option to upload a file if you have a previously created project.json file on your machine\nName the file project.json and define your package references (you can use the example above as a template).\n\nThe package restore process will begin and you should see output similar to the following in your log window:\n2016-04-04T19:02:48.745 Restoring packages.\n2016-04-04T19:02:48.745 Starting NuGet restore\n2016-04-04T19:02:50.183 MSBuild auto-detection: using msbuild version '14.0' from 'D:\\Program Files (x86)\\MSBuild\\14.0\\bin'.\n2016-04-04T19:02:50.261 Feeds used:\n2016-04-04T19:02:50.261 C:\\DWASFiles\\Sites\\facavalfunctest\\LocalAppData\\NuGet\\Cache\n2016-04-04T19:02:50.261 https://api.nuget.org/v3/index.json\n2016-04-04T19:02:50.261 \n2016-04-04T19:02:50.511 Restoring packages for D:\\home\\site\\wwwroot\\HttpTriggerCSharp1\\Project.json...\n2016-04-04T19:02:52.800 Installing Newtonsoft.Json 6.0.8.\n2016-04-04T19:02:52.800 Installing Microsoft.ProjectOxford.Face 1.1.0.\n2016-04-04T19:02:57.095 All packages are compatible with .NETFramework,Version=v4.6.\n2016-04-04T19:02:57.189 \n2016-04-04T19:02:57.189 \n2016-04-04T19:02:57.455 Packages restored.\n\nAs expected, the Azure Functions runtime will automatically add the references to the package assemblies, so you DO NOT need to explicitly add assembly references using #r \"AssemblyName\", you can just add the required using statements to your function and use the types defined in the NuGet package you've referenced.\nAdditional deployment options\nSince Azure Functions is built on top of App Services, as an alternative to the steps above, you also have access to all the great deployment options available to standard Azure Web Apps (Azure Websites).\nHere are some examples:\nUsing App Service Editor (Monaco)\nIn order to manage your files directly from your browser by using the App Service Editor (Monaco):\n\nOn the Azure Functions portal, click on Function app settings\nUnder the Advanced Settings section, click on Go to App Service Settings\nClick on the Tools button\nUnder Develop, click on App Service Editor\nTurn it On if it is not already enabled and click on Go\nOnce it loads, drag-and-drop your project.json file into your function's folder (the folder named after your function. \n\nUsing SCM (Kudu) endpoint\n\nNavigate to: https://<function_app_name>.scm.azurewebsites.net\nClick on Debug Console > CMD \nNavigate to D:\\home\\site\\wwwroot\\<function_name>\nDrag-and-drop your Project.json file into the folder (onto the file grid)\n\nFTP\n\nFollow the instructions here to get FTP configured\nOnce connected (following the instructions above) copy your Project.json file to /site/wwwroot/<function_name>\nFor additional deployment options, see: https://azure.microsoft.com/en-us/documentation/articles/web-sites-deploy/\n\nContinuous Integration\nIf you enable continuous integration and deploy your function with a project.json file when your Function App is not running, the package restore will happen automatically once your Function App initializes. It is recommended that you do not add your project.lock.json file to source control.\nPre-compiled assemblies\nFunctions may also be deployed as pre-compiled assemblies, and in this case, all dependency management is handled in Visual Studio. This option may be used as standard class libraries on any version of Visual Studio or by using the Visual Studio 2017 Azure Functions Tools.\n",
+    "answer_id": 36411537,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-functions",
+      "nuget-package",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 39157781,
+    "title": "The configuration file &#39;appsettings.json&#39; was not found and is not optional",
+    "question_text": "The Azure error is:\n\n.Net Core: Application startup exception:\n  System.IO.FileNotFoundException: The configuration file\n  'appsettings.json' was not found and is not optional.\n\nSo this is a bit vague. I can't seem to nail this down. I'm trying to deploy a .Net Core Web API project to Azure, and I'm getting this error:\n\n:(  Oops. 500 Internal Server Error \n  An error occurred while starting the application.\n\nI've deployed plain old .Net WebAPI's and they have worked. I've followed online tutorials and they have worked. But somehow my project is broke. Enabling stdoutLogEnabled on Web.config and looking at the Azure Streaming Logs gives me this:\n2016-08-26T02:55:12  Welcome, you are now connected to log-streaming service.\nApplication startup exception: System.IO.FileNotFoundException: The configuration file 'appsettings.json' was not found and is not optional.\n   at Microsoft.Extensions.Configuration.FileConfigurationProvider.Load(Boolean reload)\n   at Microsoft.Extensions.Configuration.FileConfigurationProvider.Load()\n   at Microsoft.Extensions.Configuration.ConfigurationRoot..ctor(IList`1 providers)\n   at Microsoft.Extensions.Configuration.ConfigurationBuilder.Build()\n   at Quanta.API.Startup..ctor(IHostingEnvironment env) in D:\\Source\\Workspaces\\Quanta\\src\\Quanta.API\\Startup.cs:line 50\n--- End of stack trace from previous location where exception was thrown ---\n   at System.Runtime.ExceptionServices.ExceptionDispatchInfo.Throw()\n   at Microsoft.Extensions.Internal.ActivatorUtilities.ConstructorMatcher.CreateInstance(IServiceProvider provider)\n   at Microsoft.Extensions.Internal.ActivatorUtilities.CreateInstance(IServiceProvider provider, Type instanceType, Object[] parameters)\n   at Microsoft.Extensions.Internal.ActivatorUtilities.GetServiceOrCreateInstance(IServiceProvider provider, Type type)\n   at Microsoft.Extensions.DependencyInjection.ActivatorUtilities.GetServiceOrCreateInstance(IServiceProvider provider, Type type)\n   at Microsoft.AspNetCore.Hosting.Internal.StartupLoader.LoadMethods(IServiceProvider services, Type startupType, String environmentName)\n   at Microsoft.AspNetCore.Hosting.WebHostBuilderExtensions.<>c__DisplayClass1_0.<UseStartup>b__1(IServiceProvider sp)\n   at Microsoft.Extensions.DependencyInjection.ServiceLookup.FactoryService.Invoke(ServiceProvider provider)\n   at Microsoft.Extensions.DependencyInjection.ServiceProvider.ScopedCallSite.Invoke(ServiceProvider provider)\n   at Microsoft.Extensions.DependencyInjection.ServiceProvider.SingletonCallSite.Invoke(ServiceProvider provider)\n   at Microsoft.Extensions.DependencyInjection.ServiceProvider.<>c__DisplayClass12_0.<RealizeService>b__0(ServiceProvider provider)\n   at Microsoft.Extensions.DependencyInjection.ServiceProvider.GetService(Type serviceType)\n   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService(IServiceProvider provider, Type serviceType)\n   at Microsoft.Extensions.DependencyInjection.ServiceProviderServiceExtensions.GetRequiredService[T](IServiceProvider provider)\n   at Microsoft.AspNetCore.Hosting.Internal.WebHost.EnsureStartup()\n   at Microsoft.AspNetCore.Hosting.Internal.WebHost.EnsureApplicationServices()\n   at Microsoft.AspNetCore.Hosting.Internal.WebHost.BuildApplication()\nHosting environment: Production\nContent root path: D:\\home\\site\\wwwroot\nNow listening on: http://localhost:30261\nApplication started. Press Ctrl+C to shut down.\n\nOk, that seems simple. It can't find appsettings.json. Looking at my config ( startup.cs ) it seems very well defined. My Startup looks like this:\npublic class Startup\n{\n    private static string _applicationPath = string.Empty;\n    private static string _contentRootPath = string.Empty;\n    public IConfigurationRoot Configuration { get; set; }\n    public Startup(IHostingEnvironment env)\n    {\n        _applicationPath = env.WebRootPath;\n        _contentRootPath = env.ContentRootPath;\n        // Setup configuration sources.\n\n        var builder = new ConfigurationBuilder()\n            .SetBasePath(_contentRootPath)\n            .AddJsonFile(\"appsettings.json\")\n            .AddJsonFile($\"appsettings.{env.EnvironmentName}.json\", optional: true);\n\n        if (env.IsDevelopment())\n        {\n            // This reads the configuration keys from the secret store.\n            // For more details on using the user secret store see http://go.microsoft.com/fwlink/?LinkID=532709\n            builder.AddUserSecrets();\n        }\n\n        builder.AddEnvironmentVariables();\n        Configuration = builder.Build();\n    }\n    private string GetXmlCommentsPath()\n    {\n        var app = PlatformServices.Default.Application;\n        return System.IO.Path.Combine(app.ApplicationBasePath, \"Quanta.API.xml\");\n    }\n\n    // This method gets called by the runtime. Use this method to add services to the container.\n    // For more information on how to configure your application, visit http://go.microsoft.com/fwlink/?LinkID=398940\n    public void ConfigureServices(IServiceCollection services)\n    {\n        var pathToDoc = GetXmlCommentsPath();\n\n\n        services.AddDbContext<QuantaContext>(options =>\n            options.UseSqlServer(Configuration[\"Data:DefaultConnection:ConnectionString\"],\n            b => b.MigrationsAssembly(\"Quanta.API\")));\n\n        //Swagger\n        services.AddSwaggerGen();\n        services.ConfigureSwaggerGen(options =>\n        {\n            options.SingleApiVersion(new Info\n            {\n                Version = \"v1\",\n                Title = \"Project Quanta API\",\n                Description = \"Quant.API\",\n                TermsOfService = \"None\"\n            });\n            options.IncludeXmlComments(pathToDoc);\n            options.DescribeAllEnumsAsStrings();\n        });\n\n        // Repositories\n        services.AddScoped<ICheckListRepository, CheckListRepository>();\n        services.AddScoped<ICheckListItemRepository, CheckListItemRepository>();\n        services.AddScoped<IClientRepository, ClientRepository>();\n        services.AddScoped<IDocumentRepository, DocumentRepository>();\n        services.AddScoped<IDocumentTypeRepository, DocumentTypeRepository>();\n        services.AddScoped<IProjectRepository, ProjectRepository>();\n        services.AddScoped<IProtocolRepository, ProtocolRepository>();\n        services.AddScoped<IReviewRecordRepository, ReviewRecordRepository>();\n        services.AddScoped<IReviewSetRepository, ReviewSetRepository>();\n        services.AddScoped<ISiteRepository, SiteRepository>();\n\n        // Automapper Configuration\n        AutoMapperConfiguration.Configure();\n\n        // Enable Cors\n        services.AddCors();\n\n        // Add MVC services to the services container.\n        services.AddMvc()\n            .AddJsonOptions(opts =>\n            {\n                // Force Camel Case to JSON\n                opts.SerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();\n            });\n    }\n\n    // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.\n    public void Configure(IApplicationBuilder app)\n    {\n        app.UseStaticFiles();\n        // Add MVC to the request pipeline.\n        app.UseCors(builder =>\n            builder.AllowAnyOrigin()\n            .AllowAnyHeader()\n            .AllowAnyMethod());\n\n        app.UseExceptionHandler(\n          builder =>\n          {\n              builder.Run(\n                async context =>\n                {\n                    context.Response.StatusCode = (int)HttpStatusCode.InternalServerError;\n                    context.Response.Headers.Add(\"Access-Control-Allow-Origin\", \"*\");\n\n                    var error = context.Features.Get<IExceptionHandlerFeature>();\n                    if (error != null)\n                    {\n                        context.Response.AddApplicationError(error.Error.Message);\n                        await context.Response.WriteAsync(error.Error.Message).ConfigureAwait(false);\n                    }\n                });\n          });\n\n        app.UseMvc(routes =>\n        {\n            routes.MapRoute(\n                name: \"default\",\n                template: \"{controller=Home}/{action=Index}/{id?}\");\n\n            // Uncomment the following line to add a route for porting Web API 2 controllers.\n            //routes.MapWebApiRoute(\"DefaultApi\", \"api/{controller}/{id?}\");\n        });\n\n\n        //Ensure DB is created, and latest migration applied. Then seed.\n        using (var serviceScope = app.ApplicationServices\n          .GetRequiredService<IServiceScopeFactory>()\n          .CreateScope())\n        {\n            QuantaContext dbContext = serviceScope.ServiceProvider.GetService<QuantaContext>();\n            dbContext.Database.Migrate();\n            QuantaDbInitializer.Initialize(dbContext);\n        }\n\n\n        app.UseSwagger();\n        app.UseSwaggerUi();\n\n\n    }\n}\n\nThis works fine locally. But once we publish to Azure, this fails. I'm at a loss. I've created new .Net core project that deploy to Azure just find. But this one project, that I put all my time into to, seems to fail. I'm about ready to copy and paste code out of the project that fails to run and into a new project, but i'm really curious on what's breaking this.\nAny ideas?\nEDIT:\nSo my Program.cs was:\nusing System;\nusing System.Collections.Generic;\nusing System.IO;\nusing System.Linq;\nusing System.Threading.Tasks;\nusing Microsoft.AspNetCore.Hosting;\n\nnamespace Quanta.API\n{\n    public class Program\n    {\n        public static void Main(string[] args)\n        {\n            var host = new WebHostBuilder()\n                .UseKestrel()\n                .UseContentRoot(Directory.GetCurrentDirectory())\n                .UseIISIntegration()\n                .UseStartup<Startup>()\n                .Build();\n\n            host.Run();\n        }\n    }\n}\n\nEdit2:\nPer Frans, I checked the publishOptions. It was:\n\"publishOptions\": {\n\"include\": [\n  \"wwwroot\",\n  \"web.config\"\n]\n\nI took a publishOptions from a working project and changed it to:\n \"publishOptions\": {\n  \"include\": [\n    \"wwwroot\",\n    \"Views\",\n    \"Areas/**/Views\",\n    \"appsettings.json\",\n    \"web.config\"\n  ]\n  },\n\nIt still gave a 500 error, but it didn't give a stack trace saying it coulding load appsettings.json. Now it was complaining about a connection to SQL. I noticed that my SQL connection string code is mentioned in a lot of RC1 blog posts. RC2 of .Net Core changed it. So I updated it to:\n  \"Data\": {\n    \"ConnectionStrings\": {\n      \"DefaultConnection\": \"Server=(localdb)\\\\MSSQLLocalDB;Database=QuantaDb;Trusted_Connection=True;MultipleActiveResultSets=true\"\n    }\n  },\n\nAnd changed my startup to:\n services.AddDbContext<QuantaContext>(options =>\n        options.UseSqlServer(Configuration.GetConnectionString(\"DefaultConnection\"),\n        b => b.MigrationsAssembly(\"Quanta.API\")));\n\nFinally, it worked. \nI must have followed an older RC1 example and not realized it.\n",
+    "question_score": 132,
+    "answer_text": "Check the publishOptions in project.json and make sure the \"include\" section has \"appsettings.json\" in it.\nThey changed the publish model in RTM to require you to specify everything you want copied from the compile directory to the web folder.\nEDIT: See Jensdc answer below for how to do this with .csproj after project.json was killed.\n",
+    "answer_id": 39158957,
+    "tags": [
+      "c#",
+      "azure",
+      ".net-core",
+      "azure-web-app-service",
+      "asp.net-core-webapi"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 52769758,
+    "title": "Azure Blob Storage &quot;Authorization Permission Mismatch&quot; error for get request with AD token",
+    "question_text": "I am building an Angular 6 application that will be able to make CRUD operation on Azure Blob Storage. I'm however using postman to test requests before implementing them inside the app and copy-pasting the token that I get from Angular for that resource.\nWhen trying to read a file that I have inside the storage for test purposes, I'm getting: <Code>AuthorizationPermissionMismatch</Code>\n<Message>This request is not authorized to perform this operation using this permission.\n\nAll in production environment (although developing)\nToken acquired specifically for storage resource via Oauth\nPostman has the token strategy as \"bearer \"\nApplication has \"Azure Storage\" delegated permissions granted.\nBoth the app and the account I'm acquiring the token are added as \"owners\" in azure access control IAM\nMy IP is added to CORS settings on the blob storage.\nStorageV2 (general purpose v2)  - Standard - Hot\nx-ms-version header used is: 2018-03-28 because that's the latest I could find and I just created the storage account.\n\n",
+    "question_score": 128,
+    "answer_text": "I found it's not enough for the app and account to be added as owners. I would go into your storage account > IAM > Add role assignment, and add the special permissions for this type of request:\n\nStorage Blob Data Contributor\nStorage Queue Data Contributor\n\n",
+    "answer_id": 52770419,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "azure-blob-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 44976890,
+    "title": "How to run Azure Function app on a different port in Visual Studio",
+    "question_text": "I am setting local host port in local.setting.json. Referring Microsoft doc https://learn.microsoft.com/en-us/azure/azure-functions/functions-run-local\nThe file looks like below\n{\n  \"IsEncrypted\": false,\n  \"Values\": {\n    \"AzureWebJobsStorage\": \"\",\n    \"AzureWebJobsDashboard\": \"\"   \n  },\n  \"Host\": {\n    \"LocalHttpPort\": 7073\n  }\n}\n\nWhen I run/debug the solution , VS still host the app on default port (7071)\nI have checked the bin directory, the local.setting.json file is geting there with above settings.\nRunning Azure Fucntion CLI (func host start) from bin directory correctly read the port number.\nLooks like VS is not using the \"LocalHttpPort\" port. Is there any other changes required in the settings. I have Visual Studio 2017 Preview (2)\n",
+    "question_score": 125,
+    "answer_text": "Update: If you're just looking to change the port, you don't have to set it through the file specified in the question. Check Thuc Nguyen answer\nOriginal answer:\nthe command line takes precedence over the settings file, the problem is that VS passes an explicit port on the command line. \nwork around is to go through project -> properties -> Debug, then under Application arguments take control of the args. you can type host start --pause-on-error\n\nEdit from ravinsp:\nUpdate for .Net Core 2.0 function project:\nThe command line arguments you have to pass are different. You have to pass in the path to a dll in front. Like this:\n%AppData%\\..\\Local\\Azure.Functions.V2.Cli\\2.0.1-beta.22\\Azure.Functions.Cli.dll host start --pause-on-error You can see for yourself by running the function in Visual Studio and using the process explorer to see command line args to dotnet.exe process.\nedit: a word\n",
+    "answer_id": 44977350,
+    "tags": [
+      "azure",
+      "visual-studio-2017",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 31387073,
+    "title": "What is the difference between an API App and a Web App?",
+    "question_text": "I've been reading a few tutorials now on deploying Web Apps and API Apps to Azure. However, I am still a little unsure as to why you would use one over another. \nI can create a new .NET solution with API controllers and deploy this as a Web App, so why would I specifically require an API App? Are these optimized specifically for ASP.NET Web API, where as Web Apps are for delivering HTML?\n",
+    "question_score": 116,
+    "answer_text": "Updating the answer to current state of Azure,\nApp Services now replaces all Mobile, Api and Web Apps flavors as a single app framework with all the functionality rolled over to make things more accessible across application types. Currently all of Web, Mobile and Api Apps are collectively called App Services. We still offer customer to be able to create a Mobile App and a Web App in the gallery but that is basically resolve into an App Service App.\nhttps://azure.microsoft.com/en-us/documentation/articles/app-service-api-apps-why-best-platform/\nFeatures for Mobile work for Web App as well such as Easy Tables and Easy API. And features for API apps like API Cors and API definitions now work on web apps as well. A customer can host a single web app to act as any mobile service or an api with all the features offered through the app services.\nWe also have a new service in preview particularly targeting API Apps by offering a management experience for your APIs, Basically you can control the generate try API pages, gather execution analytics, throttle and much more. Check out the feature blog to learn more about the Azure API Management Features. And yes you can host the APIs as a App Service App and hook things up with API Management.\nhttps://azure.microsoft.com/en-us/documentation/articles/api-management-get-started/\n",
+    "answer_id": 31391664,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-api-apps"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 13174197,
+    "title": "&#39;Microsoft.SqlServer.Types&#39; version 10 or higher could not be found on Azure",
+    "question_text": "I'm trying to make a webapi in ASP.NET MVC 4. The webapi used Entity Framework 5 Spatial types and i have wrote a very simple code. \n  public List<Area> GetAllAreas()\n    {\n        List<Area> aList = db.Areas.ToList();\n        return aList;\n    }\n\nArea contains DbGeometry.\nWhen i run this local it works, but when i publish it to azure it gives me this error:\n\nSpatial types and functions are not available for this provider because the assembly 'Microsoft.SqlServer.Types' version 10 or higher could not be found.\n\nAnyone know how to resolve this ? :)\nThanks!\n",
+    "question_score": 114,
+    "answer_text": "I found the solution ! Just install the nuget package Microsoft.SqlServer.Types\n\nPM> Install-Package Microsoft.SqlServer.Types\n\nLink for more info\n",
+    "answer_id": 13175057,
+    "tags": [
+      "asp.net-mvc",
+      "entity-framework",
+      "azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 10040403,
+    "title": "Set Content-type of media files stored on Blob",
+    "question_text": "We have a website hosted on Azure. It is media based, and we are using JWPlayer to playback media with HTTP pseudostreaming. The media files are stored on blob in 3 formats - mp4, ogg, webm.\nThe issue is the content type of media files is set as application/octet-stream for all types. Due to this there are some issues in media playback and progress bar. \nHow can I set the appropriate Content-type of files stored on blob (like - video/mp4, video/ogg, video/webm)?\nI do not want to do it manually for each file by going in blob interface. There must be some other way to do it which I am not aware of. Perhaps a config file, settings file, etc sorts. Or perhaps a code block to set up the Content-type for all files stored in a folder.\nAny suggestions?\nThanks\n",
+    "question_score": 110,
+    "answer_text": "This should work:\nvar storageAccount = CloudStorageAccount.Parse(\"YOURCONNECTIONSTRING\");\nvar blobClient = storageAccount.CreateCloudBlobClient();\n\nvar blobs = blobClient\n    .GetContainerReference(\"thecontainer\")\n    .ListBlobs(useFlatBlobListing: true)\n    .OfType<CloudBlockBlob>();\n\nforeach (var blob in blobs)\n{\n    if (Path.GetExtension(blob.Uri.AbsoluteUri) == \".mp4\")\n    {\n        blob.Properties.ContentType = \"video/mp4\";\n    }\n    // repeat ad nauseam\n    blob.SetProperties();\n}\n\nOr set up a dictionary so you don't have to write a bunch of if statements.\n",
+    "answer_id": 10040559,
+    "tags": [
+      "c#",
+      "azure",
+      "content-type",
+      "jwplayer"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 45067692,
+    "title": "Azure Cosmos DB - Understanding Partition Key",
+    "question_text": "I'm setting up our first Azure Cosmos DB - I will be importing into the first collection, the data from a table in one of our SQL Server databases.  In setting up the collection, I'm having trouble understanding the meaning and the requirements around the partition key, which I specifically have to name while setting up this initial collection.  \nI've read the documentation here: (https://learn.microsoft.com/en-us/azure/cosmos-db/documentdb-partition-data) and still am unsure how to proceed with the naming convention of this partition key.\nCan someone help me understand how I should be thinking in naming this partition key?  See the screenshot below for the field I'm trying to fill in. \nIn case it helps, the table I'm importing consists of 7 columns, including a unique primary key, a column of unstructured text, a column of URL's and several other secondary identifiers for that record's URL.  Not sure if any of that information has any bearing on how I should name my Partition Key.\nEDIT: I've added a screenshot of several records from the table from which I'm importing, per request from @Porschiey.\n\n",
+    "question_score": 107,
+    "answer_text": "Honestly the video here* was a MAJOR help to understanding partitioning in CosmosDb.\nBut, in a nutshell:\nThe PartitionKey is a property that will exist on every single object that is best used to group similar/related objects together.\nGood examples include Location (like City), Customer Id, Team, and more. Naturally, it wildly depends on your solution; so perhaps if you were to post what your object looks like we could recommend a good partition key.\nEDIT: Should be noted that PartitionKey isn't required for collections under 10GB. (thanks David Makogon)\n\n* The video used to live on this MS docs page entitled, \"Partitioning and horizontal scaling in Azure Cosmos DB\", but has since been removed. A direct link has been provided, above.\n",
+    "answer_id": 45067929,
+    "tags": [
+      "azure",
+      "azure-cosmosdb"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 48907751,
+    "title": "Missing value for AzureWebJobsStorage in local.settings.json local development in Visual Studio 2017",
+    "question_text": "I'm developing an Azure Function locally, with the Storage Emulator and de Storage Explorer opened.\nFile tree\n\nlocal.settings.json\n{\n  \"IsEncrypted\": false,\n  \"Values\": {\n    \"AzureWebJobsStorage\": \"UseDevelopmentStorage=true\",\n    \"AzureWebJobsDashboard\": \"UseDevelopmentStorage=true\"\n  },\n  \"ConnectionStrings\": {\n    \"PlantaoEntities\": {\n      \"ConnectionString\": \"CENSORED\",\n      \"ProviderName\": \"System.Data.EntityClient\"\n    }\n  }\n}\n\nBut I receive the following message when trying to run the code:\n\nMissing value for AzureWebJobsStorage in local.settings.json. This is required for all triggers other than HTTP. You can run 'func azure functionapp fetch-app-settings ' or specify a connection string in local.settings.json\n\nIt was working before I rebuilt the solution, and if I try func azure functionapp fetch-app-settings <functionAppName> then it tries to retrieve the information from the Azure Portal itself.\n",
+    "question_score": 106,
+    "answer_text": "\nThe solution was to right-click on local.settings.json, go to\n  properties, change \"Copy to Output directory\" from \"Do not copy\" to\n  \"Copy always\". Now the CLI picks up the settings when running from\n  within Visual Studio 2017.\n\nhttps://github.com/Azure/azure-functions-core-tools/issues/223#issuecomment-326225219\n",
+    "answer_id": 48908113,
+    "tags": [
+      "azure",
+      "visual-studio-2017",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 53706734,
+    "title": "How to switch accounts via VS Code Azure Account Extension",
+    "question_text": "I've signed into one of my Azure accounts with Azure Account Extension via VS Code.  I didn't find any button to sign out or switch accounts.  How do I sign out or switch accounts?\n",
+    "question_score": 106,
+    "answer_text": "There is no button that you can find to sign in or sign out in VS Code with  Azure Account Extension. The extension works with commands from Command Palette.\n\nIn VS Code press Ctrl+Shift+p to see the command palette and write the symbol >, after that you can see any command you need including the sign out command to work with this extension.\n",
+    "answer_id": 53707442,
+    "tags": [
+      "azure",
+      "vs-code"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 22273360,
+    "title": "Connecting to an Azure website via FTP using Azure login credentials",
+    "question_text": "What login credentials do I use to connect to the FTP site that is listed on the dashboard of my Azure?\nI tried using the same credentials I use to log into Azure, but this failed.\n",
+    "question_score": 105,
+    "answer_text": "In the current Azure portal the deployment credentials can be set by going to App Services \u2192 select the relevant app service item \u2192 in the Deployment section \u2192 Deployment Center \u2192 FTP \u2192 Dashboard. You can either chose to use the preprovided App Credentials or assign User Credentials.\nIn the previous generation Azure portal the deployment credentials can be set up by going to WEB APPS \u2192 select relevant item \u2192 DASHBOARD \u2192 Reset your deployment credentials.\nMake sure you're specifying siteName\\userName as your login name. The site name portion is required!\nThe default directory for the web content is \\site\\wwwroot which can be set as the initial directory for many FTP clients.\n",
+    "answer_id": 22273837,
+    "tags": [
+      "azure",
+      "ftp",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 32150204,
+    "title": "BuildTasks.Csc task could not be loaded from the assembly?",
+    "question_text": "I feel guilty asking a question like this around here, but I'm at a loss and would appreciate some help.\nA proof-of-concept like web application was built on one PC and put up on a repo to download on another PC at a different location. There was originally an auto-build feature set up where Azure would build and publish automatically on check-in, but that was removed. Things were working on both ends until one side included a bulk of excluded changes. Now I'm seeing the following error:\n\nThe \"Microsoft.CodeAnalysis.BuildTasks.Csc\" task could not be\n  loaded from the assembly\n  ...\\packages\\Microsoft.Net.Compilers.1.0.0\\build..\\tools\\Microsoft.Build.Tasks.CodeAnalysis.dll.\n  Could not load file or assembly\n  'file:///...\\packages\\Microsoft.Net.Compilers.1.0.0\\tools\\Microsoft.Build.Tasks.CodeAnalysis.dll'\n  or one of its dependencies. The system cannot find the file specified.\n  Confirm that the  declaration is correct, that the assembly\n  and all its dependencies are available, and that the task contains a\n  public class that implements Microsoft.Build.Framework.ITask.\n\nDoes anyone have any suggestions on where to begin looking for the issue?\n",
+    "question_score": 104,
+    "answer_text": "It turns out that NuGet packages were committed to the repository and breaking everything. Deleting the project\\project\\packages directory from the repo solved all build problems since NuGet fetches the packages automatically on build.\n",
+    "answer_id": 32155774,
+    "tags": [
+      "asp.net",
+      "asp.net-mvc",
+      "entity-framework",
+      "azure",
+      "azure-devops"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 51700538,
+    "title": "What is going wrong with web deployment from Visual Studio and App service?",
+    "question_text": "Suddenly Web Deployment started failing. \nCould not find file 'D:\\home\\site\\wwwroot\\App_Offline.htm'.\n\nI stopped the service, but deployment still fails.\nWhen I tried to delete any file from wwwroot in Kudu PowerShell UI I get error \"404 file not find\", but that file is still displayed after refresh.\nWhen I tried to delete file directly in powershell I get error\nCannot remove item D:\\home\\site\\wwwroot\\Azure.Storage.dll: Invalid access to memory location.\nAt line:1 char:1\n+ del .\\Azure.Storage.dll\n+ ~~~~~~~~~~~~~~~~~~~~~~~\n    + CategoryInfo          : WriteError: (D:\\home\\site\\wwwroot\\Azure.Storage. \n   dll:FileInfo) [Remove-Item], IOException\n    + FullyQualifiedErrorId : RemoveFileSystemItemIOError,Microsoft.PowerShell \n   .Commands.RemoveItemCommand\n\nI deleted the service, recreated it and the first deployment from Visual Studio was Ok. But next day deployment failed again. The only thing between that deployments was deployment from VSTS. But I was able to deploy from VSTS and from Visual Studio in any order before without any problem.\nI'm the Owner of that App Service.\nDeployment log.\n(2018-08-06 13:05:03) An error occurred when the request was processed on the remote computer.\nCould not find file 'D:\\home\\site\\wwwroot\\App_Offline.htm'.\n   at System.IO.__Error.WinIOError(Int32 errorCode, String maybeFullPath)\n   at System.IO.FileStream.Init(String path, FileMode mode, FileAccess access, Int32 rights, Boolean useRights, FileShare share, Int32 bufferSize, FileOptions options, SECURITY_ATTRIBUTES secAttrs, String msgPath, Boolean bFromProxy, Boolean useLongPath, Boolean checkHost)\n   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, FileOptions options, String msgPath, Boolean bFromProxy)\n   at System.IO.FileStream..ctor(String path, FileMode mode, FileAccess access, FileShare share, Int32 bufferSize, Boolean useAsync)\n   at System.Xml.XmlWriterSettings.CreateWriter(String outputFileName)\n   at System.Xml.XmlWriter.Create(String outputFileName, XmlWriterSettings settings)\n   at Microsoft.Web.Deployment.AppOfflineRuleHandler.AddAppOfflineFilesToEachApp(DeploymentBaseContext baseContext, Boolean whatIf)\n   at Microsoft.Web.Deployment.AppOfflineRuleHandler.AddChild(DeploymentSyncContext syncContext, DeploymentObject destinationParentObject, DeploymentObject& sourceObject, Boolean& proceed)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.HandleAddChild(DeploymentObject destParent, DeploymentObject sourceObject, Int32 position)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncDirPathChildren(DeploymentObject destRoot, DeploymentObject sourceRoot)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildren(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildrenNoOrder(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildren(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildrenNoOrder(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildren(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildrenOrder(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.SyncChildren(DeploymentObject dest, DeploymentObject source)\n   at Microsoft.Web.Deployment.DeploymentSyncContext.ProcessSync(DeploymentObject destinationObject, DeploymentObject sourceObject)\n   at Microsoft.Web.Deployment.DeploymentObject.SyncToInternal(DeploymentObject destObject, DeploymentSyncOptions syncOptions, PayloadTable payloadTable, ContentRootTable contentRootTable, Nullable`1 syncPassId, String syncSessionId)\n   at Microsoft.Web.Deployment.DeploymentAgent.HandleSync(DeploymentAgentAsyncData asyncData, Nullable`1 passId, String user, String siteName)\nPublish failed to deploy.\n\n",
+    "question_score": 102,
+    "answer_text": "All of a sudden VSTS default deployment mode became Run-From-Zip.\nThe solution is setting Select deployment method checkbox in VSTS deploy and be sure Web Deploy is selected.\nTo \"unlock\" the service you need to delete setting WEBSITE_RUN_FROM_PACKAGE from Application settings page in the Azure Portal - it is under 'Configuration'\n\n",
+    "answer_id": 51718172,
+    "tags": [
+      "azure",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34608769,
+    "title": "How and where to define an environment variable on Azure",
+    "question_text": "I have an ASP.NET MVC web application deployed to Azure. I'm reading my setting using the GetEnvironmentVariable(...) method.\nThe problem is that I can't find a way to define this environment variable in Azure Portal. Where can I do that?\nI don't want to have this stuff in a file. Data that will be there are credentials.\n",
+    "question_score": 102,
+    "answer_text": "I assume you are using Azure App Service (formerly known as Azure Websites).\nTo define your own environment variable, click to your site \u2192 Settings \u2192 Environment variables:\n\nAdd an app setting in the \"App settings\" section:\n\nYou can verify the value from the debug console.\nGoing to https://{your site name}.scm.azurewebsites.net/DebugConsole:\n\n",
+    "answer_id": 34622196,
+    "tags": [
+      "asp.net-mvc",
+      "azure",
+      "model-view-controller",
+      "environment-variables"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 23268495,
+    "title": "How do I change the name of an Azure Resource Group?",
+    "question_text": "After the new model was implemented, all of my websites now belong to individual Resource Groups called \"Default-Web-East\" and all of my SQL databases belong to individual Resource Groups called \"Default-SQL-East\".\nThis is confusing to say the least.\nI would like to rename the groups to have some semantic meaning.  I would also like to group the associated SQL database and Web Site in the same Resource Group. \nHowever, I do not see anyway to do either.  Is this possible?\n1) Rename the Resource Group?\n2) Combine an existing SQL DB and Website together into one Resource Group?\n",
+    "question_score": 102,
+    "answer_text": "Edit: You can't rename an Azure Resource Group.\nWhat you can do is move your resources to a new Resource Group instead. Moving all resources in Resource Group A to Resource Group B is the poor man's rename.\nUnfortunately not all resource providers let you move resources between resource groups, and some that do might have strings attached that only let you move resources under certain conditions.\nFor Azure Web Apps (previously called Azure Websites) you can currently only move all the websites related resources in a single invocation. That \"all websites related resources\" means all resource under the provider \"Microsoft.Web\". This includes all websites, app hosting platforms, and certificates that are in the source resource group.\n\nVia the portal\nWhen viewing a group's resources, you can use the \"Move\" tab\n\nClicking the \"Move\" tab will show something this, allowing you to choose or create a new group:\n\nVia Azure Powershell\nThe easiest way to do this is to use the Move-AzureRmResource powershell cmdlet.\nThe command would look like this:\nGet-AzureRmResource -ResourceGroupName <sourceResourceGroupName> | Move-AzureRmResource -DestinationResourceGroupName <destResourceGroupName>\n\nsource: https://azure.microsoft.com/en-us/documentation/articles/resource-group-move-resources/\n\nVia Rest API\nThe other way to do this is to use the MoveResource Rest API or with the ArmClient.\nHere's the API call you'll want to make:\nPOST https://<endpoint>/subscriptions/{subscriptionId}/resourcegroups/{resourceGroupName}/moveResources?api-version={api-version}\nWhere {resourceGroupName} is the source resource group.\nI'm pretty sure the endpoint should be \"https://management.azure.com\", but if you use the ArmClient the tool will just take care of the endpoint for you.\nRequest Body:\n{\n   \"targetResourceGroup\": \"/subscriptions/{subscriptionId}/resourceGroups/{targetResourceGroupNameName}\",\n   \"resources\":\n   [  \n     \"/subscriptions/{id}/resourceGroups/{source}/providers/{namespace}/{type}/{name}\",\n     \"/subscriptions/{id}/resourceGroups/{source}/providers/{namespace}/{type}/{name}\"\n   ]\n}\n\n\n",
+    "answer_id": 23276958,
+    "tags": [
+      "azure",
+      "azure-sql-database",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 19094970,
+    "title": "How do I create a new user in a SQL Azure database?",
+    "question_text": "I am trying to use the following template:\n-- =================================================\n-- Create User as DBO template for SQL Azure Database\n-- =================================================\n-- For login <login_name, sysname, login_name>, create a user in the database\nCREATE USER <user_name, sysname, user_name>\n    FOR LOGIN <login_name, sysname, login_name>\n    WITH DEFAULT_SCHEMA = <default_schema, sysname, dbo>\nGO\n\n-- Add user to the database owner role\nEXEC sp_addrolemember N'db_owner', N'<user_name, sysname, user_name>'\nGO\n\nI would like to create a user called user1 with a password of 'user1pass'. I connected with my default database 'authentication' and I have a query window open.\nBut the template does not make sense for me. For example what's sysname, where do I supply the password and what should I use as the default_schema?\nThe particular user needs to have the power to do everything. But how do I set it up so he can do everything, is that done if I make the user a database owner?\nSo far I have tried:\nCREATE USER user1, sysname, user1\n    FOR LOGIN user1, sysname, user1\n    WITH DEFAULT_SCHEMA = dbo, sysname, dbo\nGO\n\nGiving:\n\nMsg 102, Level 15, State 1, Line 1 Incorrect syntax near ','.\n\nand:\nCREATE USER user1\n    FOR LOGIN user1\n    WITH DEFAULT_SCHEMA = dbo\nGO\n\nGiving:\n\nMsg 15007, Level 16, State 1, Line 1 'user1' i\n\ns not a valid login or you do not have permission.\n",
+    "question_score": 98,
+    "answer_text": "Check out this link for all of the information : https://azure.microsoft.com/en-us/blog/adding-users-to-your-sql-azure-database/\nFirst you need to create a login for SQL Azure, its syntax is as follows:\nCREATE LOGIN username WITH password='password';\n\nThis command needs to run in master db.  Only afterwards can you run commands to create a user in the database.  The way SQL Azure or SQL Server works is that there is a login created first at the server level and then it is mapped to a user in every database.\nHTH\n",
+    "answer_id": 19096427,
+    "tags": [
+      "sql-server",
+      "azure",
+      "azure-sql-database"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 29079268,
+    "title": "Differences between Azure Block Blob and Page Blob?",
+    "question_text": "As I recently started mingling around with Windows Azure, I've came up to a situation where, which one to go for between the Block Blob & Page Blob. I'm currently in progress of uploading some text, csv or dat files to a blob storage and then do a MapReduce program for it using my C# program. Yes I've gone through an article.\nBut couldn't get a clear idea from them. To cut short, Block Blob vs Page Blob. Any help would be appreciated.\n",
+    "question_score": 97,
+    "answer_text": "The differences are very-well documented on msdn, here. TL;DR:\n\nBlock blobs are for your discrete storage objects like jpg's, log files, etc. that you'd typically view as a file in your local OS. Max. size 200GB 4.77TB. Regular (non-Premium) storage only.\nPage blobs are for random read/write storage, such as VHD's (in fact, page blobs are what's used for Azure Virtual Machine disks). Max. size 8TB. Supported by both regular and Premium Storage.\n\nNote: Premium page blobs have specific sizings (unlike regular page blobs, which can be any size up to 8TB).\n\n32GB\n64GB\n128GB\n512GB\n1024GB\n2048GB\n4096GB\n\nPremium storage provides guaranteed IOPS and throughput, depending on the page blob size chosen (from 120 IOPS+25MB/s @ 32GB to 7500 IOPS+250MB/s @ 2048GB & 4096GB). Specific details around IOPS+throughput details are documented here.\n",
+    "answer_id": 29081340,
+    "tags": [
+      "azure",
+      "azure-storage",
+      "azure-blob-storage",
+      "azure-hdinsight"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 25906628,
+    "title": "Azure SQL Database &quot;DTU percentage&quot; metric",
+    "question_text": "With the new Azure SQL Database tier structure, it seems important to monitor your database \"DTU\" usage to know whether to upgrade or downgrade to another tier.\nWhen reading Azure SQL Database Service Tiers and Performance Levels, it only talks about monitoring with CPU, Data and Log percentage usage.\nBut, when I add new metrics, I also have an DTU percentage option:\n\nI can't find any about this online.  Is this essentially a summary of the other DTU-related metrics?\n",
+    "question_score": 96,
+    "answer_text": "A DTU is a unit of measure for the performance of a service tier and is a summary of several database characteristics. Each service tier has a certain number of DTUs assigned to it as an easy way to compare the performance level of one tier versus another.\n\nDatabase Throughput Unit (DTU): DTUs provide a way to\n  describe the relative capacity of a performance level of Basic,\n  Standard, and Premium databases. DTUs are based on a blended measure\n  of CPU, memory, reads, and writes. As DTUs increase, the power offered\n  by the performance level increases. For example, a performance level\n  with 5 DTUs has five times more power than a performance level with 1\n  DTU. A maximum DTU quota applies to each server.\n\nThe DTU Quota applies to the server, not the individual databases and each server has a maximum of 1600 DTUs. The DTU% is the percentage of units your particular database is using and it seems that this number can go over 100% of the DTU rating of the service tier (I assume to the limit of the server). This percentage number is designed to help you choose the appropriate service tier.\nFrom down toward the bottom of this announcement:\n\nFor example, if your DTU consumption shows a value of 80%, it\n  indicates it is consuming DTU at the rate of 80% of the limit an S2\n  database would have. If you see values greater than 100% in this view\n  it means that you need a performance tier larger than S2.\nAs an example, let\u2019s say you see a percentage value of 300%.  This\n  tells you that you are using three times more resources than would be\n  available in an S2.  To determine a reasonable starting size, compare\n  the DTUs available in an S2 (50 DTUs) with the next higher sizes (P1 =\n  100 DTUs, or 200% of S2, P2 = 200 DTUs or 400% of S2).  Because you\n  are at 300% of S2 you would want to start with a P2 and re-test.\n\n",
+    "answer_id": 25917545,
+    "tags": [
+      "azure",
+      "azure-sql-database",
+      "azure-storage",
+      "azure-monitoring"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 32619221,
+    "title": "Difference between new and classic storage accounts in Azure",
+    "question_text": "Azure has Storage accounts and Storage accounts (classic) in the Azure Portal.\nWhat are the differences between them? Is there any reason to migrate from a classic storage account to a new storage account?\n",
+    "question_score": 96,
+    "answer_text": "Classic storage accounts are created using existing Service Management API's (the REST API stack that's been available for the past several years). The newer storage accounts are created with the new Azure Resource Manager (ARM) API's (which are also wrapped in PowerShell and CLI now). Ultimately they provide the same resources to your apps, but they're created/managed differently, and there are a few nuanced differences (such as the ability to tag resources that are created via ARM scripts).\nYou can't convert a classic storage account (or any classic resource) to a newer type. You don't really need to anyway, unless you're trying to mix resources from classic and new, such as adding ARM-based virtual machines to a classic-based virtual network, or spin up an ARM-based VM from a vhd image sitting in a classic storage account (and for that example, you could always just copy the vhd to a new storage account). Note that, for general storage usage (blobs/tables/queues), you just need the URI and the primary (or secondary) key. With those, you can access your storage resources from anywhere, from any VM/website/etc, regardless if you're accessing storage from classic or new virtual machines, for example.\nCheck out this link for a general list of differences between classic and new resources.\n",
+    "answer_id": 32620174,
+    "tags": [
+      "azure",
+      "azure-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 37215069,
+    "title": "Azure Functions Database Connection String",
+    "question_text": "How do I add or access an app.config file in Azure functions to add a database connection string? \nIf you're not supposed to add an app.config and there is a better way to access an external database to execute the function please let me know best practices.  Thanks!\n",
+    "question_score": 93,
+    "answer_text": "Jan_V almost nailed it, which led me to experiment with this in the local.settings.json\n{\n  \"IsEncrypted\": false,\n  \"Values\": {\n    \"AzureWebJobsStorage\": \"UseDevelopmentStorage=true;\",\n    \"AzureWebJobsDashboard\": \"\"\n  },\n  \"ConnectionStrings\": {\n    \"MyConnectionString\": \"[YourConnectionStringHere]\"\n  }\n}\n\nThis allows you to use the ConfigurationManager.ConnectionStrings[] we are all used to.\nvar sqlConnection = ConfigurationManager\n                   .ConnectionStrings[\"MyConnectionString\"].ConnectionString;\n\n",
+    "answer_id": 45555781,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-functions",
+      "azure-sql-database"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 53526121,
+    "title": "&quot;Use a tenant-specific endpoint or configure the application to be multi-tenant&quot; when signing into my Azure website",
+    "question_text": "I'm getting this error after I sign into my Azure website:\n\nAADSTS50194: Application 'xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxxxx' is not configured as a multi-tenant application. Usage of the /common endpoint is not supported for such applications created after '10/15/2018'. Use a tenant-specific endpoint or configure the application to be multi-tenant.\n\n",
+    "question_score": 91,
+    "answer_text": "If you are an Azure administrator getting this message, it may be for the the exact reason that is listed in the error message - you can not use the common API endpoint to MSFT logins to tenant-specific applications.\nIn my case, I was configuring an app registration with sample code - the sample code needed to be modified with a new endpoint. I.e the following line:\nlet kAuthority = \"https://login.microsoftonline.com/common\"\nneeded to be changed to:\nlet kAuthority = \"https://login.microsoftonline.com/MY_TENANT_NAME\"\n...or, if you have spaces/special chars in your tenant name, or would prefer a Key ID, use the Tenant ID:\nlet kAuthority = \"https://login.microsoftonline.com/MY_TENANT_GUID\"\nThe tenant name/ID for your Azure organization can be obtained by typing \"Tenant Properties\" into the Azure search bar.\n\nXamarin: The above note worked for MSAL iOS - for Xamarin MSAL Android/iOS, there was no direct way to set the authority in the main call. It needs to be chained to the interactive login call.\nE.g., the sample code here:\nauthResult = await App.PCA.AcquireTokenInteractive(App.Scopes)\n                      .WithParentActivityOrWindow(App.ParentWindow)\n                      .ExecuteAsync();\n\nNeeds to be changed to this:\nauthResult = await App.PCA.AcquireTokenInteractive(App.Scopes)\n                      .WithAuthority(\"https://login.microsoftonline.com/YOUR_TENANT_NAME\")\n                      .WithParentActivityOrWindow(App.ParentWindow)\n                      .ExecuteAsync();\n\n",
+    "answer_id": 58067996,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 75146087,
+    "title": "Running Azure functions locally gives &quot;No runtime&quot; error after .NET7 upgrade",
+    "question_text": "Recently I wanted to upgrade my Azure functions to use .NET 7. For some reasons, after doing all the required steps, when I want to run any of the functions, I keep getting this error message box telling\n\nThere is no Functions runtime available that matches the version\nproject specified by the project\n\nI checked to have the proper settings in the .csproj file:\n<PropertyGroup>\n    <TargetFramework>net7.0</TargetFramework>\n    <AzureFunctionsVersion>v4</AzureFunctionsVersion>\n    <OutputType>Exe</OutputType>\n    <RootNamespace>$(MSBuildProjectName.Replace(\" \", \"_\"))</RootNamespace>\n    <_FunctionsSkipCleanOutput>true</_FunctionsSkipCleanOutput>\n    <ImplicitUsings>enable</ImplicitUsings>\n    <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>\n</PropertyGroup>\n\nYes, it is spelled with lowercase v for \"v4\". I checked to have the hosting bundle for .NET7 installed according to my architecture (64-bit Windows) and I restarted the IIS Service after installation. I tried clean-rebuild, reopen Visual Studio, rebooting my compuer and nothing seems to be working. I also have the .NET 7 SDK installed and I am using Visual Studio 2022. If further info is needed, I will update my question accordingly. Thank you!\n",
+    "question_score": 90,
+    "answer_text": "I eventually found the solution for my case and I will post it here if anyone else faces it. As mentioned in a comment from this Github issue, I had to go to\n\nTools -> Options -> Projects & Solutions -> Azure functions and click\non the \"Check for updates\" button.\n\n\nAnd then I had to download and install the pending updates.\n\nThis seems to have solved my issue. Hopefully this solution will help others too.\n",
+    "answer_id": 75146147,
+    "tags": [
+      "c#",
+      ".net",
+      "azure",
+      "visual-studio",
+      "function"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 62817337,
+    "title": "Azure KeyVault: Azure.Identity.CredentialUnavailableException: DefaultAzureCredential failed to retrieve a token from the included credentials",
+    "question_text": "I am trying to connect my ASP.NET Core application that is targeting .NET framework with Azure Keyvault. On a new Azure VM that supports Identity everything works fine, but this application is hosted on a classic Azure VM that does not support Identity. I made the system environment variable AzureServiceAuthConnectionString which several other .NET framework applications with Azure Keyvault are already using and they are working perfectly.\nLooking at my stdout logs I get the following exception every time:\n\nAzure.Identity.CredentialUnavailableException: DefaultAzureCredential failed to retrieve a token from the included credentials\nEnvironmentCredential authentication unavailable. Environment variables are not fully configured\nManagedIdentityCredential authentication unavailable, the requested identity has not been assigned to this resource.\n\nI use the following code in the startup:\npublic static IWebHostBuilder CreateWebHostBuilder(string[] args) =>\n            WebHost.CreateDefaultBuilder(args)               \n       .UseApplicationInsights(ConfigurationManager.AppSettings[\"applicationInsightsInstrumentationKey\"])\n                .ConfigureKestrel(options => options.AddServerHeader = false)\n                .UseIISIntegration()\n                .ConfigureAppConfiguration((context, config) =>\n                {\n                    var vaultName = ConfigurationManager.AppSettings[\"VaultName\"];\n                    if (!string.IsNullOrEmpty(vaultName))\n                    {\n                        var azureServiceTokenProvider = new AzureServiceTokenProvider();\n                        var keyVaultClient = new KeyVaultClient(\n                            new KeyVaultClient.AuthenticationCallback(\n                                azureServiceTokenProvider.KeyVaultTokenCallback));\n\n                        config.AddAzureKeyVault(\n                            $\"https://{vaultName}.vault.azure.net/\",\n                            keyVaultClient,\n                            new DefaultKeyVaultSecretManager());\n                    }\n                })\n                .UseStartup<Startup>();\n\nAnd in the web.config the following items :\n<configSections>\n    <section name=\"configBuilders\" type=\"System.Configuration.ConfigurationBuildersSection, System.Configuration, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a\" restartOnExternalChanges=\"false\" requirePermission=\"false\"/>\n</configSections>\n<configBuilders>\n    <builders>\n        <add name=\"AzureKeyVault\" vaultName=\"<#= this.VaultName #>\" type=\"Microsoft.Configuration.ConfigurationBuilders.AzureKeyVaultConfigBuilder, Microsoft.Configuration.ConfigurationBuilders.Azure, Version=2.0.0.0, Culture=neutral\" vaultUri=\"https://<#= this.VaultName #>.vault.azure.net\" />\n    </builders>\n</configBuilders>\n<connectionStrings configBuilders=\"AzureKeyVault\">\n      <add name=\"ConnectionString\" connectionString=\"\" providerName=\"System.Data.SqlClient\"/>\n</connectionStrings>\n\n",
+    "question_score": 90,
+    "answer_text": "Could you validate that you are setting the following system environment variables?\nAZURE_CLIENT_ID - service principal's app id\nAZURE_TENANT_ID - id of the principal's Azure Active Directory tenant\nAZURE_CLIENT_SECRET - one of the service principal's client secrets\n",
+    "answer_id": 62817989,
+    "tags": [
+      "c#",
+      ".net",
+      "azure",
+      "asp.net-core",
+      "azure-keyvault"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 45585000,
+    "title": "Azure CLI vs Powershell?",
+    "question_text": "Not precisely able to understand the merit of Azure CLI on Windows environment.\nIs it targetted for the audience who want to manage Azure IAAS from Linux environment?\nI thought Powershell core is going to be the way for non-Windows admins.\nIs PowerShell Core not going to be ported to well on all platforms, to serve the cross-platform audience?\nIn a nutshell, is it worth learning Azure CLI?\n",
+    "question_score": 88,
+    "answer_text": "Azure CLI is a PowerShell-like-tool available for all platforms. You can use the same commands no matter what platform you use: Windows, Linux or Mac.\nNow, there are two version Azure CLI. The Azure CLI 1.0 was written with Node.js to achieve cross-platform capabilities, and the new Azure CLI 2.0 is written in Python to offer better cross-platform capabilities. Both are Open Source and available on Github. However, for now, only certain PowerShell cmdlets support use on Linux. \n\nIs it targetted for the audience who want to manage Azure IAAS from Linux\n  environment?\n\nI think the answer is yes. For a Linux or Mac developer, I think they more likely to use Azure CLI.\n",
+    "answer_id": 45585899,
+    "tags": [
+      "azure",
+      "powershell",
+      "azure-powershell",
+      "azure-cli",
+      "azure-cli2"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 64692600,
+    "title": "AADSTS9002325: Proof Key for Code Exchange is required for cross-origin authorization code redemption",
+    "question_text": "I created a spa application owned by my organization only, but there was a problem when I requested code. How can I resolve it?\n\n",
+    "question_score": 86,
+    "answer_text": "I can reproduce your problem, you have to add the redirect URL under the web (not single page application). After that, you will be able to use the auth code flow to get the code.\n\nSimilar problem\uff0csee: here and here and here.\n",
+    "answer_id": 64693391,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "single-sign-on"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 10989051,
+    "title": "Why do I get the error &quot;The target GatherAllFilesToPublish does not exist&quot;?",
+    "question_text": "I have recently installed the new Azure development tools for Visual Studio 2010 service pack 1. Every time that I try to publish an existing website (using file system deployment) I get the following error:\n\nThe target \"GatherAllFilesToPublish\" does not exist in the project.\n\nCan anyone tell me what I am missing?\nThanks\n",
+    "question_score": 85,
+    "answer_text": "I think that I know what the issue is. When you install the Azure SDK bits it installs some VS Web Publish updates. One of these updates the file at \nC:\\Program Files (x86)\\MSBuild\\Microsoft\\VisualStudio\\v10.0\\WebApplications\\Microsoft.WebApplication.targets\n\nBased on how our setup is defined if that file has an updated timestamp (for whatever reason) then when you install the new component the file does not get updated.\nTo resolve this you should be able to follow the steps below:\n\nRename the Microsoft.WebApplication.targets to Microsoft.WebApplication.targets.bak\nInstall/Repair using the exe at http://go.microsoft.com/fwlink/?LinkId=253458\n\n",
+    "answer_id": 11164374,
+    "tags": [
+      "azure",
+      "visual-studio-2010"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 54391120,
+    "title": "How to download the latest build artifacts from Azure DevOps programmatically?",
+    "question_text": "I have a .NET C# application and I would like to download the latest artifacts generated by the latest build of this public Azure DevOps project:\nhttps://dev.azure.com/LumiaWoA/Boot%20Shim/_build?definitionId=3\nHow does one interface with Azure DevOps to download the artifacts for such a task? \nI have in mind to use an HttpClient to download the zipped artifacts using some special URL.\n",
+    "question_score": 82,
+    "answer_text": "You would need to use Azure DevOps REST Api for that. This rest call retrieves artifacts from the build:\nGET https://dev.azure.com/{organization}/{project}/_apis/build/builds/{buildId}/artifacts?artifactName={artifactName}&api-version=5.0\n\nthis REST call would give you latest build:\nGET https://dev.azure.com/{organization}/{project}/_apis/build/latest/{definition}?branchName={branchName}&api-version=5.0-preview.1\n\nHere's an article (with some samples) talking about how you would authenticate to the API. As from the code perspective, its a simple HTTP request, so should be fairly easy.\n",
+    "answer_id": 54391157,
+    "tags": [
+      "c#",
+      ".net",
+      "azure",
+      "azure-devops",
+      "azure-artifacts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 57485621,
+    "title": "Share variables across stages in Azure DevOps Pipelines",
+    "question_text": "I am trying to figure out how to share custom variables across ADO pipelines in my script. Below is my script with 2 stages.\nI am setting the curProjVersion as an output variable and trying to access it from a different stage. Am I doing it right?\nstages:\n- stage: Build\n  displayName: Build stage\n  jobs:\n  - job: VersionCheck\n    pool:\n      vmImage: 'ubuntu-latest'\n    displayName: Version Check\n    continueOnError: false\n    steps:\n\n      - script: |\n          echo \"##vso[task.setvariable variable=curProjVersion;isOutput=true]1.4.5\"\n        name: setCurProjVersion\n        displayName: \"Collect Application Version ID\"\n\n- stage: Deploy\n  displayName: Deploy stage\n  dependsOn: Build\n  variables:\n    curProjVersion1: $[ dependencies.Build.VersionCheck.outputs['setCurProjVersion.curProjVersion'] ]\n  jobs:\n  - job: \n    steps: \n      - script: |\n          echo $(curProjVersion1)\n\n",
+    "question_score": 81,
+    "answer_text": "Updated:\nShare variables across stages feature has been released in Sprint 168 now.\nPlease use below format to access output variables from previous stage:\nstageDependencies.{stageName}.{jobName}.outputs['{stepName}.{variableName}'] \n\nOriginal:\n\nShare variables across stages in Azure DevOps Pipelines\n\nI'm afraid to say that it does not supported to share the variable which defined in one stage and pass it into another stage.\nThis is the feature we are plan to add, but until now, it does not supported. You can follow this Github issue, many people has the same demand with you. You can follow track that.\nUntil now, we only support set a multi-job output variable, but this only support YAML. For Classic Editor, there's no any plan to add this feature in release.\nFor work around, you can predefined the variables before the stages. But one important thing is if you change its value in one stage. The new value could not be passed to the next stage. The lifetime of variable with new value only exists in stage.\n",
+    "answer_id": 57488169,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "azure-pipelines"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 33436344,
+    "title": "Restoring SQL Server backup to Azure SQL Database",
+    "question_text": "Is there a way to simply take a SQL backup .bak file, and using that as a restore point to generate a new database on Azure SQL Database?  \nThe wizard that I see generally recommended in this situation wants to create a custom file to use, but it pukes on the encrypted objects ( functions and views ) and I don't see another way to get it going.\n",
+    "question_score": 80,
+    "answer_text": "If you already have a database on local machine then you can migrate it directly on Azure using SQL Management Studio. Follow these steps:\nRight click on the database name in SSMS:\n\nFollow the wizard that appears then.\nIf you're running SSMS v17 you can configure the Azure SQL database edition, size and service objective. \n",
+    "answer_id": 41526042,
+    "tags": [
+      "sql-server",
+      "azure",
+      "azure-sql-database",
+      "database-backups"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 3183857,
+    "title": "How to create a sub container in azure storage location",
+    "question_text": "How can I create a sub container in the azure storage location?\n",
+    "question_score": 80,
+    "answer_text": "Windows Azure doesn't provide the concept of heirarchical containers, but it does provide a mechanism to traverse heirarchy by convention and API. All containers are stored at the same level. You can gain simliar functionality by using naming conventions for your blob names. \nFor instance, you may create a container named \"content\" and create blobs with the following names in that container:\ncontent/blue/images/logo.jpg\ncontent/blue/images/icon-start.jpg\ncontent/blue/images/icon-stop.jpg\n\ncontent/red/images/logo.jpg\ncontent/red/images/icon-start.jpg\ncontent/red/images/icon-stop.jpg\n\nNote that these blobs are a flat list against your \"content\" container. That said, using the \"/\" as a conventional delimiter, provides you with the functionality to traverse these in a heirarchical fashion.\nprotected IEnumerable<IListBlobItem> \n          GetDirectoryList(string directoryName, string subDirectoryName)\n{\n    CloudStorageAccount account =\n        CloudStorageAccount.FromConfigurationSetting(\"DataConnectionString\");\n    CloudBlobClient client = \n        account.CreateCloudBlobClient();\n    CloudBlobDirectory directory = \n        client.GetBlobDirectoryReference(directoryName); \n    CloudBlobDirectory subDirectory = \n        directory.GetSubdirectory(subDirectoryName); \n\n    return subDirectory.ListBlobs();\n}\n\nYou can then call this as follows:\nGetDirectoryList(\"content/blue\", \"images\")\n\nNote the use of GetBlobDirectoryReference and GetSubDirectory methods and the CloudBlobDirectory type instead of CloudBlobContainer. These provide the traversal functionality you are likely looking for.\nThis should help you get started. Let me know if this doesn't answer your question:\n[ Thanks to Neil Mackenzie for inspiration ]\n",
+    "answer_id": 3189365,
+    "tags": [
+      "azure",
+      "azure-storage",
+      "azure-blob-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 53766890,
+    "title": "Multiple YAML build pipelines in Azure DevOps",
+    "question_text": "I'm currently trying to create multiple build pipelines for my Angular app in Azure DevOps using the new YAML way.\nI used to create a new build pipeline for the different environments I've set up (dev, staging, prod) when I was using the \"legacy\" visual builder.\nBut since I've switched to YAML-style build definitions everytime I try to create a new pipeline I get redirected to the existing azure-pipelines.yml. As far as I can tell from the docs it is not possible to define multiple pipelines in a single .yml file either.\nIs this scenario currently not supported in Azure DevOps?\n",
+    "question_score": 80,
+    "answer_text": "@4c74356b41's answer was correct, but now you can create as many build configurations using different yaml files and also with continuous integration without creating manual builds.\nOn the new pipeline flow follow these steps:\n1. Choose where is your code:\n\n2. Select the repository of your code (the one which has the yml file):\n\n3. On the configure pipeline, choose Existing Azure Pipelines YAML file:\n\n4. Select the branch and the path where the yaml file is, then continue: Note: If it's not shown make sure your file has .yml extension\n\n5. Finally click RUN.\nNote: After creating the pipeline this way, it will have continuous integration activated, but if you still want to have manual building follow the next:\nSelect your build and then Triggers:\n\nAnd then disable continuous integration:\n\nOr even easier, just add the line trigger: none to your yaml file.\n",
+    "answer_id": 56809695,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "yaml",
+      "azure-pipelines"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34837173,
+    "title": "Authentication failed for Azure Git",
+    "question_text": "I'm trying to clone my webapp in Azure.\nWhen I run git clone https://username@appname.scm.azurewebsites.net:443/appname.git the terminal asks me for my password. \nBut when I fill in my password, it keeps saying that the authentication has failed.\nEven though I changed my password plenty of times in the Portal (Settings -> Set deployment credentials). \nAny reason it keeps saying that my authentication has failed?\n",
+    "question_score": 79,
+    "answer_text": "I had the same problem with my site and it turned out the issue is with the site url:\nthe automatically generated remote url was: https://user@site.scm.azurewebsites.net/site.git\nOn the other hand the portal showed: https://user@site.scm.azurewebsites.net:443/site.git\nAfter updating the remote url in git with the following command:\ngit remote set-url azure\nhttps://<user>@<site>.scm.azurewebsites.net/<site>.git\nhttps://<user>@<site>.scm.azurewebsites.net:443/<site>.git\n\nthings started working as expected.\nThe morale of the story: check the deployment url as well as the password.\n",
+    "answer_id": 39186504,
+    "tags": [
+      "git",
+      "azure",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 8557469,
+    "title": "How to restore my Local database to Windows Azure Database?",
+    "question_text": "I have uploaded my application to Windows Azure Now I want to store My Local database to Windows Azure Database.\nPlease Suggest me how do I create table and backup the table there?\n",
+    "question_score": 79,
+    "answer_text": "There are couple of ways to do that:\n\nThe most reliable (that I usually use) is using the SQL Azure Migration Wizard\nThen you have the \"Generate Scripts\" option in your SSMS (SQL Server Management Studio 2008 R2 or later). The generate Scripts option does have a feature to make SQL Azure compliant script. It can also script data. But I suggest using method one if you want to migrate data, too. SQL Azure Migration Wizard uses BCP tool, which dumps the data into binary files, while SSMS just generates inline INSERT Statements\nSSIS (SQL Server Integration Services) - you can create a Data Transfer task, but I would use it very rare for small DBs.\nExport/Import data tier application (using DACPAC package) - this will migrate your schema and can migrate your data as well.\n\nUPDATE 2017-10-24\nAzure SQL Database now supports transactional replication from your on-premises SQL Server. You can configure your Azure SQL Database as subscriber and your SQL Server on-premise as publisher. You can read more about database migration options and strategies here: https://learn.microsoft.com/en-us/azure/sql-database/sql-database-cloud-migrate\nUpdate 2017-12-23\nSQL Azure Migration Wizard has been replaced by Data Migration Assistant: https://learn.microsoft.com/en-us/azure/sql-database/sql-database-cloud-migrate\n",
+    "answer_id": 8557659,
+    "tags": [
+      "azure",
+      "azure-sql-database",
+      "azure-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34967878,
+    "title": "How to drop all tables and reset an Azure SQL Database",
+    "question_text": "I have an ASP.NET MVC 5 project that works local and whenever I need to blow away the DB, I just open a new query on it, change the available database dropdown to master, then close the connection on my local db and run the query \"drop database [name]\".  Then I build the project, go into the package manager console and run \"Update-Database\". This seems to rebuild a fresh local database and runs the seed method in my configuration.cs file.\nThe problem is when I need to test things in a live environment so I can test API's and such better, I will do a deploy to an Azure Website and the accompanying Azure DB, which is nice and easy to do. I check off the \"Execute code first migrations\" in the publish wizard and most of the time it works and I can run and debug my live version. Sometimes I need to blow away that db and start from scratch again, but the only way I've really found to do it is to go into the Azure portal, delete the database, and then re-create it with the same name. This takes some time for Azure to process, so this is a slow testing cycle.\nIs there a quick way to just drop/reset a Azure SQL DB to it's fresh, empty, virgin state and then re-publish with \"execute code first migrations\" to have it re-create the tables and re-seed the data?\nI've seen some talk of creating an initial migration after I create the db, and then trying to use the Powershell to do some sort of roll-back to that initial state, but I haven't had luck getting it to work, and I want to delete all the data at the same time. Maybe I've just got the wrong syntax or haven't found a good enough tutorial. While I can run a query on the Azure DB to \"drop database [x]\" it literally kills the SQL Azure DB instance as you'd expect and you need to go back into the portal to recreate it. Sometimes that initial state is no good as the model has since been updated, so this may not be useful anyway.\nI feel like there should be some easier quicker way to test changes on a live environment as there all these great tools and shortcuts provided by MS, but did they just drop the ball here for this phase of development or am I missing something?\n",
+    "question_score": 78,
+    "answer_text": "Since there is not an API way to do this that I am aware of, we have used this script to leverage a T-SQL query to clear the database.\nTo delete each table (and maintain your EF migration histories if you want)\nwhile(exists(select 1 from INFORMATION_SCHEMA.TABLES \n             where TABLE_NAME != '__EFMigrationsHistory' \n             AND TABLE_TYPE = 'BASE TABLE'))\nbegin\n declare @sql nvarchar(2000)\n SELECT TOP 1 @sql=('DROP TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME\n + ']')\n FROM INFORMATION_SCHEMA.TABLES\n WHERE TABLE_NAME != '__MigrationHistory' AND TABLE_TYPE = 'BASE TABLE'\nexec (@sql)\n /* you dont need this line, it just shows what was executed */\n PRINT @sql\nend\n\nTo remove the foreign keys first if you need to\nwhile(exists(select 1 from INFORMATION_SCHEMA.TABLE_CONSTRAINTS where CONSTRAINT_TYPE='FOREIGN KEY'))\nbegin\n declare @sql nvarchar(2000)\n SELECT TOP 1 @sql=('ALTER TABLE ' + TABLE_SCHEMA + '.[' + TABLE_NAME\n + '] DROP CONSTRAINT [' + CONSTRAINT_NAME + ']')\n FROM information_schema.table_constraints\n WHERE CONSTRAINT_TYPE = 'FOREIGN KEY'\n exec (@sql)\n PRINT @sql\nend\n\nIn my testing, this worked without issues (except I did not have the where clause in the DROP TABLE while query since I don't use Code First or EF migrations).\n",
+    "answer_id": 34968095,
+    "tags": [
+      "c#",
+      "asp.net",
+      "visual-studio",
+      "azure",
+      "azure-sql-database"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 69971341,
+    "title": "Unable to create secrets in Azure Key Vault if using Azure role-based access control",
+    "question_text": "I'm really new to Azure but trying to learn - so apologies if this is a daft question. I've started the free trial (which gives me some credit to start with), and I'm trying to create a key vault. If I specify \"Vault access policy\" under access policies, it works great and I'm able to create secrets. I'd like to use \"Azure role-based access control\" though instead. If I create a key vault using Azure role-based access control, I get a message when trying to create a new secret which says \"The operation is not allowed by RBAC. If role assignments were recently changed, please wait several minutes for role assignments to become effective.\" I am logged into Azure as the Service Administrator, so I don't think it's a permissions issue. I have left it overnight, and it still displays the message, so I don't think it's a matter of not waiting long enough for role assignments to become effective. I have tried creating the key vault in different regions and get the same results. Note that this is happening when I create a key vault using Azure role-based access control from scratch (i.e. I am not changing it from one to the other or anything like that.) Does anyone know what I'm doing wrong?\nThanks for any help\nAndrew\n",
+    "question_score": 78,
+    "answer_text": "If you are creating the Key vault with RBAC role from scratch then Please assign Key vault Administrator to your name for creating/ managing the secrets, certificates and keys.\nSteps:\n\nGo to your Key vault after its created and then click on Access\nControl (IAM):\n\n\nThen click on Add Role assignment and then add Key vault\nAdministrator Role to your name:\n\n\n\nAfter you review and assign the role , you will be successfully able\nto create/manage the objects present inside the Key vault.\n\n\n",
+    "answer_id": 69971679,
+    "tags": [
+      "azure",
+      "permissions",
+      "azure-keyvault",
+      "rbac"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 27580264,
+    "title": "Where do I get the AzureWebJobsDashboard connection string information?",
+    "question_text": "Trying to update my Service Bus apps to use the new RTM and I need this information.\n<add name=\"AzureWebJobsDashboard\" connectionString=\"DefaultEndpointsProtocol=https;AccountName=;AccountKey=\" />\n    <add name=\"AzureWebJobsStorage\" connectionString=\"DefaultEndpointsProtocol=https;AccountName=;AccountKey=\" />\n\nPreviously I just used the connection string associated with each queue.  I have tried about every combination of username and key I have associated with my account with no luck.\n",
+    "question_score": 78,
+    "answer_text": "The AzureWebJobsDashboard connection string is your Azure Storage Account used by the Azure SDK to store logs used by the WebJobs dashboard.  \nThe AzureWebJobsStorage connection string is your Azure Storage Account that is used to by the SDK to do things like trigger when a file is uploaded to blob storage or a message is added to a queue.  It sounds like you may not need this though if you are only using Service Bus Queues.  If this is the case for you, then you could use the same connection string that you use for the AzureWebJobsDashboard.  Generally, you would use two different storage accounts so that one is used for dashboard logging and the other is used for application functionality (queues, tables, blobs).\nThe connection string is available in the Azure Management Portal (classic) by click on Storage in the left navigation, highlight the storage account you want to use, and then click the Manage Access Keys button at the bottom of the page.\n",
+    "answer_id": 27584785,
+    "tags": [
+      "azure",
+      "azure-webjobs"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 52432799,
+    "title": "How to set and read user environment variable in Azure DevOps Pipeline?",
+    "question_text": "I have some test automation code that reads some values from an environment variable stored on my local machine, like this:\nEnvironment.GetEnvironmentVariable(\"SAUCE_USERNAME\", EnvironmentVariableTarget.User);\n\nI'm trying to use Azure Pipelines to create this variable during pipeline execution and then read it in my test automation code. Using a YAML file.\nIm reading this variable in the VS Test step of the Azure Pipeline. So if I set the variable, it has to be for the life of the Azure Pipeline.\nI've tried to use the documentation here but have been unsuccessful.\nTried this code below as well but it fails with this error:\n\nazure-pipelines.yml (Line: 39, Col: 1, Idx: 1252) - (Line: 39, Col: 1,\n  Idx: 1252): While scanning a simple key, could not find expected ':'.\n\n# Create a secret variable\n- powershell: |\nWrite-Host '##vso[task.setvariable variable=sauce.userName;issecret=true]abc'\n\n# Attempt to output the value in various ways\n- powershell: |\n# Using an input-macro:\nWrite-Host \"This works: $(sauce.userName)\"\n\n# Using the env var directly:\nWrite-Host \"This does not work: $env:SAUCE_USERNAME\"\n\n# Using the mapped env var:\nWrite-Host \"This works: $env:SAUCE_USERNAME\"\nenv:\nSAUCE_USERNAME: $(sauce.userName)\n\n",
+    "question_score": 76,
+    "answer_text": "The easiest method is to pass the Azure DevOps(ADO) Env Variable values into your keys like this:\n- task: DotNetCoreCLI@2\n  displayName: 'Run tests'\n  env:\n    SAUCE_USERNAME: $(sauceUsername) #this will store the value from 'sauceUsername' into SAUCE_USERNAME\n    SAUCE_ACCESS_KEY: $(sauceKey)\n\nDisplaying or using the value will work if you try\n- bash: echo $(SAUCE_USERNAME) # will output our username stored in SAUCE_USERNAME env variable\n\nAnd if you are referencing SAUCE_USERNAME in your code, the code will pick up the value from the Azure server.\nThis article has a good explanation\nPreviously, I also used Powershell, but this method is more involved and convoluted:\n\nCreate your variables in your Azure DevOps pipeline and provide those variables the values.\nCreate a Powershell script that you will run in the beginning to set your Env Variables. This is what my Posh looks like.\nRun this Posh in the beginning as a separate step in your CI pipeline and this will set the environment variables for the VM that's being used to run your pipeline.\n\nThis is another detailed article that could help you with this.\nAs per request, I'm also attaching the PowerShell code that makes this possible.\nParam(\n[string]$sauceUserName,\n[string]$sauceAccessKey,\n[string]$sauceHeadlessUserName,\n[string]$sauceHeadlessAccessKey\n)\nWrite-Output \"sauce.userName that was passed in from Azure DevOps=>$sauceUserName\"\nWrite-Output \"sauce.accessKey that was passed in from Azure DevOps=>$sauceAccessKey\"\nWrite-Output \"sauce.headless.userName that was passed in from Azure DevOps=>$sauceHeadlessUserName\"\nWrite-Output \"sauce.headless.access.key that was passed in from Azure DevOps=>$sauceHeadlessAccessKey\"\n\n[Environment]::SetEnvironmentVariable(\"SAUCE_USERNAME\", \"$sauceUserName\", \"User\")\n[Environment]::SetEnvironmentVariable(\"SAUCE_ACCESS_KEY\", \"$sauceAccessKey\", \"User\")\n[Environment]::SetEnvironmentVariable(\"SAUCE_HEADLESS_USERNAME\", \"$sauceUserName\", \"User\")\n[Environment]::SetEnvironmentVariable(\"SAUCE_HEADLESS_ACCESS_KEY\", \"$sauceAccessKey\", \"User\")\n\n",
+    "answer_id": 54468067,
+    "tags": [
+      "azure",
+      "continuous-integration",
+      "azure-devops",
+      "azure-pipelines",
+      "azure-pipelines-build-task"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34063167,
+    "title": "Using an array in Azure web app settings",
+    "question_text": "In my ASP.NET 5 (RC1) code I have an appsetting.json that looks something like this:\n{\n    \"SomeSettings\": {\n        \"PropA\": \"ValueA\",\n        \"PropB\": [\n            \"ValueB1\",\n            \"ValueB2\"\n        ]\n    }\n}\n\nThese value are used when a run the code on my dev machine (ie. localhost). If I want to overwrite the \"SomeSettings\" in Azure's Application settings for the wep app, how would I specify the \"PropB\" array?\nThe SomeSettings.cs class that I want to store the information in looks like this:\npublic class SomeSettings\n{\n    public string PropA { get; set; }\n    public List<string> PropB { get; set; }\n}\n\nThe problem is \"PropB\" - how to I specify an array or List as a string in Azure - is this even possible?\nIn my Startup class's constructor I have:\nvar builder = new ConfigurationBuilder()\n    .AddJsonFile(\"appsettings.json\")\n    .AddEnvironmentVariables();\n\nAnd in my Startup class's Configure methods I have:\nvar someSettings = configuration.GetSection(\"SomeSettings\").Get<SomeSettings>();\n\n",
+    "question_score": 75,
+    "answer_text": "Adding the settings under \"App settings\" like this will do the trick...\nNotice the \":0\" and \":1\" below\nFormat: Key -> Value\nSomeSettings:PropA -> AzureValueA\nSomeSettings:PropB:0 -> AzureValueB1\nSomeSettings:PropB:1 -> AzureValueB2\n\nIf you aren't running on Windows, replace the colon : with double underscore __ to get your app to see the settings. So instead of e.g. SomeSettings:PropB:1, you'd use SomeSettings__PropB__1.\n",
+    "answer_id": 34063168,
+    "tags": [
+      "c#",
+      "azure",
+      "asp.net-core",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 48853599,
+    "title": "How to debug &quot;You do not have permission to view this directory or page&quot;?",
+    "question_text": "After I published an ASP.NET Core app to Azure from Visual Studio 2017 I am getting this message when I click on the app url:\n\nIt was working fine before. Is there a way to figure out what's wrong with my pushed changes?\n",
+    "question_score": 75,
+    "answer_text": "You do not have permission to view this directory or page.\nThat's basically a hint when Azure encounters an error while running your web app. Since its in production, it does not show any useful error messages. For testing/debugging purposes you can turn on the Azure detailed messaging, and turn back off when its ready for production. To do so, you have to follow these two steps,\n\nLogin to Azure > App Services (left side menu) > Your Web App > App Service logs (search box is at the top if you can't find it), then turn on Detailed Error Messages or turn on all of the logging options, up to you.\nAdd the following in your Web Config file:\nAdd <customErrors mode=\"Off\" /> BEFORE system.web closing tag, </system.web>. Similarly, add <httpErrors errorMode=\"Detailed\"></httpErrors> BEFORE </system.webServer>. Finally, upload the Web Config to Azure and cross your fingers.\n\nIf you follow the steps correctly, that will show the error messages in detail and hopefully from there you will figure out what went wrong. Good Luck!\n",
+    "answer_id": 48854367,
+    "tags": [
+      "azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 48096342,
+    "title": "What is Azure Service Principal?",
+    "question_text": "My requirement is simple. I want to login to Azure through my shell script in non-interactive mode, but \"az login -u username -p password\" command gives the following error:\nGet Token request returned http error: 400 and server response:\n{\"error\":\"invalid_grant\",\"error_description\":\"AADSTS70002: Error\nvalidating credentials. : SAML token is invalid. : The element \nwith ID 'xxxxxx' was either unsigned or the signature was \ninvalid.\n\nSome site told me to create a service principal. Now my question is, what is a service principal, and how do I create a service principal so that I can execute my commands (for creating different resources like app gateway) from my shell script?\n",
+    "question_score": 74,
+    "answer_text": "Please refer to this official document.\n\nAn Azure service principal is a security identity used by user-created\n  apps, services, and automation tools to access specific Azure\n  resources. Think of it as a 'user identity' (login and password or\n  certificate) with a specific role, and tightly controlled permissions\n  to access your resources. It only needs to be able to do specific\n  things, unlike a general user identity. It improves security if you\n  only grant it the minimum permissions level needed to perform its\n  management tasks.\n\nIf you want to create a new service principal(sp) with Azure CLi 2.0. You could login with your Azure AD user. Then execute following command.\naz ad sp create-for-rbac --name {appId} --password \"{strong password}\"\n\nThe result like below:\n{\n  \"appId\": \"a487e0c1-82af-47d9-9a0b-af184eb87646d\",\n  \"displayName\": \"MyDemoWebApp\",\n  \"name\": \"http://MyDemoWebApp\",\n  \"password\": {strong password},\n  \"tenant\": \"XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX\"\n}\n\nappId is your login user, password is login password.\nAfter the sp is created, you also need give it Contributor role, then you could manage your Azure resource.\naz role assignment create --assignee <objectID> --role Contributor\n\nNow, you could login in non interctive mode with following command.\naz login --service-principal -u <appid> --password {password-or-path-to-cert} --tenant {tenant}\n\n",
+    "answer_id": 48105935,
+    "tags": [
+      "azure",
+      "azure-cli"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 30819934,
+    "title": "Laravel migrations: Class &quot;not found&quot;",
+    "question_text": "I am deploying a Laravel barebone project to Microsoft Azure, but whenever I try to execute php artisan migrate I get the error:\n\n[2015-06-13 14:34:05] production.ERROR: exception 'Symfony\\Component\\Debug\\Exception\\FatalErrorException' with message 'Class '' not found' in D:\\home\\site\\vendor\\laravel\\framework\\src\\Illuminate\\Database\\Migrations\\Migrator.php:328\n\nStack trace:\n #0 {main}  \n\nWhat could be the problem? Thank you very much\n-- edit --\nMigration Class\n<?php\nuse Illuminate\\Database\\Schema\\Blueprint;\nuse Illuminate\\Database\\Migrations\\Migration;\n\nclass CreateUsersTable extends Migration {\n\n    /**\n     * Run the migrations.\n     *\n     * @return void\n     */\n    public function up()\n    {\n        Schema::create('users', function(Blueprint $table)\n        {\n            $table->bigIncrements('id');\n            $table->string('name', 50);\n            $table->string('surname', 50);\n            $table->bigInteger('telephone');\n            $table->string('email', 50)->unique();\n            $table->string('username', 50)->unique();\n            $table->string('password', 50);\n            $table->boolean('active')->default(FALSE);\n            $table->string('email_confirmation_code', 6);\n            $table->enum('notify', ['y', 'n'])->default('y');\n            $table->rememberToken();\n            $table->timestamps();\n            \n            $table->index('username');\n        });\n    }\n\n    /**\n     * Reverse the migrations.\n     *\n     * @return void\n     */\n    public function down()\n    {\n        Schema::drop('users');\n    }\n}\n\n",
+    "question_score": 73,
+    "answer_text": "For PSR-4 Auto Loader Users (composer.json):\nKeep the migrations folder inside classmap array and do not include it inside psr-4 object under autoload head. As migrations' main class Migrator doesn't support namespacing. For example;\n\"autoload\": {\n    \"classmap\": [\n        \"app/database/migrations\"\n    ],\n    \"psr-4\": {\n        \"Acme\\\\controllers\\\\\": \"app/controllers\"\n    }\n}\n\nThen run:\nphp artisan clear-compiled \nphp artisan optimize:clear\ncomposer dump-autoload\nphp artisan optimize\n\n\nFirst one clears all compiled autoload files.\nSecond clears Laravel caches (optional)\nThird builds the autoloader for namespaced classes.\nFourth optimizes various parts of your Laravel app and builds the autoloader for non-namespaced classes.\n\nFrom this time onward, you will not have to do this again and any new migrations will work correctly.\n",
+    "answer_id": 31201694,
+    "tags": [
+      "php",
+      "symfony",
+      "laravel",
+      "azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 53857085,
+    "title": "Change current working directory in Azure Pipelines",
+    "question_text": "I'm developing a CI for Python package in Azure Pipelines (https://github.com/scikit-image/scikit-image/blob/azure-pipelines/azure-pipelines.yml). At some point, I need to step out of the source code directory to allow pytest to discover an installation of this package, and run the corresponding tests.\nThe issue I'm facing is related to the fact that cd, cd C:, etc commands do not seem to cause any effect, so that the current working directory remains unchanged (in this specific case, D:\\a\\1\\s).\nIs there a way to overcome the described limitation?\n",
+    "question_score": 73,
+    "answer_text": "It took many hours to find the solution, but, apparently, there is a way to specify working directory for specific script -\nhttps://learn.microsoft.com/en-us/azure/devops/pipelines/tasks/utility/command-line?view=vsts&tabs=yaml :\n- script: # script path or inline\n  workingDirectory: #\n  displayName: #\n  failOnStderr: #\n  env:  # mapping of environment variables to add\n\n",
+    "answer_id": 53857303,
+    "tags": [
+      "azure",
+      "azure-devops",
+      "azure-pipelines"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 16961933,
+    "title": "how to get blob-URL after file upload in azure",
+    "question_text": "I'm trying to connect web and worker role. So i have a page where user can upload video files. Files are large so i can't use the query to send files. That's why i'm trying to upload them into the Blob Storage and then send the url by the query. But i don't know how to get this url.\nCan anyone help me?\n",
+    "question_score": 73,
+    "answer_text": "Assuming you're uploading the blobs into blob storage using .Net storage client library by creating an instance of CloudBlockBlob, you can get the URL of the blob by reading Uri property of the blob.\nstatic void BlobUrl()\n{\n    var account = new CloudStorageAccount(new StorageCredentials(accountName, accountKey), true);\n    var cloudBlobClient = account.CreateCloudBlobClient();\n    var container = cloudBlobClient.GetContainerReference(\"container-name\");\n    var blob = container.GetBlockBlobReference(\"image.png\");\n    blob.UploadFromFile(\"File Path ....\");//Upload file....\n\n    var blobUrl = blob.Uri.AbsoluteUri;\n}\n\nView example on Pastebin\n",
+    "answer_id": 16962331,
+    "tags": [
+      "azure",
+      "azure-blob-storage",
+      "azure-web-roles"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 3734672,
+    "title": "Azure Storage Blob Rename",
+    "question_text": "Is is possible to rename an Azure Storage Blob using the Azure Storage API from a Web Role? The only solution I have at the moment is to copy the blob to a new blob with the correct name and delete the old one.\n",
+    "question_score": 72,
+    "answer_text": "There is practical way to do so, although Azure Blob Service API does not directly support ability to rename or move blobs.\n",
+    "answer_id": 3736619,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 45183820,
+    "title": "How to pass parameters by POST to an Azure function?",
+    "question_text": "I'm trying to do a simple Azure Function to learn about it. There will be 3 functions: \n\n1 function to insert a row into a table of a database. This table will contain the current date and a string parameters typed by the user and passed by GET.\n1 function similar to the previous one, but passing the parameter by POST.\n1 function to read the table and show its content.\n\nI've been able to do the first and the third ones. But I can't pass the parameter by POST. I've looked for examples but I couldn't run them with success. The client app is a Windows Forms one.\nCould anyone show me an example anout how to pass parameters by POST to the function and how to read them?\nThank's in advance\nEDIT:\nHere's the code to pass the parameters by GET (this is working fine):\nprivate void button2_Click(object sender, EventArgs e)\n{\n    string cadena = lsql1.Text + \"?notas=\" + tNotas.Text;\n\n    try\n    {\n        HttpWebRequest req = (HttpWebRequest)WebRequest.Create(cadena);\n        HttpWebResponse res = (HttpWebResponse)req.GetResponse();\n\n        if (res.StatusCode == HttpStatusCode.OK)\n        {\n            MessageBox.Show(\"Grabado\");\n        }\n        else\n        {\n            MessageBox.Show(res.StatusDescription);\n        }\n    }catch (WebException ex)\n    {\n        using (Stream s = ex.Response.GetResponseStream())\n        {\n            StreamReader sr = new StreamReader(s);\n            string text = sr.ReadToEnd();\n            text = text.Substring(1, text.Length - 2);\n            sr.Close();\n            text = text.Replace(\"\\\\\", \"\");\n            text = \"{\" + text + \"}\";\n            Error mensajeError = JsonConvert.DeserializeObject<Error>(text);\n\n            MessageBox.Show(mensajeError.ExceptionMessage);\n        }\n\n    }\n}\n\nAnd here's the code to receive it and do the insert (this is working too):\n[FunctionName(\"sql1\")]\npublic static async Task<HttpResponseMessage> Run(HttpRequestMessage req, TraceWriter log)\n{\n    try\n    {\n        log.Info(\"C# HTTP trigger function processed a request.\");\n\n        var cnnString = \"Server=SERVIDOR;Database=base_prueba;User ID =azure;Password=0000;Trusted_Connection=False;Encrypt=False;\";\n\n        using (SqlConnection connection = new SqlConnection(cnnString))\n        {\n            connection.Open();\n            SqlCommand cmd = connection.CreateCommand();\n\n            DateTime fecha = DateTime.Today;\n\n            string notas = req.GetQueryNameValuePairs()\n            .FirstOrDefault(q => string.Compare(q.Key, \"notas\", true) == 0)\n            .Value;\n\n            // insert a log to the database\n            cmd.CommandText = \"INSERT INTO Prueba_Azure (fecha, notas) VALUES ('\" + fecha.ToString() + \"', '\" + notas + \"')\";\n            cmd.ExecuteNonQuery();\n        }\n\n        // Get request body\n        dynamic data = await req.Content.ReadAsAsync<object>();\n\n        return name == req.CreateResponse(HttpStatusCode.OK, \"Done\");\n    }\n    catch (Exception ex)\n    {\n        HttpResponseMessage res = req.CreateErrorResponse(HttpStatusCode.InternalServerError, ex);\n        return res;\n    }\n}\n\nWhat I'm looking for is to to this by POST\n",
+    "question_score": 70,
+    "answer_text": "To get the request content from the request body(post request), you could use req.Content.ReadAsAsync method. Here is the code sample.\nSample request body.\n{\n    \"name\": \"Azure\"\n}\n\nDefine a class to deserialize the post data.\npublic class PostData\n{\n    public string name { get;set; }    \n}\n\nGet the post data and display it.\nPostData data = await req.Content.ReadAsAsync<PostData>();\nlog.Info(\"name:\" + data.name);\n\nClient side code to send the post request.\nHttpWebRequest req = (HttpWebRequest)WebRequest.Create(\"function-url\");\nreq.Method = \"POST\";\nreq.ContentType = \"application/json\";\nStream stream = req.GetRequestStream();\nstring json = \"{\\\"name\\\": \\\"Azure\\\" }\";\nbyte[] buffer = Encoding.UTF8.GetBytes(json);\nstream.Write(buffer,0, buffer.Length);\nHttpWebResponse res = (HttpWebResponse)req.GetResponse();\n\n",
+    "answer_id": 45184296,
+    "tags": [
+      "c#",
+      "visual-studio",
+      "azure",
+      "post",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 59068699,
+    "title": "&quot;Manifest: Line: 1, column: 1, Syntax error&quot;",
+    "question_text": "I'm using Vue.js to create a Progressive Web Application (PWA) as a school project.\nWhenever I host the website with Azure I get \"Manifest: Line: 1, column: 1, Syntax error\". \nI don't have this problem on localhost \u2026\nChrome DevTools responds with :\n/manifest.json:1 Failed to load resource: the server responded with a status of 404 ()\n/manifest.json:1 Manifest: Line: 1, column: 1, Syntax error.\nmanifest.json:1 GET https://serviceworkerspike.azurewebsites.net/manifest.json 404\nmanifest.json:1 Manifest: Line: 1, column: 1, Syntax error.\n\nHow can I correct the error?\n\nI have the following line in my index.html :\n<link rel=\"manifest\" href=\"/manifest.json\">\n\nHere is my manifest.json file :\n{\n  \"name\": \"MessageBoardUCN\",\n  \"short_name\": \"MessageBoardUCN\",\n  \"theme_color\": \"#ff095a\",\n  \"background_color\": \"#feaaee\",\n  \"display\": \"standalone\",\n  \"start_url\": \"/index.html\",\n  \"icons\": [\n    {\n      \"src\": \"images/icons/icon-72x72.png\",\n      \"sizes\": \"72x72\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-96x96.png\",\n      \"sizes\": \"96x96\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-128x128.png\",\n      \"sizes\": \"128x128\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-144x144.png\",\n      \"sizes\": \"144x144\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-152x152.png\",\n      \"sizes\": \"152x152\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-192x192.png\",\n      \"sizes\": \"192x192\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-384x384.png\",\n      \"sizes\": \"384x384\",\n      \"type\": \"image/png\"\n    },\n    {\n      \"src\": \"images/icons/icon-512x512.png\",\n      \"sizes\": \"512x512\",\n      \"type\": \"image/png\"\n    }\n  ],\n  \"splash_pages\": null\n}\n\nWhat I have tried\n\nUsing lower-case letters in the name and short_name properties \u2013 messageboarducn.\n\nSetting starturl to the hosted URL or to \"/\".\n\nMoving the manifest.json file to the root directory or to the src/ directory, but other guides told me it should be in the same folder as index.html, and public/ is the default for that.\n\n\nThis is my file structure.\nThe hosted URL, https://serviceworkerspike.azurewebsites.net, doesn't work anymore.\n",
+    "question_score": 70,
+    "answer_text": "If your manifest file is at the root level (where your index.html file is placed) you can reference it like the following in the <head> tag of your index.html file:\n<link rel=\"manifest\" crossorigin=\"use-credentials\" href=\"manifest.json\"/>\n\nPlus the startUrl property in the manifest file should have the value:\n\"start_url\": \"/\"\nas you target the root as starting point.\nOtherwise, if you would serve your app with a specific base URL, you should reflect it in the property value:\nExample: \n\nConsidering -->  www.myapp.com/my-other-url-part/\n\nUse:\n    \"start_url\": \"/my-other-url-part/\"\n\nOr simply:\n    \"start_url\": \"./\"   <-- This would match any base-href != \"/\"\n\nYou should then set your web server to automatically serve the index.html file (this is often enabled per default)\n",
+    "answer_id": 59073436,
+    "tags": [
+      "javascript",
+      "json",
+      "azure",
+      "azure-web-app-service",
+      "manifest"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 59790209,
+    "title": "Access Token Issuer from Azure AD is sts.windows.net Instead Of login.microsoftonline.com",
+    "question_text": "I'm trying to validate an access token obtained from azure active directory.\nI obtained the token from https://login.microsoftonline.com/{{my tenant guid}}/v2.0\nThe issuer in the token that comes back is https://sts.windows.net//{{my tenant guid}}/  which doesn't match.\nIf I check that config at .well-known/openid-configuration   the issuer is as expected https://login.microsoftonline.com/....\nI've found a similar issue reported on git hub here https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/560\nThe advice is to manually edit the manifest's json in the application registration in AAD and set \"accessTokenAcceptedVersion\": 2.\nI've done this but it has made no difference. Why?\n",
+    "question_score": 70,
+    "answer_text": "(Update 2025): The property is now named requestedAccessTokenVersion in the new \"Microsoft Graph App Manifest\". https://learn.microsoft.com/en-us/entra/identity-platform/azure-active-directory-graph-app-manifest-deprecation#attribute-differences-between-azure-ad-graph-and-microsoft-graph-formats. The default value is still null and needs to be changed to 2.\nOriginal Answer:\nSo seems that changing the acceptedTokenVersion to 2 in the manifest did change but it just took time to take effect.\nAnd yes the audience is always the client id based on my tests in v2 tokens.\n",
+    "answer_id": 59799249,
+    "tags": [
+      "azure",
+      "azure-active-directory",
+      "openid-connect",
+      "azure-ad-msal"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 28127001,
+    "title": "The lock supplied is invalid. Either the lock expired, or the message has already been removed from the queue",
+    "question_text": "I'm using a Microsoft Azure Service Bus queue to process calculations and my program runs fine for a few hours but then I start to get this exception for every message that I process from then on. I have no clue where to start since everything runs fine for the first few hours. My code seems to be accurate as well. This the method where I handle the Azure Service Bus message.\npublic static async Task processCalculations(BrokeredMessage message)\n{\n    try\n    {\n        if (message != null)\n        {\n            if (connection == null || !connection.IsConnected)\n            {\n                connection = await ConnectionMultiplexer.ConnectAsync(\"connection,SyncTimeout=10000,ConnectTimeout=10000\");\n                //connection = ConnectionMultiplexer.Connect(\"connection,SyncTimeout=10000,ConnectTimeout=10000\");\n            }\n            cache = connection.GetDatabase();\n            string sandpKey = message.Properties[\"sandp\"].ToString();\n            string dateKey = message.Properties[\"date\"].ToString();\n            string symbolclassKey = message.Properties[\"symbolclass\"].ToString();\n            string stockdataKey = message.Properties[\"stockdata\"].ToString();\n            string stockcomparedataKey = message.Properties[\"stockcomparedata\"].ToString();\n            var sandpTask = cache.GetAsync<List<StockData>>(sandpKey);\n            var dateTask = cache.GetAsync<DateTime>(dateKey);\n            var symbolinfoTask = cache.GetAsync<SymbolInfo>(symbolclassKey);\n            var stockdataTask = cache.GetAsync<List<StockData>>(stockdataKey);\n            var stockcomparedataTask = cache.GetAsync<List<StockMarketCompare>>(stockcomparedataKey);\n            await Task.WhenAll(sandpTask, dateTask, symbolinfoTask,\n                stockdataTask, stockcomparedataTask);\n            List<StockData> sandp = sandpTask.Result;\n            DateTime date = dateTask.Result;\n            SymbolInfo symbolinfo = symbolinfoTask.Result;\n            List<StockData> stockdata = stockdataTask.Result;\n            List<StockMarketCompare> stockcomparedata = stockcomparedataTask.Result;\n            StockRating rating = performCalculations(symbolinfo, date, sandp, stockdata, stockcomparedata);\n            if (rating != null)\n            {\n                saveToTable(rating);\n                if (message.LockedUntilUtc.Minute <= 1)\n                {\n                    await message.RenewLockAsync();\n                }\n                await message.CompleteAsync(); // getting exception here\n            }\n            else\n            {\n                Console.WriteLine(\"Message \" + message.MessageId + \" Completed!\");\n                await message.CompleteAsync();\n            }\n        }\n    }\n    catch (TimeoutException time)\n    {\n        Console.WriteLine(time.Message);\n    }\n    catch (MessageLockLostException locks)\n    {\n        Console.WriteLine(locks.Message);\n    }\n    catch (RedisConnectionException redis)\n    {\n        Console.WriteLine(\"Start the redis server service!\");\n    }\n    catch (MessagingCommunicationException communication)\n    {\n        Console.WriteLine(communication.Message);\n    }\n    catch (Exception ex)\n    {\n        Console.WriteLine(ex.Message);\n        Console.WriteLine(ex.StackTrace);\n    }\n}\n\nI check the time until the lock expiration and I call lock renew if it needs it - it renews the lock with no errors, but I'm still getting this exception.\ntimeLeft = message.LockedUntilUtc - DateTime.UtcNow;\nif (timeLeft.TotalMinutes <= 2)\n{\n    //Console.WriteLine(\"Renewed lock! \" + ((TimeSpan)(message.LockedUntilUtc - DateTime.UtcNow)).TotalMinutes);\n    message.RenewLock();\n}\n\ncatch (MessageLockLostException locks)\n{\n    Console.WriteLine(\"Delivery Count: \" + message.DeliveryCount);\n    Console.WriteLine(\"Enqueued Time: \" + message.EnqueuedTimeUtc);\n    Console.WriteLine(\"Expires Time: \" + message.ExpiresAtUtc);\n    Console.WriteLine(\"Locked Until Time: \" + message.LockedUntilUtc);\n    Console.WriteLine(\"Scheduled Enqueue Time: \" + message.ScheduledEnqueueTimeUtc);\n    Console.WriteLine(\"Current Time: \" + DateTime.UtcNow);\n    Console.WriteLine(\"Time Left: \" + timeLeft);\n}\n\nAll I know so far is that my code runs fine for awhile, and the renew lock gets called and works but I'm still getting the lock exception and inside that exception.\nI output the time left and it keeps increasing the time difference as the code runs, which makes me believe that the time until lock expiration is not being changed somehow?\n",
+    "question_score": 69,
+    "answer_text": "I spent hours trying to understand why I was getting a MessageLockLostException. The reason for me was due to AutoComplete defaulting to true.\nIf you're going to call message.Complete() (or CompleteAsync()) then you should instantiate an OnMessageOptions object, set AutoComplete to false, and pass it into your OnMessage call.\nvar options = new OnMessageOptions();\noptions.AutoComplete = false;\n\nclient.OnMessage(processCalculations, options);\n\n",
+    "answer_id": 38149422,
+    "tags": [
+      "c#",
+      "azure",
+      "distributed",
+      "azureservicebus"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 67728499,
+    "title": "Azure Functions: There was an error performing a read operation on the Blob Storage Secret Repository",
+    "question_text": "In testing Azure Functions locally, I am receiving this error:\n\n\"There was an error performing a read operation on the Blob Storage\nSecret Repository. Please ensure the 'AzureWebJobsStorage' connection\nstring is valid.\"\n\nI have Azure Blob Storage setup, including Storage Emulator and Storage Explorer. How can this be fixed?\n",
+    "question_score": 68,
+    "answer_text": "I had this issue with Azure Durable Functions, I found the way to resolve it here: https://github.com/Azure/azure-functions-host/issues/3795#issuecomment-430337085\nIn local.settings.json, add a new setting called AzureWebJobsSecretStorageType and set it to \"files\".\n{\n  \"IsEncrypted\": false,\n  \"Values\": {\n    \"AzureWebJobsStorage\": \"UseDevelopmentStorage=true\",\n    \"FUNCTIONS_WORKER_RUNTIME\": \"dotnet\",\n    \"AzureWebJobsSecretStorageType\": \"files\"\n  }\n}\n\n",
+    "answer_id": 67777571,
+    "tags": [
+      ".net",
+      "azure",
+      ".net-core",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 40656603,
+    "title": "Rename an Azure Function",
+    "question_text": "How to rename an Azure Function? \nI want to replace a default 'HttpTriggerCSharp1' name to my own. At the moment unfortunately this name is included in the function url and there is no option to change it:\nhttps://functions-xxx.azurewebsites.net/api/HttpTriggerCSharp1\n\n",
+    "question_score": 68,
+    "answer_text": "The UI does not directly support renaming a Function, but you can work around this using the following manual steps:\n\nStop your Function App. To do this, go under Function app settings / Go To App Service Settings, and click on the Stop button.\nGo to Kudu Console: Function app settings / Go to Kudu (article about that)\nIn Kudu Console, go to D:\\home\\site\\wwwroot and rename the Function folder to the new name\nNow go to D:\\home\\data\\Functions\\secrets and rename [oldname].json to [newname].json\nThen go to D:\\home\\data\\Functions\\sampledata and rename [oldname].dat to [newname].dat\nStart your function app, in the same place where you stopped it above\nIn the Functions UI, click the refresh button in the top left corner, and your renamed function should appear\nNote: doing this can lose some historical logging.\n\nGithub Issue for renaming Azure Function\n\nEdit for new info\nTo anyone like myself that arrived here looking to rename their function, despite this being the previously correct answer, there is now a much smoother CMD based process as detailed in this answer by SLdragon and an even smoother GUI based process detailed in this answer by Amerdeep below.\n",
+    "answer_id": 40656647,
+    "tags": [
+      "azure",
+      "azure-webjobs",
+      "azure-functions",
+      "serverless-framework",
+      "serverless-architecture"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 30328775,
+    "title": "Dependency injection using Azure WebJobs SDK?",
+    "question_text": "The problem is that the Azure WebJobs SDK supports only public static methods as job entry-points which means there is no way of implementing constructor/property injection.\nI am unable to find anything about this topic in official WebJobs SDK documentation/resources. The only solution that I came across is based on service locator (anti) pattern described on this post here.\nIs there a good way to use \"proper\" dependency injection for projects based on Azure WebJobs SDK?\n",
+    "question_score": 68,
+    "answer_text": "Azure WebJobs SDK now supports instance methods. Combining this with a custom IJobActivator allows you to use DI.\nFirst, create the custom IJobActivator that can resolve a job type using your favourite DI container:\npublic class MyActivator : IJobActivator\n{\n    private readonly IUnityContainer _container;\n\n    public MyActivator(IUnityContainer container)\n    {\n        _container = container;\n    }\n\n    public T CreateInstance<T>()\n    {\n        return _container.Resolve<T>();\n    }\n}\n\nYou need to register this class using a custom JobHostConfiguration:\nvar config = new JobHostConfiguration\n{\n    JobActivator = new MyActivator(myContainer)\n};\nvar host = new JobHost(config);\n\nThen, you can use a simple class with instance methods for your jobs (here I'm using Unity's constructor injection feature):\npublic class MyFunctions\n{\n    private readonly ISomeDependency _dependency;\n\n    public MyFunctions(ISomeDependency dependency)\n    {\n        _dependency = dependency;\n    }\n\n    public Task DoStuffAsync([QueueTrigger(\"queue\")] string message)\n    {\n        Console.WriteLine(\"Injected dependency: {0}\", _dependency);\n\n        return Task.FromResult(true);\n    }\n}\n\n",
+    "answer_id": 30454556,
+    "tags": [
+      "c#",
+      "azure",
+      "dependency-injection",
+      "azure-webjobs"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34727829,
+    "title": "How to delete a folder within an Azure blob container",
+    "question_text": "I have a blob container in Azure called pictures that has various folders within it (see snapshot below):\n\nI'm trying to delete the folders titled users and uploads shown in the snapshot, but I keep the error: Failed to delete blob pictures/uploads/. Error: The specified blob does not exist. Could anyone shed light on how I can delete those two folders? I haven't been able to uncover anything meaningful via Googling this issue.\nNote: ask me for more information in case you need it\n",
+    "question_score": 67,
+    "answer_text": "Windows Azure Blob Storage does not have the concept of folders. The hierarchy is very simple: storage account > container > blob. In fact, removing a particular folder is removing all the blobs which start with the folder name. You can write the simple code as below to delete your folders:\nCloudStorageAccount storageAccount = CloudStorageAccount.Parse(\"your storage account\");\nCloudBlobContainer container = storageAccount.CreateCloudBlobClient().GetContainerReference(\"pictures\");\nforeach (IListBlobItem blob in container.GetDirectoryReference(\"users\").ListBlobs(true))\n{\n    if (blob.GetType() == typeof(CloudBlob) || blob.GetType().BaseType == typeof(CloudBlob))\n    {\n        ((CloudBlob)blob).DeleteIfExists();\n    }\n}\n\ncontainer.GetDirectoryReference(\"users\").ListBlobs(true) lists the blobs start with \"users\" within the \"picture\" container, you can then delete them individually. To delete other folders, you just need to specify like this GetDirectoryReference(\"your folder name\").\n",
+    "answer_id": 34737858,
+    "tags": [
+      "azure",
+      "azure-storage",
+      "azure-blob-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 34708731,
+    "title": "Azure: Moving an App Service to another existing App Service Plan",
+    "question_text": "I'm attempting to move an App Service from one service plan to another.  When I use the portal to do so, the other App Service plan is not displaying. \nBoth App Services are in the same Location and Resource Group.\nThe two App Services Plans are in the same location and have the same pricing tier.\nI use the \"Change App Service Plan\" option for the web app.  The only App Service Plan that is displayed is the current one. There is also a \"Create New\" option.\nSo, in summary:\n1) Why is the other App Service Plan not able to be selected.\n2) How can I move the App Service (Web App) to the other App Service Plan.\n",
+    "question_score": 67,
+    "answer_text": "The reason why you are not able to see the other App Service Plan when you try to change the App Service Plan is due to current limitations in moving the Azure web app resources.\nThe other App Service Plan which you intend to move your Web Apps to is in another resource group with existing Azure Web Apps, which is not supported currently\nAzure Web Apps current move limitations updated 01/04/2016\nHope this answer your question.\n",
+    "answer_id": 34712721,
+    "tags": [
+      "web-services",
+      "azure",
+      "azure-app-service-plans",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 52130918,
+    "title": "Web API Error - This request has been blocked; the content must be served over HTTPS",
+    "question_text": "We have deployed the api on azure and trying to consume in our web app written in angular 5. However when we try to consume the api we are getting following errors.\n\nChrome Mixed Content: The page at 'https://somedevapp.azurewebsites.net/#/managesomething' was loaded\n  over HTTPS,  but requested an insecure XMLHttpRequest endpoint\n  'http://admindevapp.azurewebsites.net/api/data/getdata'.  This request\n  has been blocked; the content must be served over HTTPS.\nFirefox Blocked loading mixed active content\n\nIs this issue related to CORS? How to resolve this issue?\nAny help on this appreciated!\n",
+    "question_score": 66,
+    "answer_text": "If your web app is being hosted over HTTPs as you've indicated, then all external resources it is consuming (CDN, scripts, CSS files, API calls) should also use SSL and be secured through HTTPs. Think about it. It would defeat the purpose of your app being secure, if your app was in turn making insecure requests to an API.\nYou can either therefore:\n\nAs Chrome suggests, change your API calls to use HTTPs (recommended)\n\nUse HTTP instead of HTTPs\n\nAdd the following meta tag to your <head> element in your HTML:\n<meta http-equiv=\"Content-Security-Policy\" content=\"upgrade-insecure-requests\" />\n\n\nMore information about this can be found here: https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Security-Policy/upgrade-insecure-requests.\n",
+    "answer_id": 52133425,
+    "tags": [
+      "azure",
+      "google-chrome",
+      "asp.net-web-api",
+      "angular5",
+      "mixed-content"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 30895507,
+    "title": "It was not possible to connect to the redis server(s); to create a disconnected multiplexer",
+    "question_text": "I have the following piece of code to connect to azure redis cache.\npublic class CacheConnectionHelper\n{\n    private static Lazy<ConnectionMultiplexer> lazyConnection = new Lazy<ConnectionMultiplexer>(() =>\n    {\n        return ConnectionMultiplexer.Connect(SettingsHelper.AzureRedisCache);\n    });\n\n    public static ConnectionMultiplexer Connection\n    {\n        get\n        {\n            return lazyConnection.Value;\n        }\n    }\n}\n\nAnd I use it this way\npublic static List<Models.Module> GetModules()\n{\n    IDatabase cache = CacheConnectionHelper.Connection.GetDatabase();\n    List<Models.Module> listOfModules = new List<Models.Module>();        \n    listOfModules = (List<Models.Module>)cache.Get(\"ApplicationModules\");\n    if (listOfModules == null)\n    {\n        listOfModules = dbApp.Modulos.ToList();\n        cache.Set(\"ApplicationModules\", listOfModules, TimeSpan.FromMinutes(SettingsHelper.CacheModuleNames));\n        return listOfModules;\n    }\n    else {\n        return listOfModules;\n    }\n}\n\nHowever 1 or 2 times per day I get this exception:\n\nAdditional information: It was not possible to connect to the redis server(s); to create a disconnected multiplexer, disable AbortOnConnectFail. UnableToResolvePhysicalConnection on PING\n\nThe question is how can I refactor this code to go to the database in case the cache connection fails?\n",
+    "question_score": 66,
+    "answer_text": "The error you are getting is usually a sign that you have not set abortConnect=false in your connection string.  The default value for abortConnect is true, which makes it so that StackExchange.Redis won't reconnect to the server automatically under some conditions.  We strongly recommend that you set abortConnect=false in your connection string so that SE.Redis will auto-reconnect in the background if a network blip occurs.\n",
+    "answer_id": 30918632,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-redis-cache"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 24531421,
+    "title": "Remove/Delete all/one item from StackExchange.Redis cache",
+    "question_text": "I am using StackExchange.Redis client with Azure Redis Cache Service. Here is my class,\npublic class RedisCacheService : ICacheService\n{\n    private readonly ISettings _settings;\n    private readonly IDatabase _cache;\n\n    public RedisCacheService(ISettings settings)\n    {\n        _settings = settings;\n        var connectionMultiplexer = ConnectionMultiplexer.Connect(settings.RedisConnection);\n        _cache = connectionMultiplexer.GetDatabase();\n    }\n\n    public bool Exists(string key)\n    {\n        return _cache.KeyExists(key);\n    }\n\n    public void Save(string key, string value)\n    {\n        var ts = TimeSpan.FromMinutes(_settings.CacheTimeout);\n        _cache.StringSet(key, value, ts);\n    }\n\n    public string Get(string key)\n    {\n        return _cache.StringGet(key);\n    }\n\n    public void Remove(string key)\n    {\n        // How to remove one\n    }\n\n    public void Clear()\n    {\n        // How to remove all\n    }\n}\n\nUpdate: From the help of Marc, Here is my final class\npublic class RedisCacheService : ICacheService\n{\n    private readonly ISettings _settings;\n    private readonly IDatabase _cache;\n    private static ConnectionMultiplexer _connectionMultiplexer;\n\n    static RedisCacheService()\n    {\n        var connection = ConfigurationManager.AppSettings[\"RedisConnection\"];\n        _connectionMultiplexer = ConnectionMultiplexer.Connect(connection);\n    }\n\n    public RedisCacheService(ISettings settings)\n    {\n        _settings = settings;\n        _cache = _connectionMultiplexer.GetDatabase();\n    }\n\n    public bool Exists(string key)\n    {\n        return _cache.KeyExists(key);\n    }\n\n    public void Save(string key, string value)\n    {\n        var ts = TimeSpan.FromMinutes(_settings.CacheTimeout);\n        _cache.StringSet(key, value, ts);\n    }\n\n    public string Get(string key)\n    {\n        return _cache.StringGet(key);\n    }\n\n    public void Remove(string key)\n    {\n        _cache.KeyDelete(key);\n    }\n\n    public void Clear()\n    {\n        var endpoints = _connectionMultiplexer.GetEndPoints(true);\n        foreach (var endpoint in endpoints)\n        {\n            var server = _connectionMultiplexer.GetServer(endpoint);\n            server.FlushAllDatabases();    \n        }\n    }\n}\n\nNow I don't know how to remove all items or single item from redis cache.\n",
+    "question_score": 65,
+    "answer_text": "To remove a single item:\n_cache.KeyDelete(key);\n\nTo remove all involves the FLUSHDB or FLUSHALL redis command; both are available in StackExchange.Redis; but, for reasons discussed here, they are not on the IDatabase API (because: they affect servers, not logical databases).\nAs per the \"So how do I use them?\" on that page:\nserver.FlushDatabase(); // to wipe a single database, 0 by default\nserver.FlushAllDatabases(); // to wipe all databases\n\n(quite possibly after using GetEndpoints() on the multiplexer)\n",
+    "answer_id": 24531987,
+    "tags": [
+      "azure",
+      "stackexchange.redis",
+      "azure-redis-cache"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 35301194,
+    "title": "Automatically Delete/Expire Azure Blobs after a time period",
+    "question_text": "With Azure Blob storage is it possible to either have an individual blob or all blobs within a container delete themselves after a certain period of time similar to Amazon AWS S3's Object Expiration Feature?  Or does Azure storage not provide such functionality?\n",
+    "question_score": 65,
+    "answer_text": "It is possible with the Azure Blob storage lifecycle. Please take a look here\nhttps://learn.microsoft.com/en-us/azure/storage/blobs/storage-lifecycle-management-concepts?tabs=azure-portal\nand Configure a lifecycle management policy\n",
+    "answer_id": 58856217,
+    "tags": [
+      "azure",
+      "azure-blob-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 59956206,
+    "title": "How to get a branch name with a slash in Azure DevOps?",
+    "question_text": "Azure Devops offers two variables containing information about the current git branch name: $(Build.SourceBranchName) and $(Build.SourceBranch).\nWhile SourceBranch contains the full reference to the branch, SourceBranchName is expected to contain only the short branch name. \nUnfortunately, the behavior is a bit unexpected when the branch name contains a slash (/):\n+---------------------------------------------------------------------------------------------------------+\n| Situation                     | Git branch name  | Build.SourceBranch          | Build.SourceBranchName |\n|---------------------------------------------------------------------------------------------------------|\n| branch name contains no slash | mybranch         | refs/heads/mybranch         | mybranch               |\n| branch name contains slash    | release/mybranch | refs/heads/release/mybranch | mybranch               |\n+---------------------------------------------------------------------------------------------------------+\n\nThe part of the branch name before the slash is not considered as part of the branch name. My colleague pointed out that this is the documented behavior of Azure Devops:\n\nGit repo branch or pull request: The last path segment in the ref. For example, in refs/heads/master this value is master. In refs/heads/feature/tools this value is tools.\n\nI am not sure if this behavior is particularly useful: I want to checkout the branch, and need the branch name to include the slash. Also, If the part before the slash is stripped off, there might well be confusion about the actual path, as the name could be ambiguous.\nI need the branch name including the slash. Is there any simple way to get it? Do I always have to work with the full ref in order to be on the safe side?\n",
+    "question_score": 64,
+    "answer_text": "When you build on a PR, you could use  System.PullRequest.SourceBranch and System.PullRequest.TargetBranch variables.\n\nSystem.PullRequest.TargetBranch\nThe branch that is the target of a pull request. For example:\n  refs/heads/master. This variable is initialized only if the build\n  ran because of a Git PR affected by a branch policy.\n\nUse Predefined Build Variables\nBesides, you could also define your own variable based on your needs if you want to use full or short path.\nJust create a bash script that assigns the shorter branch name to a variable.\n# Bash script\nBRANCH_NAME=$(echo \"$(System.PullRequest.TargetBranch)\" | awk -F/ '{print $NF}')\necho \"##vso[task.setvariable variable=PullRequest_Target_Branch;]$BRANCH_NAME\"\n\nThen you could reference $(PullRequest_Target_Branch) in your pipeline later.\n",
+    "answer_id": 59961101,
+    "tags": [
+      "git",
+      "azure",
+      "azure-devops"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 30873267,
+    "title": "Azure - What is the purpose of a resource group location?",
+    "question_text": "I understand that resources from different locations can all reside within one resource group.  But when creating a new Resource Group, what is the purpose of choosing a location? Does it have any meaning?\nThanks\n",
+    "question_score": 64,
+    "answer_text": "\nWhen creating a resource group, you need to provide a location for that resource group. You may be wondering, \"Why does a resource group need a location? And, if the resources can have different locations than the resource group, why does the resource group location matter at all?\" The resource group stores metadata about the resources. Therefore, when you specify a location for the resource group, you are specifying where that metadata is stored. For compliance reasons, you may need to ensure that your data is stored in a particular region.\n\nhttps://learn.microsoft.com/en-us/azure/azure-resource-manager/resource-group-overview\n",
+    "answer_id": 40631739,
+    "tags": [
+      "azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 33100589,
+    "title": "How to rename the Azure WebApp URL",
+    "question_text": "For numerous time it has happened that our DevOps guys have created a Azure WebApp with incorrect URL. \nWhich forced us the delete the resource group (as group contains web app, sql azure etc.) And re-create.\nIs there a way to re-name /update the Web App URL via powershell Azure API or some hidden azure portal feature?\n",
+    "question_score": 64,
+    "answer_text": "It's not possible to rename web apps.\nAnd you don't need to delete the whole resource group.  Just delete the one web app and recreate it with the correct name.\n",
+    "answer_id": 33110672,
+    "tags": [
+      "azure",
+      "cloud",
+      "azure-web-app-service"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 57989198,
+    "title": "The term &#39;az&#39; is not recognized as the name of a cmdlet, function, script file, or operable program",
+    "question_text": "Created Powershell Azure function and trying to use \"az\" commands under that function app. As per docs, function runtime should resolve \"az\" and other module dependencies. but it doesn't work for me.\n\nERROR: The term 'az' is not recognized as the name of a cmdlet, function, script file, or operable program.\n  Check the spelling of the name, or if a path was included, verify that the path is correct and try again.\n  Microsoft.Azure.WebJobs.Script.Rpc.RpcException : Result: ERROR: The term 'az' is not recognized as the name of a cmdlet, function, script file, or operable program.\n\nI want to run some \"az\" command under function app without manually uploading modules. Is it powershell Preview version issue or something I need to correct?\nrequirement.psd1\n@{\nAz = '2.*'\n}\n\n\n",
+    "question_score": 63,
+    "answer_text": "\"Az\" in the context of PowerShell probably means the Az module, with cmdlets like Add-AzAccount etc.\n\"az\" is the cross-platform CLI, which is not a PowerShell module.\n",
+    "answer_id": 57989237,
+    "tags": [
+      "azure",
+      "powershell",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 52203347,
+    "title": "Check if field exists in CosmosDB JSON with SQL - nodeJS",
+    "question_text": "I am using Azure CosmosDB to store documents (JSON).\nI am trying to query all documents that contain the field \"abc\", and not return the documents that do not have the field \"abc\". For example, return the first object below and not the second\n{\n    \"abc\": \"123\"\n}\n\n{\n    \"jkl\": \"098\"\n}\n\nI am trying to use the following code:\nclient.queryDocuments(\ncollectionUrl,\n`SELECT r.id, r.authToken.instagram,r.userName FROM root r WHERE r.abc`\n)\n\nI assumed the above would check if abc exists similar to if (r.abc) {}\nI have tried using WHERE r.abc IS NOT NULL \nThanks in advance\n",
+    "question_score": 62,
+    "answer_text": "All you need to do is change your query to\nSELECT r.id, r.authToken.instagram,r.userName FROM root r WHERE r.abc != null\n\nor\nSELECT r.id, r.authToken.instagram,r.userName FROM root r WHERE r.abc <> null\n\nBoth operators work (tested on the Data Explorer)\n",
+    "answer_id": 52207087,
+    "tags": [
+      "sql",
+      "json",
+      "azure",
+      "azure-cosmosdb"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 36306904,
+    "title": "Configure kubectl command to access remote kubernetes cluster on azure",
+    "question_text": "I have a kubernetes cluster running on azure. What is the way to access the cluster from local kubectl command. I referred to here but on the kubernetes master node there is no kube config file. Also, kubectl config view results in \napiVersion: v1\nclusters: []\ncontexts: []\ncurrent-context: \"\"\nkind: Config\npreferences: {}\nusers: []\n\n",
+    "question_score": 62,
+    "answer_text": "Found a way to access remote kubernetes cluster without ssh'ing to one of the nodes in cluster. You need to edit ~/.kube/config file as below :\napiVersion: v1 \nclusters:    \n- cluster:\n    server: http://<master-ip>:<port>\n  name: test \ncontexts:\n- context:\n    cluster: test\n    user: test\n  name: test\n\nThen set context by executing:\nkubectl config use-context test\n\nAfter this you should be able to interact with the cluster.\nNote : To add certification and key use following link : http://kubernetes.io/docs/user-guide/kubeconfig-file/\nAlternately, you can also try following command\nkubectl config set-cluster test-cluster --server=http://<master-ip>:<port> --api-version=v1\nkubectl config use-context test-cluster\n\n",
+    "answer_id": 36403838,
+    "tags": [
+      "azure",
+      "kubernetes"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 44323560,
+    "title": "Graph API - Insufficient privileges to complete the operation",
+    "question_text": "When trying to access the Graph Service Client using  I am receiving the error:\n\nCode: Authorization_RequestDenied\nMessage: Insufficient privileges to complete the operation.\n\nAfter researching this error the most common solution was to set the permissions for the API. This had already been done and has permissions to read basic/full profiles.\nI've delete and re-added the APIs.\nBelow is the code in my AzureAuthenticationProvider class which inherits from IAuthenticationProvider:\npublic class AzureAuthenticationProvider : IAuthenticationProvider\n{\n    private string _azureDomain = \"myDevDom.onmicrosoft.com\";\n\n    public async Task AuthenticateRequestAsync(HttpRequestMessage request)\n    {\n        try\n        {\n            string clientId = \"2b823c67-1b0d-4a10-a9e1-737142516f5q\";\n            string clientSecret = \"xxxxxx\";\n\n            AuthenticationContext authContext = new AuthenticationContext(\"https://login.windows.net/\" + _azureDomain + \"/oauth2/token\");\n\n            ClientCredential credentials = new ClientCredential(clientId, clientSecret);\n\n            AuthenticationResult authResult = await authContext.AcquireTokenAsync(\"https://graph.microsoft.com/\", credentials);\n\n            request.Headers.Add(\"Authorization\", \"Bearer \" + authResult.AccessToken);\n        }\n        catch (Exception ex)\n        {\n        }\n    }\n}\n\nI've tried changing the client secret to an invalid Id and it threw an error, so the client key is correct. I've  also tried to verify that the access token is valid by altering the access token, this also returns a error.\nThe above code seems to work fine.\nBelow is the code where I'm trying to access Azure AD:\npublic async Task<IGraphServiceUsersCollectionPage> GetUsersByLastName(string lastname)  \n{\n    GraphServiceClient graphClient = new GraphServiceClient(new AzureAuthenticationProvider());\n    string filter = String.Format(\"startswith(surname, '{0}')\", lastname);\n    IGraphServiceUsersCollectionPage users = await graphClient.Users.Request().Filter(filter).GetAsync(); //Fails on this line\n    return users;\n}\n\n\n",
+    "question_score": 62,
+    "answer_text": "Please refer to below steps :\n\nFrom your screenshot , seems you grant Read and write directory data application permission for Windows Azure Active Directory(azure ad graph api) . Since you are using microsoft graph (https://graph.microsoft.com/) , you need to grant application permission for Microsoft Graph :\n\nSince you are admin in your AAD, You could grant permission for users in organization by click Grant permission button shown in above screenshot .\nThen you could use your code (client credential flow to get the token) and query users information . If you check the claims in access token issued by azure ad , you could find Directory.Read.All permission in roles claim .\n\n",
+    "answer_id": 44325943,
+    "tags": [
+      "c#",
+      "azure",
+      "permissions",
+      "azure-active-directory",
+      "azure-ad-graph-api"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 50490808,
+    "title": "Unable to connect to the server: dial tcp [::1]:8080: connectex: No connection could be made because the target machine actively refused it",
+    "question_text": "Am working on Azure Kubernates where we can store Docker Images in Azure. Here am trying to check my kubectl version, then am getting \n\nUnable to connect to the server: dial tcp [::1]:8080: connectex: No\n  connection could be made because the target machine actively refused\n  it.\n\nFor this I followed MSDN:uilding Microservices with AKS and VSTS \u2013 Part 2  and MSDOCS:Kubernetes on windows\nSo, can you please suggest me \u201cHow to resolve for this issue?\u201d\n",
+    "question_score": 61,
+    "answer_text": "I think you might missed out to configure the cluster, for that you need to run the below command in your command prompt.\naz aks get-credentials --resource-group myResourceGroup --name myAKSCluster\n\nThe above CLI command creates .config file with complete cluster and nodes details in your local machine. \nAfter that you run kubectl get nodes command in your command prompt, then you can get the list of nodes inside the cluster like in the below image.\n\nFor reference follow this Deploy an Azure Kubernetes Service (AKS) cluster.\n",
+    "answer_id": 50605167,
+    "tags": [
+      "powershell",
+      "azure",
+      "azure-cli",
+      "azure-container-service",
+      "azure-aks"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 47134657,
+    "title": "Azure WebApp Asp.NET Core 2 error: An error occurred while starting the application",
+    "question_text": "I have upgraded asp.net core 1.1 to an asp.net core 2. It runs fine on the local server, but when I try to deploy it to an Azure hosted web app, I received the error:\n\nAn error occurred while starting the application. .NET Core\n4.6.00001.0 X86 v4.0.0.0    |   Microsoft.AspNetCore.Hosting version 2.0.0-rtm-26452    |    Microsoft Windows 6.2.9200\n\n\nAny ideas?\n",
+    "question_score": 61,
+    "answer_text": "I managed to solve the problem myself and I hope this solution might help someone.\nFirst, I have set log folder on the Azure server and find issue with more details.\nI forgot some database changes in SQL.Update database changes and run it's working fine now. \n",
+    "answer_id": 47173154,
+    "tags": [
+      "c#",
+      "asp.net",
+      "asp.net-mvc",
+      "azure",
+      "asp.net-core"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 23940246,
+    "title": "How to get all rows in Azure table Storage in C#?",
+    "question_text": "I am trying to get a list of all entities inside an azure table. \nAny idea of how I would write this query? \n",
+    "question_score": 61,
+    "answer_text": "To answer your question, you could do something like the following:\nvar acc = new CloudStorageAccount(\n                         new StorageCredentials(\"account name\", \"account key\"), true);\nvar tableClient = acc.CreateCloudTableClient();\nvar table = tableClient.GetTableReference(\"table name\");\nvar entities = table.ExecuteQuery(new TableQuery<MyEntity>()).ToList();\n\nHowever please keep in mind that table service returns a maximum of 1000 entities in a single call to it. If there're more than 1000 entities available in your table, it returns a continuation token which can be used to fetch next set of entities. The ExecuteQuery method actually handles this continuation token internally thus if you want to cancel this operation for any reason, you can't do that.\nA better approach would be to use ExecuteQuerySegmented method and have your application deal with the token. Here's the sample code to do so:\nvar acc = new CloudStorageAccount(\n                         new StorageCredentials(\"account name\", \"account key\"), true);\nvar tableClient = acc.CreateCloudTableClient();\nvar table = tableClient.GetTableReference(\"table name\");\nTableContinuationToken token = null;\nvar entities = new List<MyEntity>();\ndo\n{\n    var queryResult = table.ExecuteQuerySegmented(new TableQuery<MyEntity>(), token);\n    entities.AddRange(queryResult.Results);\n    token = queryResult.ContinuationToken;\n} while (token != null);\n\n",
+    "answer_id": 23940749,
+    "tags": [
+      "c#",
+      "azure",
+      "nosql",
+      "azure-table-storage",
+      "azure-tablequery"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 30051408,
+    "title": "Understanding when to use stateful services and when to rely on external persistence in Azure Service Fabric",
+    "question_text": "I'm spending my evenings evaluating Azure Service Fabric as a replacement for our current WebApps/CloudServices stack, and feel a little bit unsure about how to decide when services/actors with state should be stateful actors, and when they should be stateless actors with externally persisted state (Azure SQL, Azure Storage and DocumentDB). I know this is a fairly new product (to the general public at least), so there's probably not a lot of best practices in regards to this yet, but I've read through most of the documentation made available by Microsoft without finding a definite answer for this.\nThe current problem domain I'm approaching is our event store; parts of our applications are based on event sourcing and CQRS, and I'm evaluating how to move this event store over to the Service Fabric platform. The event store is going to contain a lot time series-data, and as it's our only source of truth for the data being persisted there it must be consistent, replicated and stored to some form of durable storage.\nOne way I have considered doing this is with stateful \"EventStream\" actor; each instance of an aggregate using event sourcing stores its events within an isolated stream. This means the stateful actor could keep track of all the events for its own stream, and I'd have met my requirements as to how the data is stored (transactional, replicated and durable). However, some streams may grow very large (hundreds of thousands, if not millions, of events), and this is where I'm starting to get unsure. Having an actor with a large amount of state will, I imagine, have impacts on the performance of the system when these large data models needs to be serialized to or deserialized from disk.\nAnother option is to keep these actors stateless, and have them just read their data from some external storage like Azure SQL - or just go with stateless services instead of actors.\nBasically, when is the amount of state for an actor/service \"too much\" and you should start considering other ways of handling state?\nAlso, this section in the Service Fabric Actors design pattern: Some anti-patterns documentation leave me a little bit puzzled:\n\nTreat Azure Service Fabric Actors as a transactional system. Azure Service Fabric Actors is not a two phase commit-based system offering ACID. If we do not implement the optional persistence, and the machine the actor is running on dies, its current state will go with it. The actor will be coming up on another node very fast, but unless we have implemented the backing persistence, the state will be gone. However, between leveraging retries, duplicate filtering, and/or idempotent design, you can achieve a high level of reliability and consistency.\n\nWhat does \"if we do not implement the optional persistance\" indicate here? I was under the impression that as long as your transaction modifying the state succeeded, your data was persisted to durable storage and replicated to at least a subset of the replicas. This paragraph leaves me wondering if there are situations where state within my actors/services will get lost, and if this is something I need to handle myself. The impression I got from the stateful model in other parts of the documentation seems to counteract this statement.\n",
+    "question_score": 60,
+    "answer_text": "One option that you have is to keep 'some' of the state in the actor (let's say what could be considered to be hot data that needs to be quickly available) and store everything else on a 'traditional' storage infrastructure such as SQL Azure, DocDB, .... \nIt is difficult to have a general rule about too much local state but, maybe, it helps to think about hot vs. cold data. \nReliable Actors also offer the ability to customize the StateProvider so you can also consider implementing a customized StateProvider (by implementing the IActorStateProvider) with the specific policies that you need to be more efficient with the requirements that you have in terms of amount of data, latency, reliability and so on (note: documentation is still very minimal on the StateProvider interface but we can publish some sample code if this is something you want to pursue).\nAbout the anti-patterns: the note is more about implementing transactions across multiple actors. Reliable Actors provides full guarantee on reliability of the data within the boundaries of an actor. Because of the distributed and loosly coupled nature of the Actor model, implementing transactions that involve multiple actors is not a trivial task. If 'distributed' transactions is a strong requirement, the Reliable Services programming model is probably a better fit.\n",
+    "answer_id": 30088594,
+    "tags": [
+      "azure",
+      "azure-service-fabric"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 40888489,
+    "title": "Bot Framework without Azure possible?",
+    "question_text": "If i'm building a bot with the Microsoft Bot Framework, do i need to deploy my bot to Azure in order to register my bot HERE in order to configure the channels for the bot? \nOr can i simply deploy my bot to a normal (for example) IIS Server?\nI couldnt find any information on this toppic and i dont want to use Azure.\n",
+    "question_score": 59,
+    "answer_text": "Yes, it should be possible to run your bot on IIS or in any other hosting service (including cloud hostings besides Azure) as explained here. You will have to make sure that your bot has an internet-accessible endpoint and a valid HTTPS cert.\nRegarding the requirements for the HTTPS cert, I'm copying the info for this thread for your reference:\n\nThe Bot Framework requires that the x.509v3 certificate exposed by\n  your endpoint be current and valid. Most of the checks for \"current\n  and valid\" are standard checks for server certs: the CN must match the\n  hostname, it must not be expired, it must not be listed in a CRL, it\n  must have the correct set of EKUs, etc.\nMost importantly, your cert must chain to a root certificate authority\n  trusted by Microsoft. The latest list of these CAs is available here.\n\nAlso, you can register your bot and even enable the channels without deploying to Azure or any other hosting. You can temporarily use ngrok to create a secure tunnel to your localhost environment and test the bot in your email channel before exposing it to other users. BTW, you don't need to Publish your  bot in the BotFramework portal, just register it. Publishing is just for those bots that would like to appear in the Bot Directory.\n",
+    "answer_id": 40889296,
+    "tags": [
+      "azure",
+      "bots",
+      "botframework"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 27745346,
+    "title": "Get record count in Azure DocumentDb",
+    "question_text": "It seems like 'select count(*) from c' in the SQL queries allowed by documentdb in the azure site and through the documentdb explorer (https://studiodocumentdb.codeplex.com/) is not supported.  To date, the only way to get a record count that I have found is from code (see below).  However, there are enough files in our collection now that this is crashing.  Is there a way to get a count on how many documents in a collection that works more than my solution?\nDocumentClient dc = GetDocumentDbClient();\nvar databaseCount = dc.CreateDatabaseQuery().ToList();\nDatabase azureDb = dc.CreateDatabaseQuery().Where(d => d.Id == Constants.WEATHER_UPDATES_DB_NAME).ToArray().FirstOrDefault();\n\nvar collectionCount = dc.CreateDocumentCollectionQuery(azureDb.SelfLink).ToList();\n\nDocumentCollection update = dc.CreateDocumentCollectionQuery(azureDb.SelfLink).Where(c => c.Id == \"WeatherUpdates\").ToArray().FirstOrDefault();\n\nvar documentCount = dc.CreateDocumentQuery(update.SelfLink, \"SELECT * FROM c\").ToList();\n\nMessageBox.Show(\"Databases: \" + databaseCount.Count().ToString() + Environment.NewLine\n                +\"Collections: \" + collectionCount.Count().ToString() + Environment.NewLine\n                + \"Documents: \" + documentCount.Count().ToString() + Environment.NewLine, \n                 \"Totals\", MessageBoxButtons.OKCancel); \n\n",
+    "question_score": 57,
+    "answer_text": "Until the implementation of the \"count\" keyword, you should do your query in a store procedure on the server. Take care to not get all columns/properties in your query if you want only a count. \nSelect only the id like;\n  dc.CreateDocumentQuery(update.SelfLink, \"SELECT c.id FROM c\")\n\n",
+    "answer_id": 27774837,
+    "tags": [
+      "c#",
+      "azure",
+      "azure-cosmosdb"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 46694349,
+    "title": "CI/CD of a ASP.NET Core Web API using VSTS",
+    "question_text": "I have created an ASP.NET Core Web API app using Visual Studio 2017 (Community Edition). I could successfully publish to an Azure App Service using Visual Studio.\nI now want to set up CI/CD using VSTS. I used the 'Configure Continuous Delivery' option from Visual Studio which created a project in VSTS and created a build definition. I had to create a new build definition based on the 'ASP.NET Core' template in VSTS in order to avoid Nuget restore errors. The solution now builds and the tests are run but the 'Publish' task completes with a warning- \n##[warning]No web project was found in the repository. Web projects are identified by the presence of either a web.config file or wwwroot folder in the directory.\n\nThe 'Publish Artifact' task has a similar warning - \n##[warning]Directory 'd:\\a\\1\\a' is empty. Nothing will be added to build artifact 'drop'.\n\nAnd obviously, the build does not produce any artifacts.\nDo I need to add any build tasks to the default ASP.NET Core build template? How can I publish my Web API to Azure using VSTS?\n",
+    "question_score": 57,
+    "answer_text": "As the warning message, your repository seems has no web project.\nSo you should deselect the Publish Web Projects option in .NET Core publish task, and specify your .csproj in project(s) option.\n\nAnd you can also find the hint message for Publish Web Projects option as below:\n\nIf true, the task will try to find the web projects in the repository\n  and run the publish command on them. Web projects are identified by\n  presence of either a web.config file or wwwroot folder in the\n  directory.\n\n",
+    "answer_id": 46703244,
+    "tags": [
+      "azure",
+      "asp.net-core",
+      ".net-core",
+      "azure-devops",
+      "continuous-deployment"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 46537758,
+    "title": "Including a file when I publish my Azure function in Visual Studio",
+    "question_text": "I know this seems like a simple thing but I can't find any help online.\nI want to include a file (.html) along with my Azure function when I publish it using Visual Studio. Then I want to be able to access this file in my Azure function.\nWhy? It seems like only the .dll gets sent to the server when I publish.\nThis file will be an .html file that will be an email template. I want to read it in my function and then send emails out.\nAny help is much appreciated.\nI see I can use [send grid in Azure functions][1], but it looks like I can only send out one email and not multiple emails, which is what I want.\n",
+    "question_score": 57,
+    "answer_text": "First, you need to add the html file to your project, and in the properties, set Copy to Output Directory to \"Copy if newer\".\nThen in your function code, take in an additional ExecutionContext context parameter (note that this is Microsoft.Azure.WebJobs.ExecutionContext and not System.Threading.ExecutionContext). And when you need to access your html file, you can then write:\nstring htmlFilePath = Path.Combine(context.FunctionAppDirectory, \"test.html\");\n\nThat's assuming you added the file at the root of your VS project. If you instead added it in some Data folder (better practice), you'd write:\nstring htmlFilePath = Path.Combine(context.FunctionAppDirectory, \"Data\", \"test.html\");\n\nSee here for full working sample.\n",
+    "answer_id": 46546855,
+    "tags": [
+      "c#",
+      "visual-studio",
+      "azure",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 45661109,
+    "title": "Are Azure Subscription ID, AAD Tenant ID, and AAD App Client ID considered secret/PII?",
+    "question_text": "I would like to log the following in my telemetry for diagnostic and usage purposes:\n\nAzure Subscription ID\nAAD Tenant ID\nAAD App Client ID\n\nShould I treat them as secrets/PII and hash/encrypt them?\n(it goes without saying I will not be retaining the client secret in any way shape or form)\n",
+    "question_score": 57,
+    "answer_text": "Ultimately, you should determine what to log and how, from a compliance/privacy/security perspective, based on official and compliance/privacy/security reviews and certifications within your company or by 3rd parties.\nThat disclaimer aside:\n\nTenant ID and App Client ID aren't generally considered PII nor secrets.\n\n\nNot PII because, by themselves, they won't tell you who the user is.\nNot secrets because they are very easy to obtain. Anyone attempting to log in to your application will be exposed to these as they are included in the authorization request. \n\nAzure Subscription ID isn't generally considered PII though depending on your sensitivity, could be considered a secret\n\nNot PII because, by itself, it doesn't tell you who the user is.\nCould be a secret because it's not easily available publicly to everyone. Could be considered NOT a secret because nothing can be done with it without also having a token from an authorized user or application.\n\n\nDo note that some companies and privacy reviews often consider these 3 data points as Organization Identifiable Information (OII) and sometimes have policies for handling those (less stringent that PII though).\n",
+    "answer_id": 45663968,
+    "tags": [
+      "azure",
+      "logging",
+      "azure-active-directory",
+      "telemetry",
+      "pii"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 42378987,
+    "title": "Configure CORS for Azure Functions Local Host",
+    "question_text": "I'm testing an Azure Functions app locally with the Azure Functions CLI tooling. Is there any way I can configure CORS settings for the local host? \n",
+    "question_score": 56,
+    "answer_text": "You can start the host like this\nfunc host start --cors *\n\nYou can also be more specific and provide a comma delimited list of allowed urls\nMore here: https://github.com/Azure/azure-webjobs-sdk-script/issues/1012\n",
+    "answer_id": 42750529,
+    "tags": [
+      "azure",
+      "cors",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 32406410,
+    "title": "Why are Azure Resource Groups associated with a specific region?",
+    "question_text": "I am trying to understand why Azure Resource Groups, which are logical deployment buckets for applications built on Azure, are associated with a region when they are defined.\nAt first I thought it was to provide global distribution for disaster recovery or geographic redundancy, but then I realized that a single Resource Group can contain web apps in different regions, which can provide those features via Traffic Manager. I suppose that using separate Resource Groups would help better identify which resources are in which region, but other than for organizational purposes, I can't understand what the region definition for Resource Groups implies.\n",
+    "question_score": 56,
+    "answer_text": "The main reason for specifying the location of a resource group is to specify a location for data/metadata for the deployment to be stored in...  It also makes the API consistent (think of the paths in REST API calls) but the primary reason is storage during deployment.\nThe location of the resources in the group is independent/not related to the location of the group itself.\n",
+    "answer_id": 32488159,
+    "tags": [
+      "azure",
+      "scalability",
+      "azure-web-app-service",
+      "azure-resource-manager"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 45992695,
+    "title": "How should I organize a solution with multiple Azure Functions?",
+    "question_text": "Where can I find guidance on organizing a Visual Studio solution with multiple Azure Functions? Specifically, how should the project be organized? \nA single Azure Function resides in a single class file. I suppose each function could be its own class file, all stored within a single project. But is this the optimal solution or do I risk future complications due to a poorly organized project / solution?\n",
+    "question_score": 56,
+    "answer_text": "The MS Azure team will probably have a better answer but this is what has worked for us so far.\n\nWe have several function apps, each are in their own project (and solution).\nOf those function apps, some have only a single function, others have multiple functions each in their own class/file.\nWhere we have multiple functions, it is because those functions are all related to a particular feature area of our system. Hence they work together, and for us it makes sense to maintain and deploy them as a group.\nOther function apps are independent, containing only a single function doing a job unrelated to any other function. E.g. we have one timer driven function that crunches some numbers and sends a push notification as required.\nGrouping the functions in this way has (so far) made sense for us as it gives us a balance between keeping our deployment relatively simple and being able to scale the 'groups' independently.\n\nAnyway this has proved good enough for our project thus far, but I'd be interested to see if there are better ways. \n",
+    "answer_id": 45995670,
+    "tags": [
+      "azure",
+      "azure-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 36026424,
+    "title": "what is equivalent of a windows service on azure?",
+    "question_text": "what is the way to have an always running process on azure? on windows it is windows service, but do i have to get a virtual machine just to have a single running process? I have looked at various compute options but none of them seems to match what a windows service does. Is there a different way to achieve what a windows service does on azure?  \n",
+    "question_score": 56,
+    "answer_text": "You should look at continuously-running web jobs. \nSee Running Background tasks with WebJobs on Microsoft Azure.\nOther choices are PaaS cloud services worker roles and Azure Service Fabric reliable services - but these are likely overkill if you just want a basic service.\n",
+    "answer_id": 36026596,
+    "tags": [
+      "azure"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 31147968,
+    "title": "Comparison between NewRelic and Azure Insights",
+    "question_text": "I'm looking into using a performance and monitoring tool for my web application hosted on Azure.\nI was wondering what the main differences are between Microsoft's Application Insights and New Relic?\nThanks.\n",
+    "question_score": 56,
+    "answer_text": "There are many feature differences between the two products and such comparisons are usually subjective in nature. The following key themes are noted by customers as particular strengths of App Insights, when compared to New Relic:\n\nDeveloper-centric approach - SDK that rides with an app (as opposed to an agent installed aside of an app), provides better flexibility and control for developers; easier support for deployment, auto-scaling. See more here\nRich, open sourced SDKs \u2013 see here\nIntegrated with Visual Studio & Azure Developer Workflow\nSingle product to collect and correlate all 360 degree data, including integrated Usage Analytics (beyond RUM) and Log Search; powerful and intuitive multi-dimensional analysis with drill-through into raw data\nCloud friendlier pricing model\n\n(Disclaimer: the answerer lists themselves as \"Architect in Visual Studio Application Insights team\".)\n",
+    "answer_id": 31263791,
+    "tags": [
+      "azure",
+      "newrelic",
+      "azure-application-insights"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure",
+    "question_id": 67627498,
+    "title": "How do deployment slot settings work on an Azure App Service?",
+    "question_text": "For a given web app service, when multiple deployment slots are setup, e.g.:\nmyapp\nmyapp/staging\nand I create an appSetting that is marked as a \"deployment slot setting\" on myapp, what happens when I swap slots? Does the deployment slot setting stay with myapp or does it move to myapp/staging?\nAlso, what happens if I mix and match deployment slot settings and non-deployment slot settings between deployment slots?\n",
+    "question_score": 55,
+    "answer_text": "Marking a setting as a \"deployment slot setting\" keeps it sticky to that particular deployment slot - e.g. an app setting marked as a \"deployment slot setting\" on myapp will always stick with myapp and will never move to myapp/staging during a swap. If the setting is not set as a deployment slot setting, it will move from myapp to myapp/staging during a swap.\nAppSettings are NOT shared or synced across deployment slots. If you want an app setting on more than one slot, you need to add it to all of the slots in question with the same value (assuming you want the same value across all slots).\nIn terms of mixing & matching whether or not a given app setting is a deployment slot setting, Azure won't let you do this - it's last in wins. For example, if you have an app setting named myAppSetting that is present on more than one slot and you mark it as a deployment slot setting on any one of them, it will be changed to a deployment slot on the others as well, and vice versa. Worth noting that there's no warning or error message when you do this, it just happens silently.\n",
+    "answer_id": 67627499,
+    "tags": [
+      "azure",
+      "azure-web-app-service",
+      "azure-configuration",
+      "azure-deployment-slots"
+    ]
+  }
+]

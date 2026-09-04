@@ -1,0 +1,86 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-monitor",
+    "question_id": 70439235,
+    "title": "How do I print a tree using the Kusto Query Language?",
+    "question_text": "Below is a quick and unglamorous solution.\nIf you have a better one, please include it in your answer.\nlet tree_height = 15;\nrange i from -1 to tree_height * 2 step 2\n| extend side_width = tree_height + 1 - i / 2\n| extend side_space = strrep(\" \", side_width)\n| extend tree_part = case(i > 0, strcat(\"/\", strrep(\"*\", i), @\"\\\"), \" ^ \")\n| project ta_da = strcat(side_space, tree_part, side_space)\n\n                 ^                 \n                /*\\                \n               /***\\               \n              /*****\\              \n             /*******\\             \n            /*********\\            \n           /***********\\           \n          /*************\\          \n         /***************\\         \n        /*****************\\        \n       /*******************\\       \n      /*********************\\      \n     /***********************\\     \n    /*************************\\    \n   /***************************\\   \n  /*****************************\\  \n\nIf you need some inspiration: \n",
+    "question_score": 10,
+    "answer_text": "Here's my Khristmas tree:\nlet L=10;\nrange x from 1 to L step 1\n| project t=strcat(strrep(' ', L-x), strrep('.', x), strrep('*', x-1))\n| summarize Tree=make_list(t)\n| project Tree=array_concat(pack_array(strcat(strrep(' ', L-3), make_string(127775))), Tree)\n| project HappyXmas=strcat_array(Tree, '\\n')\n\n\n\u00a0\n",
+    "answer_id": 70439482,
+    "tags": [
+      "azure-data-explorer",
+      "kql",
+      "azure-sentinel",
+      "kusto-explorer",
+      "azure-monitor"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-monitor",
+    "question_id": 73678996,
+    "title": "Viewing opentelemetry traces in Azure Monitor",
+    "question_text": "I'm sending opentelemetry traces to Azure Monitor (via Application Insights) following this guide.\nDoes Application Insights have a view similar to something like what Jaeger, Zipkin and Tempo offer, or can I only view the traces as log entries in a table?\n",
+    "question_score": 7,
+    "answer_text": "Yes Application Insights has a very rich UI you can go to and view application map, failures, performance + it gives you a full view of all the logs via KQL.\nFor a waterfall like UI you have multiple places this is shown.\nYou can go to Requests, check a sample request and clicking on it will give you a waterfall view.\nAlthough in my example, it's just a sample and I don't have many dependencies ie: if there was a downstream db call, api call etc it will show a clear waterfall with time slices etc\nOr if you have a transactionId/Correlation ID then you can enter it in the \"Transaction Search\" and it will lead to a similar waterfall like UI\n\n\nHere is a great video which shows all the major views in application insights\n",
+    "answer_id": 73684366,
+    "tags": [
+      "azure",
+      "azure-application-insights",
+      "open-telemetry",
+      "azure-monitor"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-monitor",
+    "question_id": 74839093,
+    "title": "Insights Vs Diagnostic Settings in Azure Monitor",
+    "question_text": "In Azure Monitor, there is a section called Insights that allows us to configure some kind of monitoring on a chosen set of resources like Applications, VMs, Storage Accounts, Containers etc.\nThere is also a section called Diagnostic Settings that allows us to send logs with further detail to a chosen destination such as a Log Analytics workspace.\nI am a little confused as to the difference between the two? What is the difference between the data that these tools collect?\nI know with Diagnostic Settings, you can configure where the data collected is sent to, but where is the data that Insights collect stored?\nWhat are the use cases for the two services?\n",
+    "question_score": 7,
+    "answer_text": "\nI am a little confused as to the difference between the two?\n\nThe Azure Monitor Insights section gives access to ready made/out of the box dashboards and visualizations for specific services.\nIf you want longer data retention or export the data to consume the data in other ways you cannot use Insights, you need to use Diagnostic Settings to setup data export.\n\nWhat is the difference between the data that these tools collect?\n\nThey both use the same source data in most, if not all, cases.\n\nI am a little confused as to the difference between the two? What is the difference between the data that these tools collect?\n\nThere is no difference in the data. The data from Insights can be viewed directly as opposed to having to build the views over the data exported by Diagnostics Settings yourself.\n\nWhat are the use cases for the two services?\n\nI use Insights for quick & easy monitoring and troubleshooting and Diagnostic Settings to export data to custom storage solutions so we can create reports over years of data.\nAlso, if you need to store certain events or data for legal purposes for a long period, Diagnostics Settings is the way to go. Insights won't help you there.\n",
+    "answer_id": 74841734,
+    "tags": [
+      "azure",
+      "azure-monitoring",
+      "azure-monitor"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-monitor",
+    "question_id": 71387640,
+    "title": "Application Insights Map not connected between Angular SPA and .Net 6 API",
+    "question_text": "I have an Angular 13 SPA which calls my .Net 6 API which then calls a Database.\nFor now the whole system is running on my local machine.\nI added the Application Insights JS SDK and the Angular Plugin to my SPA and initialized them\npackage.json\n\"@microsoft/applicationinsights-web\": \"2.7.4\",\n\"@microsoft/applicationinsights-angularplugin-js\": \"2.8.0\",\n\napp.component.ts\nexport class AppComponent {\n  title = 'app';\n  constructor(\n    private router: Router,\n    private settings: SettingsService,\n  ) {\n    const aiInstrumentationKey = 'ApplicationInsights_InstrumentationKey';\n    var angularPlugin = new AngularPlugin();\n    const appInsights = new ApplicationInsights({\n      config: {\n        instrumentationKey: settings.settings.extensions[aiInstrumentationKey],\n        distributedTracingMode: DistributedTracingModes.W3C,\n        disableFetchTracking: false,\n        enableCorsCorrelation: true,\n        enableDebug: true,\n        enableDebugExceptions: true,\n        enableRequestHeaderTracking: true,\n        enableResponseHeaderTracking: true,\n        extensions: [angularPlugin],\n        extensionConfig: {\n          [angularPlugin.identifier]: { router: this.router }\n        }\n      }\n    });\n    appInsights.loadAppInsights();\n  }\n}\n\n\nIn my API I added the NuGet package and initialized it in my Startup class.\n.csproj\n<PackageReference Include=\"Microsoft.ApplicationInsights.AspNetCore\" Version=\"2.20.0\" />\n\nStartup.cs\nservices.AddApplicationInsightsTelemetry();\n\nI can see the end-to-end transaction details just fine and they seem to carry the Operation ID (fb0903820fa64ef092fbcd432336e949 in my example) just fine through the whole dependency chain\n\nHowever the Application Map does not line up with this. I would expect the red arrow, but instead I'm getting two disconnected graphs.\n\nWhen I click on the green-circled-node and drill into the sample, I land on the same end-to-end transaction as if I click on the bottom left node for the SPA.\nWhat can I do to have the graph properly connected?\n",
+    "question_score": 6,
+    "answer_text": "Application Map has a preview option - which sometimes breaks the map. You can try opting out of the preview.\n",
+    "answer_id": 71388087,
+    "tags": [
+      "c#",
+      "angular",
+      "azure-application-insights",
+      "azure-monitor"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "azure",
+    "tag": "azure-monitor",
+    "question_id": 68482941,
+    "title": "How to create azure monitor alert when my disk space low in virtual machine",
+    "question_text": "I have one virtual machine . Now I want if my disk space showing very low I mean less than 2 gb. Then I want to trigger azure monitor alerts and want to get Email regarding this. is there any metrics azure monitor provide.\n",
+    "question_score": 5,
+    "answer_text": "There are no predefined alerts for diskspace as of now . But you can create a new alert with custom log search to get the details and then trigger the email to you.\nStep 1 : Go to Alerts on your Monitor Page and click on New alert rule .\n\nStep 2: Then select the resource and by resource here you have to select the Log analytics workspace which you have enabled the VM monitoring for . In my case its TestLog.\n\nStep 3: Now select the Custom Log Search .\n\nStep 4: Then provide the Custom Query which I have provided below in the search query box and you can set the threshold value to \u201c0\u201d and period and frequency in mins as per your requirement for an example I have set it to 60mins.\n\nStep 5: Now Select an existing Action group that you have or you can create a new one by clicking on create new and filling the details . After its Created click on the action group and add the notification type as Email or anything you want to specify.\n\n\nStep 6: Fill rest details like email subject and severity of the alert you want to set it to and then create alert.\n\nCustom Query:\nlet setgbvalue = 200;//Set the disk space you want to check for. \n\n Perf \n\n | where TimeGenerated > ago(1h)\n\n | where ObjectName == \"LogicalDisk\" and CounterName == \"Free Megabytes\" \n\n// exclude all others as we are checking for C: here \n\n | where InstanceName != \"D:\"  \n\n | where InstanceName  != \"_Total\" \n\n | where InstanceName != \"HarddiskVolume1\" \n\n | extend FreeSpaceGB = CounterValue/1024 // converting the counter value to GB \n\n | summarize FreeSpace = min(FreeSpaceGB) by Computer, InstanceName \n\n | where FreeSpace < setgbvalue //setting condition to check if the value is less than our set value . \n\n\nSample :\nTo test it I had set the value to 200GB and my disk space was 106GB. I received the mail as below.\n\n\n",
+    "answer_id": 68499134,
+    "tags": [
+      "azure",
+      "virtual-machine",
+      "azure-monitor"
+    ]
+  }
+]

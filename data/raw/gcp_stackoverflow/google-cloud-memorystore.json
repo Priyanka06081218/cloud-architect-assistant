@@ -1,0 +1,67 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-memorystore",
+    "question_id": 71785724,
+    "title": "GCP Memorystore Redis: Protocol error, got &quot;\\x15&quot; as reply type byte",
+    "question_text": "I have been researching this Redis error for days now...\nI created a GCP Memorystore Redis instance and received the following internal IP endpoint:\n10.xxx.xxx.xxx:6378\n\nI created a small GCE instance and made sure that zone matched the Redis instance:\nus-central1-f\n\n\nHowever, I when I ssh into the VM, connect to Redis, and issue a PING, I get the following error response\nProtocol error, got \"\\x15\" as reply type byte\n\n\nAny idea why I am getting this error?\n",
+    "question_score": 7,
+    "answer_text": "If the Redis instance was configured with an AUTH string and/or TLS encryption, you would need to pass these credentials when connecting to it.\nI received the same error when using your command to connect to my encrypted instance. This can be done in two ways as far as I tested (from a GCE instance in the same VPC as Redis):\n1. Using the redis-cli, you could use the following command to authenticate (see here for information on the flags used in the command):\nredis-cli -h <ip_addres> -p <port> -a <auth_string> --tls --cacert <path/to/certificate_file.pem>\n\nNote: the certificate file would need to be installed to your VM.\n2. The GCP Memorystore documentation recommends using telnet and Stunnel to connect to a secured and encrypted instance.\nSomething not included in the documentation is that after running telnet localhost 6378 in step 4, you would need to pass the AUTH string in the telnet console:\nAUTH <auth_string>\n+OK\nPING\n+PONG\n\nAfter that, you can PING the instance in step 5, skipping sending the AUTH string will return this error: -NOAUTH Authentication required. Besides that, you should follow as documented the rest of the steps.\n",
+    "answer_id": 71799829,
+    "tags": [
+      "redis",
+      "google-cloud-memorystore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-memorystore",
+    "question_id": 59460974,
+    "title": "Where to store shared cache objects in Cloud Run?",
+    "question_text": "I am creating a data ingestion pipeline using Cloud Run. My Cloud Run api gets called everytime a file is dropped in a GCS bucket via Pub Sub. I need to load some metadata that contains text for the data I am ingesting. This metadata changes infrequently. I obviously do not want to reload it in memory on every execution. What is my best option? What I have been able to research so far is: \nOption 1 \n\nYou can also cache objects in memory if they are expensive to\n  recreate on each service request. Moving this from the request logic\n  to global scope results in better performance.\n  https://cloud.google.com/run/docs/tips#run_tips_global_scope-java\n\nIn the example given at this link, does the heavyComputation function only get called once at cold start? What if I need to retrigger this function occasionally upon metadata update. I also find the following information troubling in that it seems to say there is no guarantee other instances will reuse the object or not. \n\nIn Cloud Run, you cannot assume that service state is preserved\n  between requests. However, Cloud Run does reuse individual container\n  instances to serve ongoing traffic, so you can declare a variable in\n  global scope to allow its value to be reused in subsequent\n  invocations. Whether any individual request receives the benefit of\n  this reuse cannot be known ahead of time.\n\nOption 2\nUse something like Redis or Cloud Memory Store that is updated by a cloud function any time there are changes. And all instances of cloud run api pull metadata information from Redis. Would this be less or more performant than option 1? Any other down sides to this? \nIf there are other better ways of doing this, I would be very interested. \nUpdate 1: I thought about it some more and since my metadata is going to be different for each tenant, and each invocation of my cloud run code is going to ingest one file for one tenant, it would be a bad idea to load all tenants metadata at each execution even if its cached. I might run seperate cloud runs inside each tenant's project though. \n",
+    "question_score": 6,
+    "answer_text": "Regarding the first option (Option 1):\nThe heavyComputation() function here would be called only at cold start, each time a new Cloud Run container instance is created (when the maximum number of requests that can be sent in parallel to a given container instance is exceeded and therefore a new instnace is created).\nIn order to address the second option (Option 2):\nAs of now, Cloud Run (fully managed) does not support Serverless VPC Access, and therefore a connection to Cloud Memorystore is not a possibility. Monitor the following Feature Request to get all the relevant information and updates from the Cloud Run product team to check when this feature will be available.\nYou can find some workarounds on this post and on the [Feature Request]((https://issuetracker.google.com/132922075)) already mentioned. They basically consist of:\n\nUsing a Google Kubernetes Engine cluster with Cloud Run.\nSetup a Redis instance on Compute Engine.\n\n",
+    "answer_id": 59468430,
+    "tags": [
+      "shared-memory",
+      "google-cloud-run",
+      "data-ingestion",
+      "google-cloud-memorystore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-memorystore",
+    "question_id": 53822495,
+    "title": "Is Redis ReJSON module compatible with Google Memorystore?",
+    "question_text": "Is Redis ReJSON module compatible with Google Memorystore? I want to store JSON in memorystore, can I use ReJSON module?\n",
+    "question_score": 5,
+    "answer_text": "No you cannot use the ReJSON module because it's currently not supported to use any modules in Google Cloud Memorystore as it is running v3.2.11 and the user modules system was introduced in Redis v4.0. Also in the ReJSON module requirements it stated that it requires Redis v4.0 or above.\nRelated to this, there is already a public feature request for Google Cloud Memorystore to release v4.0 in which it is stated that:\n\nWe are working on releasing 4.0 in Q1 (2019). We will follow up with 5.0 shortly after that.\n\nI cannot confirm it but it can be that after the v4.0 is introduced, you are able to use the ReJSON module.\n",
+    "answer_id": 53884306,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-memorystore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-memorystore",
+    "question_id": 76017196,
+    "title": "Ruby on Rails Action Cable + Sidekiq with GCP Memorystore Redis client command not supported",
+    "question_text": "I have set up a rails application in docker using cloud sql in GCP. Im now adding a Memorystore Redis along with Action Cable and also Sidekiq.\nGCP Memorystore redis does not support the client command and causes a hard error:\nRedisClient::CommandError: ERR unknown command `CLIENT`, with args beginning with: `SETNAME`, `ActionCable-PID-18`\n\nRunning things locally in docker compose works without any issues.\nIt is well documented by Google that Memorystore redis at GCP does not support the client command.\nAs far as configuration goes the serverless VPC is setup and the image is build using:\nvpc-connector=VPC_id \nupdate-env-vars REDIS_URL=redis://ip:port\n\nBooting the docker image it creates the cloud sql db  and starts to seed.\nDuring seeding the error occurs as emails are being send during user creation using action cable/sidekiq.\nAccording to sidekiq git:\nhttps://github.com/sidekiq/sidekiq/issues/3518\nThere is a know work around for this. In my redis initializer i have added:\n  Sidekiq.configure_server do |config|\n    config.redis = { url: ENV[\"REDIS_URL\"], id: nil }\n  end\n\n  Sidekiq.configure_client do |config|\n    config.redis = { url: ENV[\"REDIS_URL\"], id: nil  }\n  end \n\nNo change in behavior.\nAlso i don't really think that this is a sidekiq issue as:\nhttps://github.com/sidekiq/sidekiq/wiki/Using-Redis clear states that:\nIf your Redis server supports it, you may instruct Sidekiq to use CLIENT SETNAME when establishing connections. This will make it easier to identify Sidekiq clients when debugging with CLIENT LIST.\n\nconfig.redis = { id: \"Sidekiq-server-PID-#{::Process.pid}\" }\nThis is disabled by default because many SaaS Redis hosts do not support it.\n\nZooming in on action cable i have found another older SO thread about this issue:\nGoogle App Engine + Ruby on rails + Redis + actioncable\nI have tried this and this causes the rails application to fail silently in GCP just after bundle is completed.\nMy cable.yml contains for the environment:\n  adapter: redis\n  url: <%= ENV.fetch(\"REDIS_URL\") { \"redis://localhost:6379/1\" } %>\n  channel_prefix: my_project\n  driver: :ruby\n  ssl_params:\n    verify_mode: <%= OpenSSL::SSL::VERIFY_NONE %>\n\nIm looking for any input that might help me resolve this issue. Not being able to find a working GCP Memorystore redis + rails guide any where, makes me wonder if this is so obvious that i don't see it or it is a dead end and I should just stop now :)\n",
+    "question_score": 5,
+    "answer_text": "Faced with the same issue. Added initializer config/initializers/actioncable.rb for solve this:\n# frozen_string_literal: true\n\nrequire 'action_cable/subscription_adapter/redis'\n\nActionCable::SubscriptionAdapter::Redis.redis_connector = lambda do |config|\n  config[:id] = nil if ENV['REDIS_DISABLE_CLIENT_COMMAND'].present?\n  Redis.new(config.except(:adapter, :channel_prefix))\nend\n\nAnd then use REDIS_DISABLE_CLIENT_COMMAND if need.\nPath to find this solution was:\n\nhttps://gitlab.com/gitlab-org/gitlab/-/issues/346421\nhttps://github.com/rails/rails/issues/38244\nhttps://github.com/chatwoot/chatwoot/pull/4422/files\n\nI hope it helps you.\n",
+    "answer_id": 76078895,
+    "tags": [
+      "ruby-on-rails",
+      "google-cloud-platform",
+      "sidekiq",
+      "actioncable",
+      "google-cloud-memorystore"
+    ]
+  }
+]

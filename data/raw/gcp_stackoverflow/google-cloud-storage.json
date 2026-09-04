@@ -1,0 +1,1457 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 31037279,
+    "title": "gcloud command not found - while installing Google Cloud SDK",
+    "question_text": "I am on a mac and am trying to install the Google Cloud SDK (including the gcloud command line utility) using this command in terminal\ncurl https://sdk.cloud.google.com | bash\n\nas seen at https://cloud.google.com/sdk/\nIt got all the way to the end and finished but even after I restarted my shell, the gcloud command still says it's not found.\nWhy isn't this installation working?\n",
+    "question_score": 229,
+    "answer_text": "So below is my previous fix for this problem, but it turns out it isn't permanent. It works but every time you restart Terminal, you'd have to do the same thing which isn't practical.\nSo that is why I suggest you delete the current google-cloud-sdk directory, and just redo the installation. Be sure (as Zachary has mentioned) to answer yes (Y) to the prompt Modify profile to update your $PATH and enable bash completion? (Y/n).\nHere is my old answer, but just redo the installation:\n\nI had the same problem, gcloud wasn't working for me. But then, in the same directory as my google-cloud-sdk folder which I had just installed (my home directory), I found this file called test. Inside this test file I found two commands:\n\n# The next line updates PATH for the Google Cloud SDK.\nsource '[path-to-my-home]/google-cloud-sdk/path.bash.inc'\n# The next line enables bash completion for gcloud.\nsource '[path-to-my-home]/google-cloud-sdk/completion.bash.inc'\n\n\nAfter I ran these two source commands in terminal, gcloud worked!\n\n",
+    "answer_id": 31037280,
+    "tags": [
+      "terminal",
+      "installation",
+      "google-cloud-storage",
+      "google-cloud-platform",
+      "gcloud"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 37760695,
+    "title": "Firebase Storage and Access-Control-Allow-Origin",
+    "question_text": "I'm trying to download files from Firebase Storage through a XMLHttpRequest, but Access-Control-Allow-Origin is not set on the resource, so it's not possible. Is there any way to set this header on the storage server?\n  (let [xhr (js/XMLHttpRequest.)]\n    (.open xhr \"GET\" url)\n    (aset xhr \"responseType\" \"arraybuffer\")\n    (aset xhr \"onload\" #(js/console.log \"bin\" (.-response xhr)))\n    (.send xhr)))\n\nChrome error message:\n\nXMLHttpRequest cannot load\n  https://firebasestorage.googleapis.com/[EDITED]\n  No 'Access-Control-Allow-Origin' header is present on the requested\n  resource. Origin 'http://localhost:3449' is therefore not allowed\n  access.\n\n",
+    "question_score": 217,
+    "answer_text": "From this post on the firebase-talk group/list:\n\nThe easiest way to configure your data for CORS is with the gsutil command line tool.\nThe installation instructions for gsutil are available at https://cloud.google.com/storage/docs/gsutil_install.\nOnce you've installed gsutil and authenticated with it, you can use it to configure CORS.\n\n\nFor example, if you just want to allow object downloads from your custom domain, put this data in a file named cors.json (replacing \"https://example.com\" with your domain):\n\n[\n  {\n    \"origin\": [\"https://example.com\"],\n    \"method\": [\"GET\"],\n    \"maxAgeSeconds\": 3600\n  }\n]\n\n\nThen, run this command (replacing \"exampleproject.appspot.com\" with the name of your bucket):\n\n\ngsutil cors set cors.json gs://exampleproject.appspot.com\n\n\n\nand you should be set.\n\n\nIf you need a more complicated CORS configuration, check out the docs at https://cloud.google.com/storage/docs/cross-origin#Configuring-CORS-on-a-Bucket.\n\nThe above is now also included in the Firebase documentation on CORS Configuration\n",
+    "answer_id": 37765371,
+    "tags": [
+      "firebase",
+      "cors",
+      "google-cloud-storage",
+      "firebase-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 27275063,
+    "title": "gsutil copy returning &quot;AccessDeniedException: 403 Insufficient Permission&quot; from GCE",
+    "question_text": "I am logged in to a GCE instance via SSH. From there I would like to access the Storage with the help of a Service Account:\nGCE> gcloud auth list\nCredentialed accounts:\n - 1234567890-compute@developer.gserviceaccount.com (active)\n\nI first made sure that this Service account is flagged \"Can edit\" in the permissions of the project I am working in. I also made sure to give him the Write ACL on the bucket I would like him to copy a file:\nlocal> gsutil acl ch -u 1234567890-compute@developer.gserviceaccount.com:W gs://mybucket\n\nBut then the following command fails:\nGCE> gsutil cp test.txt gs://mybucket/logs\n\n(I also made sure that \"logs\" is created under \"mybucket\").\nThe error message I get is:\nCopying file://test.txt [Content-Type=text/plain]...\nAccessDeniedException: 403 Insufficient Permission               0 B  \n\nWhat am I missing?\n",
+    "question_score": 128,
+    "answer_text": "One other thing to look for is to make sure you set up the appropriate scopes when creating the GCE VM. Even if a VM has a service account attached, it must be assigned devstorage scopes in order to access GCS.\nFor example, if you had created your VM with devstorage.read_only scope, trying to write to a bucket would fail, even if your service account has permission to write to the bucket. You would need devstorage.full_control or devstorage.read_write.\nSee the section on Preparing an instance to use service accounts for details.\nNote: the default compute service account has very limited scopes (including having read-only to GCS). This is done because the default service account has Project Editor IAM permissions. If you use any user service account this is not typically a problem since user created service accounts get all scope access by default.\nAfter adding necessary scopes to the VM, gsutil may still be using cached credentials which don't have the new scopes. Delete ~/.gsutil before trying the gsutil commands again. (Thanks to @mndrix for pointing this out in the comments.)\n",
+    "answer_id": 27298944,
+    "tags": [
+      "google-cloud-storage",
+      "google-compute-engine",
+      "google-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 37003862,
+    "title": "How to upload a file to Google Cloud Storage on Python 3?",
+    "question_text": "How can I upload a file to Google Cloud Storage from Python 3? Eventually Python 2, if it's infeasible from Python 3.\nI've looked and looked, but haven't found a solution that actually works. I tried boto, but when I try to generate the necessary .boto file through gsutil config -e, it keeps saying that I need to configure authentication through gcloud auth login. However, I have done the latter a number of times, without it helping.\n",
+    "question_score": 93,
+    "answer_text": "Use the standard gcloud library, which supports both Python 2 and Python 3.\nExample of Uploading File to Cloud Storage\nfrom gcloud import storage\nfrom oauth2client.service_account import ServiceAccountCredentials\nimport os\n\n\ncredentials_dict = {\n    'type': 'service_account',\n    'client_id': os.environ['BACKUP_CLIENT_ID'],\n    'client_email': os.environ['BACKUP_CLIENT_EMAIL'],\n    'private_key_id': os.environ['BACKUP_PRIVATE_KEY_ID'],\n    'private_key': os.environ['BACKUP_PRIVATE_KEY'],\n}\ncredentials = ServiceAccountCredentials.from_json_keyfile_dict(\n    credentials_dict\n)\nclient = storage.Client(credentials=credentials, project='myproject')\nbucket = client.get_bucket('mybucket')\nblob = bucket.blob('myfile')\nblob.upload_from_filename('myfile')\n\n",
+    "answer_id": 37102815,
+    "tags": [
+      "python",
+      "python-3.x",
+      "google-cloud-storage",
+      "boto",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 51410633,
+    "title": "service account does not have storage.objects.get access for Google Cloud Storage",
+    "question_text": "I have created a service account in Google Cloud Console and selected role Storage / Storage Admin (i.e. full control of GCS resources).\ngcloud projects get-iam-policy my_project seems to indicate that the role was actually selected:\n- members:\n  - serviceAccount:my_sa@my_project.iam.gserviceaccount.com\n  role: roles/storage.admin\n- members:\n  - serviceAccount:my_sa@my_project.iam.gserviceaccount.com\n  role: roles/storage.objectAdmin\n- members:\n  - serviceAccount:my_sa@my_project.iam.gserviceaccount.com\n  role: roles/storage.objectCreator\n\nAnd documentation clearly indicates that role roles/storage.admin comprises permissions storage.objects.* (as well as storage.buckets.*).\nBut when I try using that service account in conjunction with the Google Cloud Storage Client Library for Python, I receive this error message:\n\nmy_sa@my_project.iam.gserviceaccount.com does not have\n  storage.objects.get access to my_project/my_bucket.\n\nSo why would the selected role not be sufficient in this context?\n",
+    "question_score": 85,
+    "answer_text": "The problem was apparently that the service account was associated with too many roles, perhaps as a results of previous configuration attempts.\nThese steps resolved the issue:\n\nremoved all (three) roles for the offending service account (member) my_sa under IAM & Admin / IAM\ndeleted my_sa under IAM & Admin / Service accounts\nrecreated my_sa (again with role Storage / Storage Admin)\n\nEffects are like this:\n\nmy_sa shows up with one role (Storage Admin) under IAM & Admin / IAM\nmy_sa shows up as member under Storage / Browser / my_bucket / Edit bucket permissions\n\n",
+    "answer_id": 51413985,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "service-accounts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 18986379,
+    "title": "How to count number of file in a bucket-folder with gsutil",
+    "question_text": "Is there an option to count the number of files in bucket-folders?  \nLike: \ngsutil ls -count -recursive gs://bucket/folder\n\nResult:   666 files\n\nI just want an total number of files to compare the\namount to the sync-folder on my server.\nI don't get it in the manual.\n",
+    "question_score": 79,
+    "answer_text": "Newer Approach\n\ngsutil now has a du command. This makes it even easier to get a count:\n$ gsutil du gs://pub | wc -l\n232\n\nOlder Approach\n\nThe gsutil ls command with options -l (long listing) and -R (recursive listing) will list the entire bucket recursively and then produce a total count of all objects, both files and directories, at the end:\n$ gsutil ls -lR gs://pub\n    104413  2011-04-03T20:58:02Z  gs://pub/SomeOfTheTeam.jpg\n       172  2012-06-18T21:51:01Z  gs://pub/cloud_storage_storage_schema_v0.json\n      1379  2012-06-18T21:51:01Z  gs://pub/cloud_storage_usage_schema_v0.json\n   1767691  2013-09-18T07:57:42Z  gs://pub/gsutil.tar.gz\n   2445111  2013-09-18T07:57:44Z  gs://pub/gsutil.zip\n      1136  2012-07-19T16:01:05Z  gs://pub/gsutil_2.0.ReleaseNotes.txt\n... <snipped> ...\n\ngs://pub/apt/pool/main/p/python-socksipy-branch/:\n     10372  2013-06-10T22:52:58Z  gs://pub/apt/pool/main/p/python-socksipy-branch/python-socksipy-branch_1.01_all.deb\n\ngs://pub/shakespeare/:\n        84  2010-05-07T23:36:25Z  gs://pub/shakespeare/rose.txt\nTOTAL: 144 objects, 102723169 bytes (97.96 MB)\n\nIf you really just want the total, you can pipe the output to the tail command:\n$ gsutil ls -lR gs://pub | tail -n 1\nTOTAL: 144 objects, 102723169 bytes (97.96 MB)\n\n",
+    "answer_id": 18986955,
+    "tags": [
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 27616776,
+    "title": "How do I set a cost limit in Google Developers Console",
+    "question_text": "Some functions in the Google Developers Console, like the Analytics API, are free until you reach a quota. Other functions, like Google Cloud Storage, create costs from the first click.\nWhen I upload a file under https://console.developers.google.com/ > Storage > Cloud Storage > Storage Browser and I make this file publicly available, I pay about $0.12 per GB traffic.\nBut theoretically the traffic to this link could explode, e.g. because of sudden popularity. Therefore I would like to set something like a daily or monthly cost limit. \nQ: How do I protect myself from overly high costs in the Google Developers Console?\n",
+    "question_score": 79,
+    "answer_text": "As of July 2017 you can set budgets that send notifications via email but do not cap spending:\n\nTo set an alert-only budget, which will not cap spending:\n\nGo to the Cloud Platform Console.\nOpen the console left side menu and click Billing \nIf you have more than one billing account, click the billing account name.\nOn the left, click Budgets & alerts. \n\nOfficial help page: https://support.google.com/cloud/answer/6293540?hl=en\n",
+    "answer_id": 45281700,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-storage",
+      "traffic",
+      "cost-management",
+      "google-cloud-billing"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 74131595,
+    "title": "Error: error:1E08010C:DECODER routines::unsupported with Google auth library",
+    "question_text": "I've recently ran into this error with the google cloud storage SDK on Node.js.\nI know for a fact that this worked in the past without any changes, but I haven't touched the code in a while and might be wrong.\nHere's the error itself:\nError: error:1E08010C:DECODER routines::unsupported\n    at Sign.sign (node:internal/crypto/sig:131:29)\n    at Object.sign (node_modules/jwa/index.js:152:45)\n    at Object.jwsSign [as sign] (node_modules/jws/lib/sign-stream.js:32:24)\n    at GoogleToken.requestToken (node_modules/gtoken/build/src/index.js:232:31)\n    at GoogleToken.getTokenAsyncInner (node_modules/gtoken/build/src/index.js:166:21)\n    at GoogleToken.getTokenAsync (node_modules/gtoken/build/src/index.js:145:55)\n    at GoogleToken.getToken (node_modules/gtoken/build/src/index.js:97:21)\n    at JWT.refreshTokenNoCache (node_modules/google-auth-library/build/src/auth/jwtclient.js:172:36)\n    at JWT.refreshToken (node_modules/google-auth-library/build/src/auth/oauth2client.js:153:24)\n    at JWT.getRequestMetadataAsync (node_modules/google-auth-library/build/src/auth/oauth2client.js:298:28) {\n  library: 'DECODER routines',\n  reason: 'unsupported',\n  code: 'ERR_OSSL_UNSUPPORTED'\n}\n\nThe code that throws this error is the following:\nconst credentials = {\n    type: process.env.TYPE,\n    project_id: process.env.PROJECT_ID,\n    private_key_id: process.env.PRIVATE_KEY_ID,\n    private_key: process.env.PRIVATE_KEY,\n    client_email: process.env.CLIENT_EMAIL,\n    client_id: process.env.CLIENT_ID,\n    auth_uri: process.env.AUTH_URI,\n    token_uri: process.env.TOKEN_URI,\n    auth_provider_x509_cert_url: process.env.AUTH_PROVIDER_X509_CERT_URL,\n    client_x509_cert_url: process.env.CLIENT_X509_CERT_URL,\n  };\n\n  const storage = new Storage({\n    credentials,\n  });\n  if (!req.file) {\n    logger('POST /profile_image', logLevels.error, 'No file uploaded!');\n    ResponseError.badRequest(res);\n  }\n  const bucketName = process.env.BUCKET_NAME;\n  const bucket = storage.bucket(bucketName);\n  const fileName = `profile_pics/${req.user}/${req.file.originalname}`;\n  const file = bucket.file(fileName);\n  const stream = file.createWriteStream({\n    metadata: {\n      contentType: req.file.mimetype,\n    },\n  });\n  stream.on('error', (err) => {\n    console.error('Error pushing the picture: ', err); <--- error\n    throw err;\n  });\n  stream.on('finish', () => {\n    return file.makePublic().then(async () => {\n       ...\n      })\n  });\n  stream.end(req.file.buffer);\n\nThe process.env contains all the right values, I've made sure to try with a new private key but same error. Has anyone seen this one before?\nTIA!\n",
+    "question_score": 77,
+    "answer_text": "Answering this as community wiki. As mentioned above in comments by John Hanley\n\nDo not store service accounts in environment variables.\nIf you do, do not break the service account into pieces. Base64 encode the entire service account, store it in a variable, and then Base64 decode it when required.\nYour code is failing because the client is being set up with bad credentials. Most likely a corrupted private key.\n\n",
+    "answer_id": 74137803,
+    "tags": [
+      "node.js",
+      "google-cloud-storage",
+      "google-api-nodejs-client"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 27374138,
+    "title": "Fastest way to get Google Storage bucket size?",
+    "question_text": "I'm currently doing this, but it's VERY slow since I have several terabytes of data in the bucket:\ngsutil du -sh gs://my-bucket-1/\n\nAnd the same for a sub-folder:\ngsutil du -sh gs://my-bucket-1/folder\n\nIs it possible to somehow obtain the total size of a complete bucket (or a sub-folder) elsewhere or in some other fashion which is much faster?\n",
+    "question_score": 67,
+    "answer_text": "The visibility for Google Storage here is pretty poor.\nThe fastest way is actually to pull the stackdriver metrics and look at the total size in bytes:\n\nUnfortunately there is practically no filtering you can do in stackdriver. You can't wildcard the bucket name and the almost useless bucket resource labels are NOT aggregate-able in stack driver metrics\nAlso this is bucket level only, not prefixes.\nThe SD metrics are updated daily so unless you can wait a day you can't use this to get the current size right now.\nUpdate\nStack Driver metrics now support user metadata labels so you can label your GCS buckets and aggregate those metrics by custom labels you apply.\nEdit\nI want to add a word of warning if you are creating monitors off of this metric. There is a really serious bug with this metric right now.\nGCP occasionally has platform issues that cause this metric to stop getting written. And I think it's tenant specific (maybe?) so you also won't see it on their public health status pages. And it seems poorly documented for their internal support staff as well because every time we open a ticket to complain they seem to think we are lying and it takes some back and forth before they even acknowledge it's broken.\nI think this happens if you have many buckets and something crashes on their end and stops writing metrics to your projects. While it does not happen all the time we see it several times a year.\nFor example it just happened to us again. This is what I'm seeing in stack driver right now across all our projects:\n\nResponse from GCP support\nJust adding the last response we got from GCP support during this most recent metric outage. I'll add all our buckets were accessible it was just this metric was not being written:\n\nThe product team concluded their investigation stating that this was indeed a widespread issue, not tied to your projects only. This internal issue caused unavailability for some GCS buckets, which was affecting the metering systems directly, thus the reason why the \"GCS Bucket Total Bytes\" metric was not available.\n\n",
+    "answer_id": 54450731,
+    "tags": [
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 59937542,
+    "title": "Can I delete container images from Google Cloud Storage artifacts bucket?",
+    "question_text": "I have a Google App Engine app, which connects to Google Cloud Storage. \nI noticed that the amount of data stored was unreasonably high (4.01 GB, when it should be 100MB or so). \nSo, I looked at how much each bucket was storing, and I found that there was an automatically created bucket called us.artificats. that was taking up most of the space.\nI looked inside, and all it has is one folder: containers/images/. \nFrom what I've Googled, it seems like these images come from Google Cloud Build.\nMy question is, can I delete them without compromising my entire application?\n",
+    "question_score": 66,
+    "answer_text": "For those of you seeing this later on, I ended up deleting the folder, and everything was fine.\nWhen I ran Google Cloud Build again, it added items back into the bucket, which I had to delete later on.\nAs @HarshitG mentioned, this can be set up to happen automatically via deletion rules in cloud storage. As for myself, I added a deletion step to my deployment GitHub action.\n",
+    "answer_id": 59942115,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-build"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 51961386,
+    "title": "TypeError: string argument without an encoding",
+    "question_text": "I want to upload compressed gzip of Json into Google Storage.\nI have this code:\nimport datalab.storage as storage\nimport gzip\npath = prefix + '/orders_newline.json.gz'\nstorage.Bucket('orders').item(path).write_to(gzip.compress(bytes(create_jsonlines(source)),encoding='utf8'), 'application/json')\n\nThe create_jsonlines(source) is a function that returns Json Newline Delimited.\nRunning this code gives:\nTypeError: string argument without an encoding\n\nThe Python docs says the format is: bytes([source[, encoding[, errors]]]) I'm not sure I understand it as there is no example of how to use it.\nI tried also \nbytes([(create_jsonlines(source))[,encoding='utf8']])\n\nThis gives :\nSyntaxError: invalid syntax\n\nI'm running Python 3.5\n",
+    "question_score": 63,
+    "answer_text": "You are not using the bytes function correctly. Check this:\n>>> a = \"hi\"\n>>> bytes(a, encoding='utf8')\nb'hi'\n\nYou can try:\nbytes((create_jsonlines(source)), encoding='utf8')\n\nencoding is the argument of the bytes function, and you are using it outside of that function.\n",
+    "answer_id": 51961693,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-datalab"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 22759710,
+    "title": "Setting up SSL for Google Cloud Storage static website?",
+    "question_text": "Is there any way to serve a static website (SPA actually) located on Google Cloud Storage via SSL, for that nice SSL address and icon for users to see?\nAmazon allows this via CloudFront SNI.\n",
+    "question_score": 60,
+    "answer_text": "Yes!\nUsing GCS directly via CNAME redirects only allows HTTP traffic.\nTo use HTTPS with your own domain, you'll need to set up Google Cloud Load Balancer, and optionally you'll want to set up Google Cloud CDN as well. While it adds a bit of complexity, Google Cloud Load Balancer allows you to fill a domain with all sorts of content. Some resources could be served by a GCS bucket, but you could also have servers in GCE serving dynamic content for other paths.\nThere are instructions for setting this up here: https://cloud.google.com/compute/docs/load-balancing/http/using-http-lb-with-cloud-storage.\n",
+    "answer_id": 22767544,
+    "tags": [
+      "ssl",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 36314797,
+    "title": "Write a Pandas DataFrame to Google Cloud Storage or BigQuery",
+    "question_text": "Hello and thanks for your time and consideration.\nI am developing a Jupyter Notebook in the Google Cloud Platform / Datalab.\nI have created a Pandas DataFrame and would like to write this DataFrame to both Google Cloud Storage(GCS) and/or BigQuery. I have a bucket in GCS and have, via the following code, created the following objects:\nimport gcp\nimport gcp.storage as storage\nproject = gcp.Context.default().project_id    \nbucket_name = 'steve-temp'           \nbucket_path  = bucket_name   \nbucket = storage.Bucket(bucket_path)\nbucket.exists()  \n\nI have tried various approaches based on Google Datalab documentation but continue to fail.\nThanks\n",
+    "question_score": 58,
+    "answer_text": "Try the following working example: \nfrom datalab.context import Context\nimport google.datalab.storage as storage\nimport google.datalab.bigquery as bq\nimport pandas as pd\n\n# Dataframe to write\nsimple_dataframe = pd.DataFrame(data=[{1,2,3},{4,5,6}],columns=['a','b','c'])\n\nsample_bucket_name = Context.default().project_id + '-datalab-example'\nsample_bucket_path = 'gs://' + sample_bucket_name\nsample_bucket_object = sample_bucket_path + '/Hello.txt'\nbigquery_dataset_name = 'TestDataSet'\nbigquery_table_name = 'TestTable'\n\n# Define storage bucket\nsample_bucket = storage.Bucket(sample_bucket_name)\n\n# Create storage bucket if it does not exist\nif not sample_bucket.exists():\n    sample_bucket.create()\n\n# Define BigQuery dataset and table\ndataset = bq.Dataset(bigquery_dataset_name)\ntable = bq.Table(bigquery_dataset_name + '.' + bigquery_table_name)\n\n# Create BigQuery dataset\nif not dataset.exists():\n    dataset.create()\n\n# Create or overwrite the existing table if it exists\ntable_schema = bq.Schema.from_data(simple_dataframe)\ntable.create(schema = table_schema, overwrite = True)\n\n# Write the DataFrame to GCS (Google Cloud Storage)\n%storage write --variable simple_dataframe --object $sample_bucket_object\n\n# Write the DataFrame to a BigQuery table\ntable.insert(simple_dataframe)\n\nI used this example, and the _table.py file from the datalab github site as a reference. You can find other datalab source code files at this link.\n",
+    "answer_id": 36331938,
+    "tags": [
+      "python",
+      "google-cloud-storage",
+      "google-cloud-platform",
+      "google-cloud-datalab"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 42879012,
+    "title": "How do I upload a base64 encoded image (string) directly to a Google Cloud Storage bucket using Node.js?",
+    "question_text": "Currently, I am using the @google-cloud/storage NPM package to upload a file directly to a Google Cloud Storage bucket. This requires some trickery as I only have the image's base64 encoded string. I have to:\n\nDecode the string\nSave it as a file\nSend the file path to the below script to upload to Google Cloud Storage\nDelete the local file\n\nI'd like to avoid storing the file in the filesystem altogether since I am using Google App Engine and I don't want to overload the filesystem / leave junk files there if the delete operation doesn't work for whatever reason. This is what my upload script looks like right now:\n// Convert the base64 string back to an image to upload into the Google Cloud Storage bucket\nvar base64Img = require('base64-img');\nvar filePath = base64Img.imgSync(req.body.base64Image, 'user-uploads', 'image-name');\n\n// Instantiate the GCP Storage instance\nvar gcs = require('@google-cloud/storage')(),\n    bucket = gcs.bucket('google-cloud-storage-bucket-name');\n\n// Upload the image to the bucket\nbucket.upload(__dirname.slice(0, -15) + filePath, {\n    destination: 'profile-images/576dba00c1346abe12fb502a-original.jpg',\n    public: true,\n    validation: 'md5'\n}, function(error, file) {\n\n    if (error) {\n        sails.log.error(error);\n    }\n\n    return res.ok('Image uploaded');\n});\n\nIs there anyway to directly upload the base64 encoded string of the image instead of having to convert it to a file and then upload using the path?\n",
+    "question_score": 54,
+    "answer_text": "The solution, I believe, is to use the file.createWriteStream functionality that the bucket.upload function wraps in the Google Cloud Node SDK.\nI've got very little experience with streams, so try to bear with me if this doesn't work right off.\nFirst of all, we need take the base64 data and drop it into a stream. For that, we're going to include the stream library, create a buffer from the base64 data, and add the buffer to the end of the stream.\nvar stream = require('stream');\nvar bufferStream = new stream.PassThrough();\nbufferStream.end(Buffer.from(req.body.base64Image, 'base64'));\n\nMore on decoding base64 and creating the stream.\nWe're then going to pipe the stream into a write stream created by the file.createWriteStream function.\nvar gcs = require('@google-cloud/storage')({\n  projectId: 'grape-spaceship-123',\n  keyFilename: '/path/to/keyfile.json'\n});\n\n//Define bucket.\nvar myBucket = gcs.bucket('my-bucket');\n//Define file & file name.\nvar file = myBucket.file('my-file.jpg');\n//Pipe the 'bufferStream' into a 'file.createWriteStream' method.\nbufferStream.pipe(file.createWriteStream({\n    metadata: {\n      contentType: 'image/jpeg',\n      metadata: {\n        custom: 'metadata'\n      }\n    },\n    public: true,\n    validation: \"md5\"\n  }))\n  .on('error', function(err) {})\n  .on('finish', function() {\n    // The file upload is complete.\n  });\n\nInfo on file.createWriteStream, File docs, bucket.upload, and the bucket.upload method code in the Node SDK.\nSo the way the above code works is to define the bucket you want to put the file in, then define the file and the file name. We don't set upload options here. We then pipe the bufferStream variable we just created into the file.createWriteStream method we discussed before. In these options we define the metadata and other options you want to implement. It was very helpful to look directly at the Node code on Github to figure out how they break down the bucket.upload function, and recommend you do so as well. Finally, we attach a couple events for when the upload finishes and when it errors out.\n",
+    "answer_id": 42887642,
+    "tags": [
+      "javascript",
+      "node.js",
+      "google-cloud-storage",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 9671182,
+    "title": "Google Blobstore versus Google Cloud Storage",
+    "question_text": "We have our application hosted on Google app engine for Java and we have a requirement where we want to store the blood donor appreciation certificates (html files) somewhere.\nSo, we can use either Google Blobstore or Google Cloud Storage. I know both of these solutions are feasible to do using gae for Java\nHowever, the problem for us is to decide which one to use. What are the pros and cons of these two approaches?\nWe are a non profit and cannot pay a lot. \n",
+    "question_score": 52,
+    "answer_text": "Better to use the Blobstore. The service has 5 GB of space for free (as of March 2012). The cloud storage is a paid service. The App Engine blobstore is like Amazon S3, but less flexible. It has HTTP-based API and Java / Python APIs (see http://code.google.com/appengine/docs/java/blobstore/overview.html).\n",
+    "answer_id": 9793968,
+    "tags": [
+      "google-app-engine",
+      "blobstore",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 50840511,
+    "title": "google.cloud import storage: cannot import storage",
+    "question_text": "I tried to run the code bellow by following the google tutorials i found here: https://cloud.google.com/docs/authentication/production\ndef implicit():\n    from google.cloud import storage\n\n    # If you don't specify credentials when constructing the client, the\n    # client library will look for credentials in the environment.\n    project = 'my_project_name'\n    storage_client = storage.Client(project=project)\n\n    # Make an authenticated API request\n    buckets = list(storage_client.list_buckets())\n    print(buckets)\n\nimplicit()\n\nBut it keeps giving me the following error:\nTraceback (most recent call last):\n  File \"[PATH]/scratch_5.py\", line 13, in <module>\n    implicit()\n  File \"[PATH]/scratch_5.py\", line 2, in implicit\n    from google.cloud import storage\nImportError: cannot import name storage\n\nCould someone help me with this?\n",
+    "question_score": 51,
+    "answer_text": "I see you are trying to use the Google Cloud Storage client libraries.\nIn order to use it, you should first make sure that it is installed in your machine:\npip install --upgrade google-cloud-storage\n\nAnd then, you should probably set up authentication (if you are using Application Default Credentials, from the documentation you mentioned), by setting up the GOOGLE_APPLICATION_CREDENTIALS environment variable in the machine where you are running the code, like below. If you are using Windows, follow the steps presented in the documentation, instead.\nexport GOOGLE_APPLICATION_CREDENTIALS=\"/path/to/file.json\"\n\nAlternatively, you can try using explicit credentials. The only difference between the one you shared (using implicit credentials obtained from the environment) and one using explicit credentials, is that when you declare the GCS client, you should do something like:\nstorage_client = storage.Client.from_service_account_json('/path/to/SA_key.json')\n\nOnce all this is ready, you should have no issues with running the sample code you provided. In order to keep learning about GCS and its client libraries, feel free to search on the documentation I linked and have a look at the library reference page.\n",
+    "answer_id": 50841078,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 40232188,
+    "title": "Allow Public Read access on a GCS bucket?",
+    "question_text": "I am trying to allow anonymous (or just from my applications domain) read access for files in my bucket.\nWhen trying to read the files I get \n```\n<Error>\n    <Code>AccessDenied</Code>\n    <Message>Access denied.</Message>\n    <Details>\n        Anonymous users does not have storage.objects.get access to object.\n    </Details>\n</Error>\n\n```\nI also tried to add a domain with the object default permissions dialog in the google cloud console. that gives me the error \"One of your permissions is invalid. Make sure that you enter an authorized id or email for the groups and users and a domain for the domains\"\nI have also looked into making the ACL for the bucket public-read. My only problem with this is that it removes my ownership over the bucket. I need to have that ownership since I want to allow uploading from a specific Google Access Id.\n",
+    "question_score": 50,
+    "answer_text": "You can use gsutil to make new objects created in the bucket publicly readable without removing your ownership.  To make new objects created in the bucket publicly readable:\ngsutil defacl ch -u AllUsers:R gs://yourbucket\nIf you have existing objects in the bucket that you want to make publicly readable, you can run:\ngsutil acl ch -u AllUsers:R gs://yourbucket/**\n",
+    "answer_id": 40248790,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "readonly",
+      "google-cloud-console",
+      "meteor-slingshot"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 39075182,
+    "title": "gsutil returning &quot;no matches found&quot;",
+    "question_text": "I'm trying using gsutil to remove the contents of a Cloud Storage bucket (but not the bucket itself).  According to the documentation, the command should be:\n\ngsutil rm gs://bucket/**\n\nHowever, whenever I run that (with my bucket name substituted of course), I get the following response:\nzsh: no matches found: gs://my-bucket/**\nI've checked permissions, and I have owner permissions.  Additionally, if I specify a file, which is in the bucket, directly, it is successfully deleted.\nOther information which may matter:\n\nMy bucket name has a \"-\" in it (similar to \"my-bucket\")\nIt is the bucket that Cloud Storage saves my usage logs to\n\nHow do I go about deleting the contents of a bucket?\n",
+    "question_score": 47,
+    "answer_text": "zsh is attempting to expand the wildcard before gsutil sees it (and is complaining that you have no local files matching that wildcard). Please try this, to prevent zsh from doing so:\ngsutil rm 'gs://bucket/**'\n\nNote that you need to use single (not double) quotes to prevent zsh wildcard handling.\n",
+    "answer_id": 39083114,
+    "tags": [
+      "google-cloud-storage",
+      "zsh",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 42555142,
+    "title": "Downloading a file from google cloud storage inside a folder",
+    "question_text": "I've got a python script that gets a list of files that have been uploaded to a google cloud storage bucket, and attempts to retrieve the data as a string.\nThe code is simply: \nfile = open(base_dir + \"/\" + path, 'wb')\ndata =  Blob(path, bucket).download_as_string()\nfile.write(data)\n\nMy issue is that the data I've uploaded is stored inside folders in the bucket, so the path would be something like:\nfolder/innerfolder/file.jpg\n\nWhen the google library attempts to download the file, it gets it in the form of a GET request, which turns the above path into:\nhttps://www.googleapis.com/storage/v1/b/bucket/o/folder%2Finnerfolder%2Ffile.jpg\n\nIs there any way to stop this happening / download the file though this way? Cheers.\n",
+    "question_score": 46,
+    "answer_text": "Yes - you can do this with the python storage client library.\nJust install it with pip install --upgrade google-cloud-storage and then use the following code:\nfrom google.cloud import storage\n\n# Initialise a client\nstorage_client = storage.Client(\"[Your project name here]\")\n# Create a bucket object for our bucket\nbucket = storage_client.get_bucket(bucket_name)\n# Create a blob object from the filepath\nblob = bucket.blob(\"folder_one/foldertwo/filename.extension\")\n# Download the file to a destination\nblob.download_to_filename(destination_file_name)\n\nYou can also use .download_as_string() but as you're writing it to a file anyway downloading straight to the file may be easier.\nThe only slightly awkward thing to be aware of is that the filepath is the path from after the bucket name, so doesn't line up exactly with the path on the web interface.\n",
+    "answer_id": 45226098,
+    "tags": [
+      "python",
+      "python-2.7",
+      "google-cloud-storage",
+      "google-cloud-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 22398898,
+    "title": "Google Cloud Storage + Python : Any way to list obj in certain folder in GCS?",
+    "question_text": "I'm going to write a Python program to check if a file is in certain folder of my Google Cloud Storage, the basic idea is to get the list of all objects in a folder, a file name list, then check if the file abc.txt is in the file name list.\nNow the problem is, it looks Google only provide the one way to get obj list, which is uri.get_bucket(), see below code which is from https://developers.google.com/storage/docs/gspythonlibrary#listing-objects\nuri = boto.storage_uri(DOGS_BUCKET, GOOGLE_STORAGE)\nfor obj in uri.get_bucket():\n    print '%s://%s/%s' % (uri.scheme, uri.bucket_name, obj.name)\n    print '  \"%s\"' % obj.get_contents_as_string()\n\nThe defect of uri.get_bucket() is, it looks it is getting all of the object first, this is what I don't want, I just need get the obj name list of particular folder(e.g gs//mybucket/abc/myfolder) , which should be much quickly.\nCould someone help answer? Appreciate every answer!\n",
+    "question_score": 45,
+    "answer_text": "Update: the below is true for the older \"Google API Client Libraries\" for Python, but if you're not using that client, prefer the newer \"Google Cloud Client Library\" for Python ( https://googleapis.dev/python/storage/latest/index.html ). For the newer library, the equivalent to the below code is:\nfrom google.cloud import storage\n\nclient = storage.Client()\nfor blob in client.list_blobs('bucketname', prefix='abc/myfolder'):\n  print(str(blob))\n\nAnswer for older client follows.\nYou may find it easier to work with the JSON API, which has a full-featured Python client. It has a function for listing objects that takes a prefix parameter, which you could use to check for a certain directory and its children in this manner:\nfrom apiclient import discovery\n\n# Auth goes here if necessary. Create authorized http object...\nclient = discovery.build('storage', 'v1') # add http=whatever param if auth\nrequest = client.objects().list(\n    bucket=\"mybucket\",\n    prefix=\"abc/myfolder\")\nwhile request is not None:\n  response = request.execute()\n  print json.dumps(response, indent=2)\n  request = request.list_next(request, response)\n\nFuller documentation of the list call is here: https://developers.google.com/storage/docs/json_api/v1/objects/list\nAnd the Google Python API client is documented here:\nhttps://code.google.com/p/google-api-python-client/\n",
+    "answer_id": 22399617,
+    "tags": [
+      "python",
+      "google-cloud-storage",
+      "google-cloud-python",
+      "gcloud-python"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 48886761,
+    "title": "Efficiently write a Pandas dataframe to Google BigQuery",
+    "question_text": "I'm trying to upload a pandas.DataFrame to Google Big Query using the pandas.DataFrame.to_gbq() function documented here. The problem is that to_gbq() takes 2.3 minutes while uploading directly to Google Cloud Storage takes less than a minute. I'm planning to upload a bunch of dataframes (~32) each one with a similar size, so I want to know what is the faster alternative.\nThis is the script that I'm using:\ndataframe.to_gbq('my_dataset.my_table', \n                 'my_project_id',\n                 chunksize=None, # I have tried with several chunk sizes, it runs faster when it's one big chunk (at least for me)\n                 if_exists='append',\n                 verbose=False\n                 )\n\ndataframe.to_csv(str(month) + '_file.csv') # the file size its 37.3 MB, this takes almost 2 seconds \n# manually upload the file into GCS GUI\nprint(dataframe.shape)\n(363364, 21)\n\nMy question is, what is faster?\n\nUpload Dataframe using pandas.DataFrame.to_gbq() function\nSaving Dataframe as CSV and then upload it as a file to BigQuery using the Python API\nSaving Dataframe as CSV and then upload the file to Google Cloud Storage using this procedure and then reading it from BigQuery\n\nUpdate:\nAlternative 1 seems faster than Alternative 2 , (using pd.DataFrame.to_csv() and load_data_from_file() 17.9 secs more in average with 3 loops):\ndef load_data_from_file(dataset_id, table_id, source_file_name):\n    bigquery_client = bigquery.Client()\n    dataset_ref = bigquery_client.dataset(dataset_id)\n    table_ref = dataset_ref.table(table_id)\n    \n    with open(source_file_name, 'rb') as source_file:\n        # This example uses CSV, but you can use other formats.\n        # See https://cloud.google.com/bigquery/loading-data\n        job_config = bigquery.LoadJobConfig()\n        job_config.source_format = 'text/csv'\n        job_config.autodetect=True\n        job = bigquery_client.load_table_from_file(\n            source_file, table_ref, job_config=job_config)\n\n    job.result()  # Waits for job to complete\n\n    print('Loaded {} rows into {}:{}.'.format(\n        job.output_rows, dataset_id, table_id))\n\n",
+    "question_score": 45,
+    "answer_text": "I did the comparison for alternative 1 and 3 in Datalab using the following code:\nfrom datalab.context import Context\nimport datalab.storage as storage\nimport datalab.bigquery as bq\nimport pandas as pd\nfrom pandas import DataFrame\nimport time\n\n# Dataframe to write\nmy_data = [{1,2,3}]\nfor i in range(0,100000):\n    my_data.append({1,2,3})\nnot_so_simple_dataframe = pd.DataFrame(data=my_data,columns=['a','b','c'])\n\n#Alternative 1\nstart = time.time()\nnot_so_simple_dataframe.to_gbq('TestDataSet.TestTable', \n                 Context.default().project_id,\n                 chunksize=10000, \n                 if_exists='append',\n                 verbose=False\n                 )\nend = time.time()\nprint(\"time alternative 1 \" + str(end - start))\n\n#Alternative 3\nstart = time.time()\nsample_bucket_name = Context.default().project_id + '-datalab-example'\nsample_bucket_path = 'gs://' + sample_bucket_name\nsample_bucket_object = sample_bucket_path + '/Hello.txt'\nbigquery_dataset_name = 'TestDataSet'\nbigquery_table_name = 'TestTable'\n\n# Define storage bucket\nsample_bucket = storage.Bucket(sample_bucket_name)\n\n# Create or overwrite the existing table if it exists\ntable_schema = bq.Schema.from_dataframe(not_so_simple_dataframe)\n\n# Write the DataFrame to GCS (Google Cloud Storage)\n%storage write --variable not_so_simple_dataframe --object $sample_bucket_object\n\n# Write the DataFrame to a BigQuery table\ntable.insert_data(not_so_simple_dataframe)\nend = time.time()\nprint(\"time alternative 3 \" + str(end - start))\n\nand here are the results for n =  {10000,100000,1000000}:\nn       alternative_1  alternative_3\n10000   30.72s         8.14s\n100000  162.43s        70.64s\n1000000 1473.57s       688.59s\n\nJudging from the results, alternative 3 is faster than alternative 1. \n",
+    "answer_id": 49033607,
+    "tags": [
+      "python",
+      "pandas",
+      "google-bigquery",
+      "google-cloud-storage",
+      "google-cloud-python"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 48279061,
+    "title": "GCS - Read a text file from Google Cloud Storage directly into python",
+    "question_text": "I feel kind of stupid right now. I have been reading numerous documentations and stackoverflow questions but I can't get it right.\nI have a file on Google Cloud Storage. It is in a bucket 'test_bucket'. Inside this bucket there is a folder, 'temp_files_folder', which contains two files, one .txt file named 'test.txt' and one .csv file named 'test.csv'. The two files are simply because I try using both but the result is the same either way.\nThe content in the files is\nhej\nsan\n\nand I am hoping to read it into python the same way I would do on a local with \ntextfile = open(\"/file_path/test.txt\", 'r')\ntimes = textfile.read().splitlines()\ntextfile.close()\nprint(times)\n\nwhich gives\n['hej', 'san']\n\nI have tried using \nfrom google.cloud import storage\n\nclient = storage.Client()\n\nbucket = client.get_bucket('test_bucket')\n\nblob = bucket.get_blob('temp_files_folder/test.txt')\n\nprint(blob.download_as_string)\n\nbut it gives the output\n<bound method Blob.download_as_string of <Blob: test_bucket, temp_files_folder/test.txt>>\n\nHow can I get the actual string(s) in the file?\n",
+    "question_score": 43,
+    "answer_text": "download_as_string is a method, you need to call it.\nprint(blob.download_as_string())\n\nMore likely, you want to assign it to a variable so that you download it once and can then print it and do whatever else you want with it:\ndownloaded_blob = blob.download_as_string()\nprint(downloaded_blob)\ndo_something_else(downloaded_blob)\n\n",
+    "answer_id": 48279267,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 39329580,
+    "title": "Exporting data from Google Cloud Storage to Amazon S3",
+    "question_text": "I would like to transfer data from a table in BigQuery, into another one in Redshift.\nMy planned data flow is as follows:\nBigQuery -> Google Cloud Storage -> Amazon S3 -> Redshift\nI know about Google Cloud Storage Transfer Service, but I'm not sure it can help me. From Google Cloud documentation:\n\nCloud Storage Transfer Service\nThis page describes Cloud Storage Transfer Service, which you can use\n  to quickly import online data into Google Cloud Storage.\n\nI understand that this service can be used to import data into Google Cloud Storage and not to export from it.\nIs there a way I can export data from Google Cloud Storage to Amazon S3?\n",
+    "question_score": 43,
+    "answer_text": "You can use gsutil to copy data from a Google Cloud Storage bucket to an Amazon bucket, using a command such as:\ngsutil -m rsync -rd gs://your-gcs-bucket s3://your-s3-bucket\n\nNote that the -d option above will cause gsutil rsync to delete objects from your S3 bucket that aren't present in your GCS bucket (in addition to adding new objects). You can leave off that option if you just want to add new objects from your GCS to your S3 bucket.\n",
+    "answer_id": 39333278,
+    "tags": [
+      "amazon-s3",
+      "google-bigquery",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 28612080,
+    "title": "ResumableUploadAbortException: 403 Insufficient Permission",
+    "question_text": "I am using Google Cloud Storage and Google Compute Engine and am trying to upload to my bucket from my VM. My bucket has read/write permissions and so does anyone that has access to it. They are labeled as Owner. I can download from my bucket fine. When I try to upload to my bucket, this is the error I get. ResumableUploadAbortException: 403 Insufficient Permission . I am unsure as to why this is the case? Any clues?\n",
+    "question_score": 40,
+    "answer_text": "Change the Cloud API access scope of the VM to allow read/write on Storage. This is in the \"Access scopes\" section of the VM settings. Your VM needs to be stopped to do this.\n0. Stop VM instance\n1. Open VM instance details\n2. Press \"Edit\"\n3. Change Cloud API access scope--> \"Allow full access to all cloud APIs\"\n\n\nhttps://cloud.google.com/compute/docs/access/create-enable-service-accounts-for-instances#changeserviceaccountandscopes\nIMPORTANT!!\nNote per this comment on a related post that you may need to delete the credentials in ~/.gsutil after definint the new scope.\n# VM instance console\nsudo rm -r ~/.gsutil\n\n",
+    "answer_id": 41604071,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-storage",
+      "google-compute-engine",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 44406729,
+    "title": "Downloading folders from Google Cloud Storage Bucket",
+    "question_text": "I'm new to Google Cloud Platform.I have trained my model on datalab and saved the model folder on cloud storage in my bucket. I'm able to download the existing files in the bucket to my local machine by doing right-click on the file --> save as link. But when I try to download the folder by the same procedure as above, I'm not getting the folder but its image. Is there anyway I can download the whole folder and its contents as it is? Is there any gsutil command to copy folders from cloud storage to local directory?\n",
+    "question_score": 39,
+    "answer_text": "You can find docs on the gsutil tool here and for your question more specifically here.\nThe command you want to use is:\ngsutil cp -r gs://bucket/folder .\n\n",
+    "answer_id": 44408588,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 42445424,
+    "title": "Google Cloud Storage - switch projects",
+    "question_text": "I recently started using Google Cloud Storage. Initially I created a dummy project while installing the Cloud SDK. Now I am working on another project. The gsutil is still pointing to my previous project. How do I make it point to my new project??\nP.S. I know there is an option of using -p argument, but this does not work on all commands.\n",
+    "question_score": 38,
+    "answer_text": "I got this fixed by running gcloud init and following the commands to reinitialize the configuration.\n",
+    "answer_id": 42446955,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 37074977,
+    "title": "How to get list of folders in a given bucket using Google Cloud API",
+    "question_text": "I wanted to get all the folders inside a given Google Cloud bucket or folder using Google Cloud Storage API.\nFor example if gs://abc/xyz contains three folders gs://abc/xyz/x1, gs://abc/xyz/x2 and gs://abc/xyz/x3. The API should return all three folder in gs://abc/xyz. \nIt can easily be done using gsutil\ngsutil ls gs://abc/xyz\nBut I need to do it using python and Google Cloud Storage API.\n",
+    "question_score": 38,
+    "answer_text": "You can use the Python GCS API Client Library. See the Samples and Libraries for Google Cloud Storage documentation page for relevant links to documentation and downloads.\nIn your case, first I want to point out that you're confusing the term \"bucket\". I recommend reading the Key Terms page of the documentation. What you're talking about are object name prefixes.\nYou can start with the list-objects.py sample on GitHub. Looking at the list reference page, you'll want to pass bucket=abc, prefix=xyz/ and delimiter=/.\n",
+    "answer_id": 37076253,
+    "tags": [
+      "python",
+      "google-cloud-storage",
+      "google-api-python-client"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 33680150,
+    "title": "Does the Content Security Policy Standard support wildcard paths? If not, why doesn&#39;t it?",
+    "question_text": "From reading the CSP Standard specification and examples it seems that it does not support wildcards in the path portion of a given URL.  This seems like an oversight, as many CDNs and static file hosting providers share the root domain names between their users and only differentiate access on URL paths rather than the entire domain.\nFor example, when using S3 or Google Cloud Storage as a CDN, you might want a CSP to allow scripts/assets to be loaded from just your bucket with a wildcard URL like \"https://storage.googleapis.com/my-apps-bucket/*\" but disallow them for the rest of https://storage.googleapis.com, as it would be rather trivial for a malicious actor to create their own account and serve content from that root domain.\nThis seems like a pretty common use case, am I misunderstanding the spec?  If not, what is the syntax to use wildcard paths, as utilizing a header like Content-Security-Policy: script-src 'self' https://example.com/* does not seem to work.\n",
+    "question_score": 38,
+    "answer_text": "The \"URL matching\" part of the spec describes the algorithm in detail. It does support what you're asking for, but you don't use the wildcard character.\nThe spec discusses the optional \"path-part\" of the allowed sources, and says if the allowed URL ends in a slash \"/\", it is a prefix match rather than an exact match.\nSo, in your example, if you allow\nhttps://storage.googleapis.com/my-apps-bucket/\n\nwith a slash but without the asterisk on the end, it will match files below that URL, for example\nhttps://storage.googleapis.com/my-apps-bucket/file1.js\n\n",
+    "answer_id": 34118330,
+    "tags": [
+      "amazon-s3",
+      "google-cloud-storage",
+      "cdn",
+      "content-security-policy"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 52249978,
+    "title": "Write to Google Cloud Storage from Cloud Function (python)",
+    "question_text": "I am trying to upload a file to google cloud storage from within a cloud function.  I can't import the cloud storage library into my function, though.\nCan cloud storage be used from within cloud functions in this manner?\nCloud Function\nfrom google.cloud import storage\n\ndef upload_blob(bucket_name, blob_text, destination_blob_name):\n    \"\"\"Uploads a file to the bucket.\"\"\"\n    storage_client = storage.Client()\n    bucket = storage_client.get_bucket(bucket_name)\n    blob = bucket.blob(destination_blob_name)\n\n    blob.upload_from_string(blob_text)\n\n    print('File {} uploaded to {}.'.format(\n        source_file_name,\n        destination_blob_name))\n\ndef log_data(request):\n    request_json = request.get_json()\n    BUCKET_NAME = 'my-bucket'\n    BLOB_NAME = 'test-blob'\n    BLOB_STR = '{\"blob\": \"some json\"}'\n\n    upload_blob(BUCKET_NAME, BLOB_STR, BLOB_NAME)\n    return f'Success!'\n\nError\nDeployment failure:\nFunction load error: Code in file main.py can't be loaded.\n  File \"/user_code/main.py\", line 1, in <module>\n    from google.cloud import storage\nImportError: cannot import name 'storage' from 'google.cloud' (unknown location)\n\n",
+    "question_score": 37,
+    "answer_text": "You need to add the google-cloud-storage package to your requirements.txt file to install it in the Cloud Functions environment.\n",
+    "answer_id": 52250030,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-functions",
+      "serverless"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 11591536,
+    "title": "Is it possible to copy local files to a bucket while skipping files that exist both in the bucket and locally with gsutil?",
+    "question_text": "I want to sync a local directory to a bucket in Google Cloud Storage. I want to copy the local files that do not exist remotely, skipping files that already exist both remote and local.\nIs this possible to do this with GSUtil?\nI can't find a \"sync\" option for GSUtil or a \"do not overwrite\". Is it possible to script this?\nI am on Linux (Ubuntu 12.04)?\n",
+    "question_score": 35,
+    "answer_text": "gsutil supports the noclobber flag (-n) on the cp command. This flag will skip files that already exist at the destination.\n",
+    "answer_id": 13900082,
+    "tags": [
+      "linux",
+      "synchronization",
+      "copy",
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 57972607,
+    "title": "What is the alternative to the deprecated &#39;GoogleCredential&#39;?",
+    "question_text": "I'd been employing the following Java method to set a bucket notification in GCS.\nprivate void setBucketNotification(String bucketName, String topicId) {\n\nList<String> eventType = new ArrayList<>();\neventType.add(\"OBJECT_FINALIZE\");\n\ntry {\n  Notification notification = new Notification();\n  notification.setTopic(topicId);\n  notification.setEventTypes(eventType);\n  notification.setPayloadFormat(\"JSON_API_V1\");\n\n  final GoogleCredential googleCredential = GoogleCredential\n      .fromStream(Objects.requireNonNull(classloader.getResourceAsStream(\"Key.json\")))\n      .createScoped(Collections.singletonList(StorageScopes.DEVSTORAGE_FULL_CONTROL));  \n\n  final com.google.api.services.storage.Storage myStorage = new com.google.api.services.storage.Storage.Builder(\n      new NetHttpTransport(), new JacksonFactory(), googleCredential).build();\n\n  Notification v = myStorage.notifications().insert(bucketName, notification).execute();\n\n} catch (IOException e) {\n  log.error(\"Caught an IOException {}\",e);\n  }\n}\n\nIt's been working fine so far, but lately, I'm getting a complaint regarding the deprecation of GoogleCredential class, and tried doing some research with a hope to find a possible replacement, but couldn't find anything. Can anyone help me point in the right direction?\n",
+    "question_score": 35,
+    "answer_text": "After a while of looking around, I managed to fix it, using GoogleCredentials and HttpRequestInitializer. The code changes are as follows.\nfinal GoogleCredential googleCredential = GoogleCredential\n  .fromStream(Objects.requireNonNull(classloader.getResourceAsStream(\"Key.json\")))\n  .createScoped(Collections.singletonList(StorageScopes.DEVSTORAGE_FULL_CONTROL));\n\nfinal com.google.api.services.storage.Storage myStorage = new com.google.api.services.storage.Storage.Builder(\n      new NetHttpTransport(), new JacksonFactory(), googleCredential).build();\n\nbecomes\nfinal GoogleCredentials googleCredentials = serviceAccountCredentials\n                    .createScoped(Collections.singletonList(StorageScopes.DEVSTORAGE_FULL_CONTROL));\n            HttpRequestInitializer requestInitializer = new HttpCredentialsAdapter(googleCredentials);        \n\nfinal com.google.api.services.storage.Storage myStorage = new com.google.api.services.storage.Storage.Builder(\n                new NetHttpTransport(), new JacksonFactory(), requestInitializer).build();\n\n",
+    "answer_id": 57974253,
+    "tags": [
+      "java",
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 34247702,
+    "title": "Configure Django and Google Cloud Storage?",
+    "question_text": "I am not using Appengine.\nI have a plain vanilla Django application running on a VM. I want to use Google Cloud Storage for serving my staticfiles, and also for uploading/serving my media files.\nI have a bucket. \nHow do I link my Django application to my bucket? I've tried django-storages. That may work, but what do I have to do to prepare my bucket to be used by my django application? And what baseline configuration do I need in my Django settings?\nCurrent settings:\n# Google Cloud Storage\n# http://django-storages.readthedocs.org/en/latest/backends/apache_libcloud.html\nLIBCLOUD_PROVIDERS = {\n    'google': {\n        'type'  : 'libcloud.storage.types.Provider.GOOGLE_STORAGE',\n        'user'  : <I have no idea>,\n        'key'   : <ditto above>,\n        'bucket': <my bucket name>,\n    }\n}\n\nDEFAULT_LIBCLOUD_PROVIDER = 'google'\nDEFAULT_FILE_STORAGE = 'storages.backends.apache_libcloud.LibCloudStorage'\nSTATICFILES_STORAGE = 'storages.backends.apache_libcloud.LibCloudStorage'\n\n",
+    "question_score": 32,
+    "answer_text": "Django-storages has a backend for Google Cloud Storage, but it is not documented, I realised looking in the repo. Got it working with this setup:\nDEFAULT_FILE_STORAGE = 'storages.backends.gs.GSBotoStorage'\nGS_ACCESS_KEY_ID = 'YourID'\nGS_SECRET_ACCESS_KEY = 'YourKEY'\nGS_BUCKET_NAME = 'YourBucket'\nSTATICFILES_STORAGE = 'storages.backends.gs.GSBotoStorage'\n\nTo get YourKEY  and YourID  you should create Interoperability keys, in the settings tab.\nHope it helps and you don't have to learn it the hard way :)\nAh in case you haven't yet, the dependencies are:\npip install django-storages\npip install boto\n\n",
+    "answer_id": 37170899,
+    "tags": [
+      "python",
+      "python-3.x",
+      "django",
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 37542530,
+    "title": "Is there Google Cloud Storage emulator?",
+    "question_text": "For the purpose of testing, I would like to mock Cloud Storage because it slows tests down.\nIs there Google Cloud Storage emulator? \n",
+    "question_score": 32,
+    "answer_text": "There isn't an official emulator provided by Google for the time being.\nI'm currently using project Minio (https://www.minio.io/) for mocking Google Storage's behavior in development (Minio uses the filesystem as storage backend and provides compatibility with S3 apiV2, which is compatible with Google Storage).\n",
+    "answer_id": 38749910,
+    "tags": [
+      "google-cloud-storage",
+      "cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 29840033,
+    "title": "Fast way of deleting non-empty Google bucket?",
+    "question_text": "Is this my only option or is there a faster way?\n# Delete contents in bucket (takes a long time on large bucket)\ngsutil -m rm -r gs://my-bucket/*\n\n# Remove bucket\ngsutil rb gs://my-bucket/\n\n",
+    "question_score": 31,
+    "answer_text": "Buckets are required to be empty before they're deleted.  So before you can delete a bucket, you have to delete all of the objects it contains.\nYou can do this with gsutil rm -r (documentation). Just don't pass the * wildcard and it will delete the bucket itself after it has deleted all of the objects.\ngsutil -m rm -r gs://my-bucket\n\nGoogle Cloud Storage bucket deletes can't succeed until the bucket listing returns 0 objects.  If objects remain, you can get a Bucket Not Empty error (or in the UI's case 'Bucket Not Ready') when trying to delete the bucket.\ngsutil has built-in retry logic to delete both buckets and objects.\n",
+    "answer_id": 29852112,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 18107545,
+    "title": "Can I upload files to google cloud storage from url?",
+    "question_text": "Code Exemple: \ngsutil cp \"http://www.exemple.com/file.txt\" \"gs://bucket/\"\n\n",
+    "question_score": 31,
+    "answer_text": "You can stream the output of curl to the gsutil cp command as follows:\ncurl http://www.example.com/file.txt | gsutil cp - gs://bucket/file.txt\n\n",
+    "answer_id": 20671625,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 64234214,
+    "title": "How to generate a Blob signed url in Google Cloud Run?",
+    "question_text": "Under Google Cloud Run, you can select which service account your container is running. Using the default compute service account fails to generate a signed url.\nThe work around listed here works on Google Cloud Compute -- if you allow all the scopes for the service account. There does not seem to be away to do that in Cloud Run (not that I can find).\nhttps://github.com/googleapis/google-auth-library-python/issues/50\nThings I have tried:\n\nAssigned the service account the role: roles/iam.serviceAccountTokenCreator\nVerified the workaround in the same GCP project in a Virtual Machine (vs Cloud Run)\nVerified the code works locally in the container with the service account loaded from private key (via json file).\n\nfrom google.cloud import storage\nclient = storage.Client()\nbucket = client.get_bucket('EXAMPLE_BUCKET')\nblob = bucket.get_blob('libraries/image_1.png')\nexpires = datetime.now() + timedelta(seconds=86400)\nblob.generate_signed_url(expiration=expires)\n\nFails with:\nyou need a private key to sign credentials.the credentials you are currently using <class 'google.auth.compute_engine.credentials.Credentials'> just contains a token. see https://googleapis.dev/python/google-api-core/latest/auth.html#setting-up-a-service-account for more details.\n/usr/local/lib/python3.8/site-packages/google/cloud/storage/_signing.py, line 51, in ensure_signed_credentials\n\nTrying to add the workaround,\nError calling the IAM signBytes API: \n{  \"error\": {  \"code\": 400,\n\n    \"message\": \"Request contains an invalid argument.\",\n    \"status\": \"INVALID_ARGUMENT\"  }\n}\nException Location: /usr/local/lib/python3.8/site-packages/google/auth/iam.py, line 81, in _make_signing_request\n\nWorkaround code as mention in Github issue:\nfrom google.cloud import storage\nfrom google.auth.transport import requests\nfrom google.auth import compute_engine\nfrom datetime import datetime, timedelta\n\ndef get_signing_creds(credentials):\n    auth_request = requests.Request()\n    print(credentials.service_account_email)\n    signing_credentials = compute_engine.IDTokenCredentials(auth_request, \"\", service_account_email=credentials.ser\nvice_account_email)\n    return signing_credentials\n\n\nclient = storage.Client()\nbucket = client.get_bucket('EXAMPLE_BUCKET')\nblob = bucket.get_blob('libraries/image_1.png')\nexpires = datetime.now() + timedelta(seconds=86400)\nsigning_creds = get_signing_creds(client._credentials)\nurl = blob.generate_signed_url(expiration=expires, credentials=signing_creds)\nprint(url)\n\nHow do I generate a signed url under Google Cloud Run?\nAt this point, it seems like I may have to mount the service account key which I wanted to avoid.\nEDIT:\nTo try and clarify, the service account has the correct permissions - it works in GCE and locally with the JSON private key.\n",
+    "question_score": 31,
+    "answer_text": "Yes you can, but I had to deep dive to find how (jump to the end if you don't care about the details)\nIf you go in the _signing.py file, line 623, you can see this\nif access_token and service_account_email:\n   signature = _sign_message(string_to_sign, access_token, service_account_email)\n...\n\nIf you provide the access_token and the service_account_email, you can use the _sign_message method. This method uses the IAM service SignBlob API at this line\nIt's important because you can now sign blob without having locally the private key!! So, that solves the problem, and the following code works on Cloud Run (and I'm sure on Cloud Function)\ndef sign_url():\n    from google.cloud import storage\n    from datetime import datetime, timedelta\n\n    import google.auth\n    credentials, project_id = google.auth.default()\n\n    # Perform a refresh request to get the access token of the current credentials (Else, it's None)\n    from google.auth.transport import requests\n    r = requests.Request()\n    credentials.refresh(r)\n\n    client = storage.Client()\n    bucket = client.get_bucket('EXAMPLE_BUCKET')\n    blob = bucket.get_blob('libraries/image_1.png')\n    expires = datetime.now() + timedelta(seconds=86400)\n\n    # In case of user credential use, define manually the service account to use (for development purpose only)\n    service_account_email = \"YOUR DEV SERVICE ACCOUNT\"\n    # If you use a service account credential, you can use the embedded email\n    if hasattr(credentials, \"service_account_email\"):\n        service_account_email = credentials.service_account_email\n\n    url = blob.generate_signed_url(expiration=expires,service_account_email=service_account_email, access_token=credentials.token)\n    return url, 200\n\nLet me know if it's not clear\n",
+    "answer_id": 64245028,
+    "tags": [
+      "python",
+      "google-cloud-storage",
+      "google-cloud-run",
+      "google-iam"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 56302658,
+    "title": "Anonymous caller does not have storage.objects.get",
+    "question_text": "On Google App Engine (GAE) written in Python.\nI am trying to issue an http post to cloud-speech-to-text api and using URI audio source (Google Cloud Storage Bucket Objects).\nI am using the following headers;\nAuthorization: BASIC encoded_base64(username:password)\n\nBut I still keep getting an error response below:\n\n{\n    \"error\": {\n      \"code\": 403,\n      \"message\": \"Anonymous caller does not have storage.objects.get access to bucket_of_secrets/four_score_seven_years.flac.\",\n      \"status\": \"PERMISSION_DENIED\"\n    }\n  }\n\nSo I have a couple of questions;\n\nDoes BASIC Authorization Header work in Google HTTP API? \nWhat username:password should I use? Is it my GCP account email and password? i.e. handsome_dude@gmail.com:deluded_fool\n\nWhere handsome_dude@gmail.com is the username and deluded_fool is the password.\nI've tried setting the bucket objects to be public readable and of course the http call works... but I would rather avoid setting my bucket objects public readable.\nHere's a sample Curl request:\ncurl -X POST \n\nhttps://speech.googleapis.com/v1/speech:longrunningrecognize?key=<secret_api_key> -d @sample.json -H \"Content-Type: application/json, Authorization:  Basic base64encodedusername:password\" \n\nHere's a snippet in my python code using urlfetch:\nurl_post = urlfetch.fetch(url=speech_to_text_url_post, payload=json.dumps(data_to_post), method=urlfetch.POST, headers={\"Content-Type\" : \"application/json\", \"Authorization\" : \"Basic \"+encoded_user_password})\n\n",
+    "question_score": 31,
+    "answer_text": "\n1.Does BASIC Authorization Header work in Google HTTP API?\n\nNo, It is not working on Google APIs.\nYou need to attach OAuth2.0 accessToken to Authorization Header as bearer token like Authorization: Bearer ${yourAccessToken}.\nI have 2 recommendations to develop some application running on gae.\n\nUse ClientLibrary to call Google APIs.\nYou can use AppEngineDefaultCredential to call Google APIs.\nDo not forget to set permissions to your AppEngineDefaultServiceAccount (${projectId}@appspot.gserviceaccount.com) before issue your request. You can configure those permissions on IAM page in cloud console.  \n\nAlso I recommend you to read this page about How to authenticate your api call.\n",
+    "answer_id": 56303359,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "http-headers",
+      "google-cloud-storage",
+      "urlfetch"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 23900943,
+    "title": "Remove all files under a folder Google Cloud Storage",
+    "question_text": "I have hundred files under a folder in Google Cloud Storage. \nBut, the UI doesn't give me a way to select all files at once. \nHow can I select all files and delete them at once ?\n",
+    "question_score": 29,
+    "answer_text": "The easiest way would be to use the command-line utility, gsutil. This command will delete them all:\ngsutil -m rm gs://BUCKET_NAME/**\n\nIf you want to delete the bucket as well, you could do this instead:\ngsutil -m rm -R gs://BUCKET_NAME\n\n",
+    "answer_id": 23901305,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 45247193,
+    "title": "NoSuchMethodError: com.google.common.base.Preconditions.checkArgument(ZLjava/lang/String;J)V",
+    "question_text": "What Google Maven dependency could fix this error:\njava.lang.NoSuchMethodError: com.google.common.base.Preconditions.checkArgument(ZLjava/lang/String;J)V\n    at com.google.cloud.storage.spi.v1.HttpStorageRpc.read(HttpStorageRpc.java:487)\n    at com.google.cloud.storage.BlobReadChannel$1.call(BlobReadChannel.java:127)\n    at com.google.cloud.storage.BlobReadChannel$1.call(BlobReadChannel.java:124)\n    at com.google.api.gax.retrying.DirectRetryingExecutor.submit(DirectRetryingExecutor.java:94)\n    at com.google.cloud.RetryHelper.runWithRetries(RetryHelper.java:54)\n    at com.google.cloud.storage.BlobReadChannel.read(BlobReadChannel.java:124)\n    at sun.nio.ch.ChannelInputStream.read(ChannelInputStream.java:65)\n    at sun.nio.ch.ChannelInputStream.read(ChannelInputStream.java:109)\n    at sun.nio.ch.ChannelInputStream.read(ChannelInputStream.java:103)\n    at java.io.InputStream.read(InputStream.java:101)\n\nCode:\nBlob blob = storage.get(blobId);\nif(blob.exists()) {\n    return true;\n}\n\n",
+    "question_score": 28,
+    "answer_text": "Your Google guava version is either too old (< 20.0) or mismatched (multiple jars versions). Make sure you don't have several versions in your dependency tree.\nUse\nmvn dependency:tree | less\n\nto look for the guava versions.\n",
+    "answer_id": 45247710,
+    "tags": [
+      "java",
+      "maven",
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 37107171,
+    "title": "Google cloud storage: How can I reset edge cache?",
+    "question_text": "I updated an image (from PHP) but still the old version of the image is downloaded.\nIf I download the image on the GCS console, I can download the new version of the image. However, this url below returns the old version.\nhttps://storage.googleapis.com/[bucket name]/sample-image.png\nIt seems that the old image is on the Google's edge cache.\nSome articles say that I should delete the image object then insert the new image object so that the edge cache is cleared.\nDoes anyone know about this?\n\nUpdate 1\nThis is my PHP code which is on GCE. \n$obj = new \\Google_Service_Storage_StorageObject();\n$obj->setName($path . \"/\" . $name);\n\n$client = new \\Google_Client();\n$client->useApplicationDefaultCredentials();\n$client->addScope(\\Google_Service_Storage::DEVSTORAGE_FULL_CONTROL);\n\n$storage = new \\Google_Service_Storage($client);\n$bucket = 'sample.com';\n\n$binary = file_get_contents($_FILES['files']['tmp_name']);\n$fileInfo = new finfo(FILEINFO_MIME_TYPE);\n$mimeType = $fileInfo->buffer($binary);\n\n$storage->objects->insert($bucket, $obj, [\n    'name' => $path . \"/\" . $name,\n    'data' => $binary,\n    'uploadType' => 'media',\n    'mimeType' => $mimeType,\n]);\n\nIt seems that only these parameters are valid. I don't think I can set any cache settings.\n// Valid query parameters that work, but don't appear in discovery.\nprivate $stackParameters = array(\n    'alt' => array('type' => 'string', 'location' => 'query'),\n    'fields' => array('type' => 'string', 'location' => 'query'),\n    'trace' => array('type' => 'string', 'location' => 'query'),\n    'userIp' => array('type' => 'string', 'location' => 'query'),\n    'quotaUser' => array('type' => 'string', 'location' => 'query'),\n    'data' => array('type' => 'string', 'location' => 'body'),\n    'mimeType' => array('type' => 'string', 'location' => 'header'),\n    'uploadType' => array('type' => 'string', 'location' => 'query'),\n    'mediaUpload' => array('type' => 'complex', 'location' => 'query'),\n    'prettyPrint' => array('type' => 'string', 'location' => 'query'),\n);\n\nhttps://github.com/google/google-api-php-client/blob/master/src/Google/Service/Resource.php\nI tried this way but not work so far. This is for only GAE...? (Or mounting may be necessary)\n$image = file_get_contents($gs_name);\n$options = [ \"gs\" => [ \"Content-Type\" => \"image/jpeg\"]];\n$ctx = stream_context_create($options);\nfile_put_contents(\"gs://<bucketname>/\".$fileName, $gs_name, 0, $ctx);\n\nHow do I upload images to the Google Cloud Storage from PHP form?\n\nUpdate 2\nAPI doc shows cacheControl property of Request body. I guess that using API directly (not via SDK) is a way. I will try it.\nhttps://cloud.google.com/storage/docs/json_api/v1/objects/insert\ncacheControl    string  Cache-Control directive for the object data.    writable\n\n\nI think I found it finally!\n$obj->setCacheControl('no-cache');\nUpdate 3\n$bucket_name = 'my-bucket';\n$file = \"xxx.html\";\n$infotowrite = \"999\";\n$service = new Google_Service_Storage($client);\n$obj = new Google_Service_Storage_StorageObject();\n$obj->setName($file);\n$obj->setCacheControl('public, max-age=6000');\n$results = $service->objects->insert(\n        $bucket_name,\n        $obj,\n        ['name' => $file, 'mimeType' => 'text/html', 'data' =>   $infotowrite, 'uploadType' => 'media']\n);\n\nSet Cache-Control php client on Google Cloud Storage Object\nWe can check the result \ngsutil ls -L gs://...\n\n",
+    "question_score": 28,
+    "answer_text": "By default, if an object is publicly accessible to all anonymous users and you do not otherwise specify a cacheControl setting, GCS will serve a Cache-Control header of 3600 seconds, or 1 hour. If you're getting stale object data and haven't been messing with cache control settings, I assume you're serving publicly accessible objects. I'm not sure if Google itself is caching your object data or if there's some other cache between you and Google, though.\nIn the future, you can fix this by explicitly setting a shorter Cache-Control header, which can be controlled on a per-object basis with the cacheControl setting.\nRight now, you can probably get around this by tacking on some made up extra URL query parameter, like ?ignoreCache=1\nMore: https://cloud.google.com/storage/docs/xml-api/reference-headers#cachecontrol\n",
+    "answer_id": 37124554,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 47488959,
+    "title": "Upload base64 encoded jpeg to Firebase Storage (Admin SDK)",
+    "question_text": "I am trying to send a picture from my mobile hybrid app (Ionic 3) to my Heroku backend (Node.js) and have the backend upload the picture to Firebase Storage and return the newly uploaded fil download url to the mobile app.\nKeep in mind that I am using the Firebase Admin SDK for Node.js.\nSo I send the base64 encoded image to Heroku (I check the encoded string with an online base64 decoder and it is alright) which is handle by the following function:\nconst uploadPicture = function(base64, postId, uid) {\n  return new Promise((resolve, reject) => {\n    if (!base64 || !postId) {\n      reject(\"news.provider#uploadPicture - Could not upload picture because at least one param is missing.\");\n    }\n\n    let bufferStream = new stream.PassThrough();\n    bufferStream.end(new Buffer.from(base64, 'base64'));\n\n    // Retrieve default storage bucket\n    let bucket = firebase.storage().bucket();\n\n    // Create a reference to the new image file\n    let file = bucket.file(`/news/${uid}_${postId}.jpg`);\n\n    bufferStream.pipe(file.createWriteStream({\n      metadata: {\n        contentType: 'image/jpeg'\n      }\n    }))\n    .on('error', error => {\n      reject(`news.provider#uploadPicture - Error while uploading picture ${JSON.stringify(error)}`);\n    })\n    .on('finish', (file) => {\n      // The file upload is complete.\n      console.log(\"news.provider#uploadPicture - Image successfully uploaded: \", JSON.stringify(file));\n    });\n  })\n};\n\nI have 2 major issues:\n\nUpload succeeds but I when I go to Firebase Storage console, there is an error when I try to display the preview of the picture and I cannot open it from my computer when I download it. I guess it is an encoding thing....?\nHow can I retrieve the newly uploaded file download url ? I was expecting an object to be returned in the .on('finish), like in the upload() function, but none is returned (file is undefined). How could I retrieve this url to send it back in the server response?\n\nI want to avoid using the upload() function because I don't want to host files on the backend as it is not a dedicated server.\n",
+    "question_score": 28,
+    "answer_text": "My problem was that I add data:image/jpeg;base64,at the beginning of the base64 object string ; I just had to remove it.\nFor the download url, I did the following:\nconst config = {\n        action: 'read',\n        expires: '03-01-2500'\n      };\n      let downloadUrl = file.getSignedUrl(config, (error, url) => {\n        if (error) {\n          reject(error);\n        }\n        console.log('download url ', url);\n        resolve(url);\n      });\n\n",
+    "answer_id": 47489889,
+    "tags": [
+      "node.js",
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "firebase-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 18794522,
+    "title": "How to download from google cloud storage?",
+    "question_text": "I uploaded files to google cloud storage, and I want to download some of them to a different computer. How do I download files from there? Is there an easy way?\n",
+    "question_score": 27,
+    "answer_text": "It seems you are having trouble downloading the files from Google Cloud Storage. \nYou should be able to right click on the filename when you are in Cloud Storage and click 'Save Link As' and that should allow you to download your file. That's about it.\nThis is what that the file front end looks like just in case you are somewhere else or referring to a different product:\n\n",
+    "answer_id": 18804718,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 12433639,
+    "title": "How to use Service Accounts with gsutil, for uploading to CS + BigQuery",
+    "question_text": "How do I upload data to Google BigQuery with gsutil, by using a Service Account I created in the Google APIs Console?\nFirst I'm trying to upload data to Cloud Storage using gsutil, as that seems to be the recommended model. Everything works fine with gmail user approval, but it does not allow me to use a service account.\nIt seems I can use the Python API to get an access token using signed JWT credentials, but I would prefer using a command-line tool like gsutil with support for resumable uploads etc.\nEDIT: I would like to use gsutil in a cron to upload files to Cloud Storage every night and then import them to BigQuery.\nAny help or directions to go would be appreciated.\n",
+    "question_score": 26,
+    "answer_text": "Google Cloud Storage just released a new version (3.26) of gsutil that supports service accounts (as well as a number of other features and bug fixes). If you already have gsutil installed you can get this version by running:\ngsutil update\nIn brief, you can configure a service account by running:\ngsutil config -e\nSee gsutil help config for more details about using the config command.\nSee gsutil help creds for information about the different flavors of credentials (and different use cases) that gsutil supports.\nMike Schwartz, Google Cloud Storage Team\n",
+    "answer_id": 15646928,
+    "tags": [
+      "google-api",
+      "google-bigquery",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 52033035,
+    "title": "How is google cloud storage different from file storage?",
+    "question_text": "Google cloud storage has buckets which are similar to folders and objects which are files, so besides the naming changes, what are the other differences between the two?\n",
+    "question_score": 26,
+    "answer_text": "Google Cloud Storage has some specific features that differentiate it from a proper file system:\n\nIt doesn't actually provide directories/folders, it only implements buckets and objects, i.e there's no concept of folders, nested directories, etc... See doc here for more details about that.\nIt doesn't implement file modification. When you upload an update to an existing object, it actually replaces that object altogether with the new version (versioning is available though).\n\nGoogle Cloud Filestore provides managed NFS file servers as a fully managed service on GCP. It is meant to provide high-performance file storage capabilities to applications running on Compute Engine and Kubernetes Engine instances.\n",
+    "answer_id": 52035952,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-filestore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 45098305,
+    "title": "Firebase cloud function for file upload",
+    "question_text": "I have this cloud function that I wrote to upload file to google cloud storage:\nconst gcs = require('@google-cloud/storage')({keyFilename:'2fe4e3d2bfdc.json'});\n\nvar filePath = file.path + \"/\" + file.name;\n\n    return bucket.upload(filePath, {\n        destination: file.name\n    }).catch(reason => {\n            console.error(reason);\n    });\n\nI used formidable to parse the uploaded file and I tried to log the properties of the uploaded file and it seems fine; it is uploaded to a temp dir '/tmp/upload_2866bbe4fdcc5beb30c06ae6c3f6b1aa/ but when I try to upload the file to the gcs am getting this error: \n{ Error: EACCES: permission denied, stat '/tmp/upload_2866bbe4fdcc5beb30c06ae6c3f6b1aa/thumb_ttttttt.jpg'\n    at Error (native)\n  errno: -13,\n  code: 'EACCES',\n  syscall: 'stat',\n  path: '/tmp/upload_2866bbe4fdcc5beb30c06ae6c3f6b1aa/thumb_ttttttt.jpg' }\n\nI am using this html form to upload the file: \n<!DOCTYPE html>\n<html>\n<body>\n\n<form action=\"https://us-central1-appname.cloudfunctions.net/uploadFile\" method=\"post\" enctype=\"multipart/form-data\">\n    Select image to upload:\n    <input type=\"file\" name=\"fileToUpload\" id=\"fileToUpload\">\n    <input type=\"submit\" value=\"Upload Image\" name=\"submit\">\n</form>\n\n</body>\n</html>\n\n",
+    "question_score": 26,
+    "answer_text": "I got a solution from the Firebase Support Team\nSo first thing:\nvar filePath = file.path + \"/\" + file.name;\n\nwe dont need the file.name since the file.path is full path of the file (including the file name).\nSo changed it to this instead:\nvar filePath = file.path;\n\nSecond, the function terminates before the asynchronous work in 'form.parse(...)' is completed. That means the actual file upload might still be in progress while the function execution has ended.\nThe fix for that is to wrap the form.parse(...) in a promise:\nexports.uploadFile = functions.https.onRequest((req, res) => {\n   var form = new formidable.IncomingForm();\n   return new Promise((resolve, reject) => {\n     form.parse(req, function(err, fields, files) {\n       var file = files.fileToUpload;\n       if(!file){\n         reject(\"no file to upload, please choose a file.\");\n         return;\n       }\n       console.info(\"about to upload file as a json: \" + file.type);\n       var filePath = file.path;\n       console.log('File path: ' + filePath);\n \n       var bucket = gcs.bucket('bucket-name');\n       return bucket.upload(filePath, {\n           destination: file.name\n       }).then(() => {\n         resolve();  // Whole thing completed successfully.\n       }).catch((err) => {\n         reject('Failed to upload: ' + JSON.stringify(err));\n       });\n     });\n   }).then(() => {\n     res.status(200).send('Yay!');\n     return null\n   }).catch(err => {\n     console.error('Error while parsing form: ' + err);\n     res.status(500).send('Error while parsing form: ' + err);\n   });\n });\n\nLastly, you may want to consider using the Cloud Storage for Firebase in uploading your file instead of Cloud functions. Cloud Storage for Firebase allows you to upload files directly to it, and would work much better:\n\nIt has access control\nIt has resumable uploads/downloads (great for poor connectivity)\nIt can accept files of any size without timeout-issues\nIf you want to trigger a Cloud Function on file upload even, you can\ndo that and a lot more\n\n",
+    "answer_id": 45253054,
+    "tags": [
+      "javascript",
+      "firebase",
+      "google-cloud-storage",
+      "google-cloud-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 50828098,
+    "title": "Permissions For Google Cloud SQL Import Using Service Accounts",
+    "question_text": "I've exported MySQL Database following the MySQL Export Guide successfully. \nNow, I'm trying to import MySQL Database following the MySQL Import Guide.\nI've checked the permissions for the service_account_email I'm using, and I have allowed both Admin SQL and Admin Storage permissions. \nI was able to successfully activate my service account using this command locally:\ngcloud auth activate-service-account <service_account_email> --key-file=<service_account_json_file>  \n\nAfter I ran the command:\ngcloud sql import sql <instance> <gstorage_file> --database=<db_name> --async\n\nI got this information:\n{\n  \"error\": {\n    \"errors\": Array[1][\n      {\n        \"domain\": \"global\",\n        \"reason\": \"required\",\n        \"message\": \"Login Required\",\n        \"locationType\": \"header\",\n        \"location\": \"Authorization\"\n      }\n    ],\n    \"code\": 401,\n    \"message\": \"Login Required\"\n  }\n}\n\nOther Things I've Tried\nI also tried using the service_account_email of my SQL instance, which came from:\ngcloud sql instances describe <instance_name>\n\nBut, it seems to have the same error.\nQuestion\nBased on the REST API JSON error I'm given, how do I \"login\" using the service_account_email so I wouldn't get the 401 Error?\n",
+    "question_score": 25,
+    "answer_text": "Problem is about the permission of database instance service account to write on created bucket. Steps to solve this issue \n1) Go to your Cloud SQL Instance and copy service account of instance (Cloud SQL->{instance name}->OVERVIEW->Service account)\n2) After copy the service account, go the Cloud Storage Bucket where to want to dump and set desired permission to that account (Storage->{bucket name}->permissions->add member).     \n",
+    "answer_id": 53608811,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-sql",
+      "user-permissions",
+      "service-accounts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 28731102,
+    "title": "BigQuery - Check if table already exists",
+    "question_text": "I have a dataset in BigQuery. This dataset contains multiple tables. \nI am doing the following steps programmatically using the BigQuery API:\n\nQuerying the tables in the dataset - Since my response is too large, I am enabling allowLargeResults parameter and diverting my response to a destination table.\nI am then exporting the data from the destination table to a GCS bucket.\n\nRequirements:\n\nSuppose my process fails at Step 2, I would like to re-run this step.\nBut before I re-run, I would like to check/verify that the specific destination table named 'xyz' already exists in the dataset. \nIf it exists, I would like to re-run step 2.\nIf it does not exist, I would like to do foo.\n\nHow can I do this?\nThanks in advance.\n",
+    "question_score": 25,
+    "answer_text": "Here is a python snippet that will tell whether a table exists (deleting it in the process--careful!):\ndef doesTableExist(project_id, dataset_id, table_id):\n  bq.tables().delete(\n      projectId=project_id, \n      datasetId=dataset_id,\n      tableId=table_id).execute()\n  return False\n\nAlternately, if you'd prefer not deleting the table in the process, you could try:\ndef doesTableExist(project_id, dataset_id, table_id):\n  try:\n    bq.tables().get(\n        projectId=project_id, \n        datasetId=dataset_id,\n        tableId=table_id).execute()\n    return True\n  except HttpError, err\n    if err.resp.status <> 404:\n       raise\n    return False\n\nIf you want to know where bq came from, you can call build_bq_client from here: http://code.google.com/p/bigquery-e2e/source/browse/samples/ch12/auth.py\nIn general, if you're using this to test whether you should run a job that will modify the table, it can be a good idea to just do the job anyway, and use WRITE_TRUNCATE as a write disposition.\nAnother approach can be to create a predictable job id, and retry the job with that id. If the job already exists, the job already ran (you might want to double check to make sure the job didn't fail, however).\n",
+    "answer_id": 28732684,
+    "tags": [
+      "google-api",
+      "export",
+      "google-bigquery",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 38311036,
+    "title": "Folders not showing up in Bucket storage",
+    "question_text": "So my problem is that a have a few files not showing up in gcsfuse when mounted. I see them in the online console and if I 'ls' with gsutils. \nAlso, if If I manually create the folder in the bucket, i then can see the files inside it, but I need to create it first. Any suggestions?\n\ngs://mybucket/\n    dir1/\n        ok.txt\n        dir2\n            lafu.txt\n\nIf I mount mybucket with gcsfuse and do 'ls' it only returns dir1/ok.txt.\nThen I'll create the folder dir2 inside dir1 at the root of the mounting point, and suddenly 'lafu.txt' shows up.\n",
+    "question_score": 25,
+    "answer_text": "By default, gcsfuse won't show a directory \"implicitly\" defined by a file with a slash in its name. For example if your bucket contains an object named dir/foo.txt, you won't be able to find it unless there is also an object nameddir/.\nYou can work around this by setting the --implicit-dirs flag, but there are good reasons why this is not the default. See the documentation for more information.\n",
+    "answer_id": 38319745,
+    "tags": [
+      "google-cloud-storage",
+      "bucket",
+      "gcsfuse"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 52789714,
+    "title": "Google Cloud Storage: How to Delete a folder (recursively) in Python",
+    "question_text": "I am trying to delete a folder in GCS and its all content (including sub-directories) with its Python library. Also I understand GCS doesn't really have folders (but prefix?) but I am wondering how I can do that?\nI tested this code:\nfrom google.cloud import storage\n\ndef delete_blob(bucket_name, blob_name):\n    \"\"\"Deletes a blob from the bucket.\"\"\"\n    storage_client = storage.Client()\n    bucket = storage_client.get_bucket(bucket_name)\n    blob = bucket.blob(blob_name)\n\n    blob.delete()\n\ndelete_blob('mybucket', 'top_folder/sub_folder/test.txt')\ndelete_blob('mybucket', 'top_folder/sub_folder/')\n\nThe first call to delete_blob worked but not the 2nd one. What can I delete a folder recursively? \n",
+    "question_score": 24,
+    "answer_text": "To delete everything starting with a certain prefix (for example, a directory name), you can iterate over a list:\nstorage_client = storage.Client()\nbucket = storage_client.get_bucket(bucket_name)\nblobs = bucket.list_blobs(prefix='some/directory')\nfor blob in blobs:\n  blob.delete()\n\nNote that for very large buckets with millions or billions of objects, this may not be a very fast process. For that, you'll want to do something more complex, such as deleting in multiple threads or using lifecycle configuration rules to arrange for the objects to be deleted.\n",
+    "answer_id": 52789903,
+    "tags": [
+      "google-cloud-storage",
+      "google-cloud-python"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 18002293,
+    "title": "Uploading image from Android to GCS",
+    "question_text": "I am trying to upload an image from Android directly to Google cloud storage. But the API does not seem to work. They have some Java samples which are tied to the App engine. I don't see any sample which is proven to work on Android.\nOn Android, I tried using the json api to upload an image. I am able to upload an image object but it seems to be corrupt. Moreover generating the authentication token seems to be tricky too.\nI am struck with this right now. Did anyone on this earth ever tried uploading an image/video from Android using Java client or Json API and succeeded? Can someone point me in the right direction please. It has been very disappointing experience with this Storage api from Google. Please share your experiences if someone did it.\nBelow is the code that I am trying from Android while trying to use the GCS's JSON API.\nprivate static String uploadFile(RichMedia media) {\n    DefaultHttpClient client = new DefaultHttpClient();\n    Bitmap bitmap = BitmapUtils.getBitmap(media.getLocalUrl());\n    HttpPost post = new HttpPost(GCS_ROOT + media.getLocalUrl() + \"_\" + System.currentTimeMillis());\n    if(media.getType() == RichMedia.RichMediaType.PICTURE) {\n        post.setHeader(\"Content-Type\", \"image/jpeg\");\n    } else {\n        post.setHeader(\"Content-Type\", \"video/mp4\");\n    }\n    post.setHeader(\"Authorization\", \"AIzaSyCzdmCMwiMzl6LD7R2obF0xSgnnx5rEfeI\");\n    //post.setHeader(\"Content-Length\", String.valueOf(bitmap.getByteCount()));\n    ByteArrayOutputStream stream = new ByteArrayOutputStream();\n    bitmap.compress(Bitmap.CompressFormat.JPEG, 100, stream);\n    byte[] byteArray = stream.toByteArray();\n\n    try {\n        post.setEntity(new StringEntity(new Gson().toJson(byteArray).toString()));\n        HttpResponse response = client.execute(post);\n        BufferedReader reader = new BufferedReader(new InputStreamReader(response.getEntity().getContent()));\n        String eachLine = null;\n        StringBuilder builder = new StringBuilder();\n        while ((eachLine = reader.readLine()) != null) {\n            builder.append(eachLine);\n        }\n        L.d(\"response = \" + builder.toString());\n        JSONObject object = new JSONObject(builder.toString());\n        String name = object.getString(\"name\");\n        return  name;\n    } catch (IOException e) {\n        L.print(e);\n    } catch (JSONException e) {\n        L.print(e);\n    }\n    return null;\n}\n\nI am running into two issues here.\n\nThe file which got uploaded to the server is corrupt. It is not the same image that I uploaded. It is currupt.\nThe authorization key expires very often. In my case, I am using the auth code generated by gsutil.\n\n",
+    "question_score": 24,
+    "answer_text": "Since no one is answering this question, let me update the way I solved this problem. I ended up following this https://github.com/pliablematter/simple-cloud-storage project.\nI could upload Pictures/Videos to GCS from my Android app.\n",
+    "answer_id": 18570327,
+    "tags": [
+      "android",
+      "google-cloud-storage",
+      "google-api-java-client"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 20863747,
+    "title": "Get Public URL for File - Google Cloud Storage - App Engine (Python)",
+    "question_text": "Is there a python equivalent to the getPublicUrl PHP method?\n$public_url = CloudStorageTools::getPublicUrl(\"gs://my_bucket/some_file.txt\", true);\n\nI am storing some files using the Google Cloud Client Library for Python, and I'm trying to figure out a way of programatically getting the public URL of the files I am storing. \n",
+    "question_score": 23,
+    "answer_text": "Daniel, Isaac - Thank you both.\nIt looks to me like Google is deliberately aiming for you not to directly serve from GCS (bandwidth reasons? dunno). So the two alternatives according to the docs are either using Blobstore or Image Services (for images). \nWhat I ended up doing is serving the files with blobstore over GCS.\nTo get the blobstore key from a GCS path, I used:\nblobKey = blobstore.create_gs_key('/gs' + gcs_filename)\n\nThen, I exposed this URL on the server - \nMain.py:\napp = webapp2.WSGIApplication([\n...\n    ('/blobstore/serve', scripts.FileServer.GCSServingHandler),\n...\n\nFileServer.py:\nclass GCSServingHandler(blobstore_handlers.BlobstoreDownloadHandler):\n    def get(self):\n        blob_key = self.request.get('id')\n        if (len(blob_key) > 0):\n            self.send_blob(blob_key)\n        else: \n            self.response.write('no id given')\n\n",
+    "answer_id": 20870629,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "cloud",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 59466458,
+    "title": "How to copy folders with &#39;gsutil&#39;?",
+    "question_text": "I've read the documentation on the gsutil cp command, but still don't understand how to copy folders to keep the same permissions. I tried this command:\ngsutil cp gs://bucket-name/folder1/folder_to_copy gs://bucket-name/folder1/new_folder\n\nBut it resulted with the error:\nCommandException: No URLs matched\n\nAlthough, when I tried it with slashes in the end of each name, it didn't show any error:\ngsutil cp gs://bucket-name/folder1/folder_to_copy/ gs://bucket-name/folder1/new_folder/\n\nHowever, there was no new folder in the bucket when I checked with gsutil ls. What am I doing wrong?\n",
+    "question_score": 23,
+    "answer_text": "Using cp\nYou should use the -r option to copy a folder and its contents recursively:\ngsutil cp -r gs://bucket-name/folder1/folder_to_copy gs://bucket-name/folder1/new_folder\n\nNote that this will only work if folder_to_copy contains files. This is due to the fact Cloud Storage doesn't really have \"folders\" as one would expect in a typical GUI, it instead provides the illusion of a hierarchical file tree atop the \"flat\" name space, as explained here. In other words, the files within a folder are simply objects that have the folder prefix appended to them. Therefore, when you're doing gsutil cp, it expects actual objects to be copied and not empty directories which is something the CLI does not understand.\n\nUsing rsync\nAnother approach would be to simply use rsync instead, which tolerates  the use of empty folders and also synchronizes the contents between source and destination folders:\ngsutil rsync -r gs://bucket-name/folder1/folder_to_copy gs://bucket-name/folder1/new_folder\n\nIf you also want to preserve the ACL (permissions) of the objects, use the -p option:\ngsutil rsync -p -r gs://bucket-name/folder1/folder_to_copy gs://bucket-name/folder1/new_folder\n\n",
+    "answer_id": 59466850,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 49684942,
+    "title": "How to get a list of files in a Google Cloud Storage folder using Node.js?",
+    "question_text": "Using bucket.getFiles() it is possible to get all the files in a bucket.\nMy bucket has thousands of files and I really only want to get metadata on the files in a particular folder.\nThe documentation is not clear on how to just get the files from a folder. Apparently it is possible to limit the results with a GetFilesRequest but none of the options include a path or a folder, at least not explicitly.\n",
+    "question_score": 23,
+    "answer_text": "There is an ability to specify a prefix of the required path in options, e.g.\nasync function readFiles () {\n  const [files] = await bucket.getFiles({ prefix: 'users/user42'});\n  console.log('Files:');\n  files.forEach(file => {\n    console.log(file.name);\n  });\n};\n\nNow it's finally available on documentation (thanks @Wajahath for the update):\nhttps://googleapis.dev/nodejs/storage/latest/Bucket.html#getFiles\n",
+    "answer_id": 54597205,
+    "tags": [
+      "node.js",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 40177087,
+    "title": "Upload a file to Google Cloud, in a specific directory",
+    "question_text": "How to upload a file on Google Cloud, in a specific bucket directory (e.g. foo)?\n\"use strict\";\n\nconst gcloud = require(\"gcloud\");\n\nconst PROJECT_ID = \"<project-id>\";\n\nlet storage = gcloud.storage({\n  projectId: PROJECT_ID,\n  keyFilename: 'auth.json'\n});\n\nlet bucket = storage.bucket(`${PROJECT_ID}.appspot.com`)\nbucket.upload(\"1.jpg\", (err, file) => {\n    if (err) { return console.error(err); }\n    let publicUrl = `https://firebasestorage.googleapis.com/v0/b/${PROJECT_ID}.appspot.com/o/${file.metadata.name}?alt=media`;\n    console.log(publicUrl);\n});\n\nI tried:\nbucket.file(\"foo/1.jpg\").upload(\"1.jpg\", ...)\n\nBut there's no upload method there.\nHow can I send 1.jpg in the foo directory?\nIn Firebase, on the client side, I do:\nref.child(\"foo\").put(myFile);\n\n",
+    "question_score": 23,
+    "answer_text": "bucket.upload(\"1.jpg\", { destination: \"YOUR_FOLDER_NAME_HERE/1.jpg\" }, (err, file) => {\n    //Do something...\n});\n\nThis will put 1.jpg in the YOUR_FOLDER_NAME_HERE-folder.\nHere is the documentation. By the way, gcloud is deprecated and you should use google-cloud instead.\n",
+    "answer_id": 42949386,
+    "tags": [
+      "node.js",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 36454569,
+    "title": "Export from Google BigQuery into CloudSQL?",
+    "question_text": "I want to dump data from BigQuery (i.e. reports) into a CloudSQL database, what is the best way to achieve this programatically?\nI realise I could do this manually by running a BigQuery query, downloading it as a CSV, then uploading it through the Cloud console, but I want to do this programatically, preferably in Python/SQL.\n",
+    "question_score": 23,
+    "answer_text": "If you would like to dump entire tables, you can use a combination of the BigQuery and Cloud SQL APIs to achieve this.\nThe BigQuery documentation has an API example in python for extracting a BigQuery table to Cloud Storage.\nOnce the data is in Cloud Storage, you can use the Cloud SQL Admin API to import the data into a MySQL table.\nIf you need more granular control, you can use the BigQuery API to perform the query, fetch the results, connect to the Cloud SQL instance and insert the data. This won't perform as well if the amount of data is large.\nA more complex approach is to use Dataflow to write the data you are interested in to Cloud Storage and use the Cloud SQL API to import it.\n(For my own curiosity, can you describe the use case for wanting the data in Cloud SQL instead of BigQuery? It will help me/us understand how our customers are using our product and where we can improve.)\n",
+    "answer_id": 36464054,
+    "tags": [
+      "google-bigquery",
+      "google-cloud-storage",
+      "google-cloud-sql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 47141291,
+    "title": "Upload File to Google Cloud Storage Bucket Sub Directory using Python",
+    "question_text": "I have successfully implemented the python function to upload  a file to Google Cloud Storage bucket but I want to add it to a sub-directory (folder) in the bucket and when I try to add it to the bucket name the code fails to find the folder. \nThanks!\ndef upload_blob(bucket_name, source_file_name, destination_blob_name):\n  \"\"\"Uploads a file to the bucket.\"\"\"\n  storage_client = storage.Client()\n  bucket = storage_client.get_bucket(bucket_name +\"/folderName\") #I tried to add my folder here\n  blob = bucket.blob(destination_blob_name)\n\n  blob.upload_from_filename(source_file_name)\n\n  print('File {} uploaded to {}.'.format(\n    source_file_name,\n    destination_blob_name))\n\n",
+    "question_score": 22,
+    "answer_text": "You're adding the \"folder\" in the wrong place. Note that Google Cloud Storage doesn't have real folders or directories (see Object name considerations).\nA simulated directory is really just an object with a prefix in its name. For example, rather than what you have right now:\n\nbucket = bucket/folderName\nobject = objectname\n\nYou'll instead want:\n\nbucket = bucket\nobject = folderName/objectname\n\nIn the case of your code, I think this should work:\nbucket = storage_client.get_bucket(bucket_name)\nblob = bucket.blob(\"folderName/\" + destination_blob_name)\nblob.upload_from_filename(source_file_name)\n\n",
+    "answer_id": 47141481,
+    "tags": [
+      "python",
+      "python-3.x",
+      "google-cloud-storage",
+      "gcloud-python"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 45404270,
+    "title": "Is it possible to scope Firebase functions to a folder inside a storage bucket?",
+    "question_text": "I have tested Firebase functions for storage successfully. However, I havn't seen anywhere a hint how to only invoke the function when a file is added into a folder inside my bucket. The only hint I have seen about scoping the function is for different buckets here. \nIs it possible to scope the function to a folder inside my bucket , if yes how? \nOr would I need to have multiple buckets instead of folders to separate different tasks. \n",
+    "question_score": 22,
+    "answer_text": "firebaser here\nThere is currently no way to trigger Cloud Functions only for writes in a specific folder in Cloud Storage. If you want to limit the triggering to a subset of the files in your project, putting them in a separate bucket is currently the only way to accomplish that.\nAs a workaround, you can write metadata about the image to a supported database (Realtime Database or Cloud Firestore), and use that to trigger a Cloud Function that transforms the file. This is what I usually do, as it also allows me to capture the metadata in a format that can be queried.\n",
+    "answer_id": 45405350,
+    "tags": [
+      "firebase",
+      "google-cloud-storage",
+      "firebase-storage",
+      "google-cloud-functions"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 42418493,
+    "title": "How do I upload to Google Cloud Storage with Curl and an API key?",
+    "question_text": "I am trying to upload to google cloud storage with Curl and an API key, without success.  The error message seems to indicate that I lack the Content-length header, which I don't.  Any ideas?\n$ curl -v -T ./myfile -X POST https://storage.googleapis.com/my-app/my-bucket/myfile?key=<my-api-token>\n> Host: storage.googleapis.com\n> User-Agent: curl/7.51.0\n> Accept: */*\n> Content-Length: 4\n> Expect: 100-continue\n> \n< HTTP/1.1 100 Continue\n* We are completely uploaded and fine\n< HTTP/1.1 411 Length Required\n< Date: Thu, 23 Feb 2017 13:46:59 GMT\n< Content-Type: text/html; charset=UTF-8\n< Server: UploadServer\n< Content-Length: 1564\n< Alt-Svc: quic=\":443\"; ma=2592000; v=\"36,35,34\"\n< Connection: close\n< \n<!DOCTYPE html>\n<html lang=en>\n  <meta charset=utf-8>\n  <meta name=viewport content=\"initial-scale=1, minimum-scale=1, width=device-width\">\n  <title>Error 411 (Length Required)!!1</title>\n  <style>\n    [snip snip]\n  </style>\n  <a href=//www.google.com/><span id=logo aria-label=Google></span></a>\n  <p><b>411.</b> <ins>That\u2019s an error.</ins>\n  <p>POST requests require a <code>Content-length</code> header.  <ins>That\u2019s all we know.</ins>\n* Curl_http_done: called premature == 0\n* Closing connection 0\n\n",
+    "question_score": 22,
+    "answer_text": "API keys do not provide authentication. They associate a call with a project for purposes of quota and a few other things, but you cannot use them to access resources that require anything beyond anonymous access.\nWhat you'll need is an \"Access Key\", which can be acquired in a variety of ways, usually via an OAuth exchange. If you have the gcloud command installed, the easiest way to grab a quick access key to use with cURL is to run gcloud auth print-access-token. The following should work:\n$> curl -v --upload-file my-file.txt \\\n    -H \"Authorization: Bearer `gcloud auth print-access-token`\" \\ \n    'https://storage.googleapis.com/my-bucket/my-file.txt'\n\n",
+    "answer_id": 42446060,
+    "tags": [
+      "http",
+      "curl",
+      "post",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 51927688,
+    "title": "Rename a folder in GCS using gsutil",
+    "question_text": "I can't rename an existing folder in GCS. How do I do this?\nAs per the documentation, this should be:\ngsutil mv gs://my_bucket/olddir gs://my_bucket/newdir\n\nHowever, what happens is that olddir is placed under newdir, i.e the directory structure is like this (after the call to gsutil mv):\nmy_bucket\n    newdir\n        olddir\n\ninstead of (what I would expect)\nmy_bucket\n    newdir\n\nI've tried all four combinations of putting trailing slashes or not, but none of them worked.\n",
+    "question_score": 22,
+    "answer_text": "This is a confirmed bug in GCS, see https://issuetracker.google.com/issues/112817360\nIt actually only happens, when the directory name of newdir is a substring of olddir. So the gsutil call from the question actually works, but the following one would not:\ngsutil mv gs://my-organization-empty-bucket/dir_old gs://my-organization-empty-bucket/dir\n\n",
+    "answer_id": 52101815,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 38618666,
+    "title": "Google Storage ArgumentException when setting CORS config",
+    "question_text": "Following Google docs, when using GoogleCloud Storage console: \nmysef@myproject:~$ cat cors-json-file.json \n[ \n  {\n    \"origin\": [\"*\"],\n    \"method\": [\"GET\"],\n    \"maxAgeSeconds\": 3600\n  } \n]\n\nthen I get the following error:\nmyself@myproject:~$ gsutil cors set cors-json-file.json gs://mybucket\nSetting CORS on gs://mybucket/...\nArgumentException: JSON CORS data could not be loaded from: [ \n  {\n    \"origin\": [\"*\"],\n    \"method\": [\"GET\"],\n    \"maxAgeSeconds\": 3600\n  } \n]\n\nsame error when I remove \"method\", \"maxAgeSeconds\" or add \"responseHeader\".\n",
+    "question_score": 22,
+    "answer_text": "after so many tries, I ended up with modifing json file to:\n$ cat cors-json-file.json \n[{\n    \"origin\": [\"*\"],\n    \"method\": [\"GET\"],\n    \"maxAgeSeconds\": 3600\n}]\n\nand... it worked! \nNote that example from Google documentation is my first case (with [{ on 2 lines)\n",
+    "answer_id": 38773408,
+    "tags": [
+      "google-cloud-platform",
+      "cors",
+      "google-cloud-storage",
+      "bucket",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 51970205,
+    "title": "How to read content of JSON file uploaded to google cloud storage using node js",
+    "question_text": "I manually upload the JSON file to google cloud storage by creating a new project. I am able to read the metadata for a file but I don't know how to read the JSON content.\nThe code I used to read the metadata is:\nvar Storage = require('@google-cloud/storage');\nconst storage = Storage({\n    keyFilename: 'service-account-file-path',\n    projectId: 'project-id'\n});\nstorage\n    .bucket('project-name')\n    .file('file-name')\n    .getMetadata()\n    .then(results => {\n        console.log(\"results is\", results[0])\n    })\n    .catch(err => {\n        console.error('ERROR:', err);\n    });\n\nCan someone guide me to the way to read the JSON file content?\n",
+    "question_score": 21,
+    "answer_text": "I've used the following code to read a json file from Cloud Storage:\n    'use strict';\n    const Storage = require('@google-cloud/storage');\n    const storage = Storage();\n    exports.readFile = (req, res) => {\n            console.log('Reading File');\n            var archivo = storage.bucket('your-bucket').file('your-JSON-file').createReadStream();\n            console.log('Concat Data');\n            var  buf = '';\n            archivo.on('data', function(d) {\n              buf += d;\n            }).on('end', function() {\n              console.log(buf);\n              console.log(\"End\");\n              res.send(buf);\n            });     \n\n    };\n\nI'm reading from a stream and concat all the data within the file to the buf variable.\nHope it helps.\nUPDATE\nTo read multiple files:\n'use strict';\nconst {Storage} = require('@google-cloud/storage');\nconst storage = new Storage();\nlistFiles();\n\nasync function listFiles() {\n        const bucketName = 'your-bucket'\n        console.log('Listing objects in a Bucket');\n        const [files] = await storage.bucket(bucketName).getFiles();\n        files.forEach(file => {\n            console.log('Reading: '+file.name);\n            var archivo = file.createReadStream();\n            console.log('Concat Data');\n            var  buf = '';\n            archivo.on('data', function(d) {\n                buf += d;\n            }).on('end', function() {\n                console.log(buf);\n                console.log(\"End\");\n            });    \n        });\n};\n\n",
+    "answer_id": 51974921,
+    "tags": [
+      "javascript",
+      "node.js",
+      "google-api",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 45645717,
+    "title": "Unable to authenticate Google Cloud Storage client in python",
+    "question_text": "I'm trying the following code to access the Google Cloud storage:\nclient = storage.Client(credentials = GoogleCredentials.from_stream(<path-to-service-account-json>))\n\nThrows this error:\nValueError: This library only supports credentials from google-auth-library-python. See https://google-cloud-python.readthedocs.io/en/latest/google-cloud-auth.html for help on authentication with this library.\n\nI'm able to authenticate discovery.build service using the same credentials(obtained using GoogleCredentials.from_stream()), but for some reason storage.Client fails to use the provided credentials.\nPlease let me know if I'm missing something.\n",
+    "question_score": 21,
+    "answer_text": "Got it to work with the following code:\nstorage_client = storage.Client.from_service_account_json(<path-to-service-account-json>)\n\nNot sure why there are different way to authenticate the discovery API and the storage and other client APIs.\n",
+    "answer_id": 45680414,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 44945376,
+    "title": "How to upload an in memory file data to google cloud storage using nodejs?",
+    "question_text": "I am reading an image from a url and processing it. I need to upload this data to a file in cloud storage, currently i am writing the data to a file and uploading this file and then deleting this file. Is there a way i can upload the data directly to the cloud stoage?\nstatic async uploadDataToCloudStorage(rc : RunContextServer, bucket : string, path : string, data : any, mimeVal : string | false) : Promise<string> {\n  if(!mimeVal) return ''\n\n  const extension = mime.extension(mimeVal),\n        filename  = await this.getFileName(rc, bucket, extension, path),\n        modPath   = (path) ? (path + '/') : '',\n        res       = await fs.writeFileSync(`/tmp/${filename}.${extension}`, data, 'binary'),\n        fileUrl   = await this.upload(rc, bucket, \n                            `/tmp/${filename}.${extension}`,\n                            `${modPath}${filename}.${extension}`)\n                   \n  await fs.unlinkSync(`/tmp/${filename}.${extension}`)\n\n  return fileUrl\n}\n\nstatic async upload(rc : RunContextServer, bucketName: string, filePath : string, destination : string) : Promise<string> {\n  const bucket : any = cloudStorage.bucket(bucketName),\n        data   : any = await bucket.upload(filePath, {destination})\n\n  return data[0].metadata.name\n}\n\n",
+    "question_score": 21,
+    "answer_text": "The data can be uploaded without writing to a file by using nodes streams.\nconst stream     = require('stream'),\n      dataStream = new stream.PassThrough(),\n      gcFile     = cloudStorage.bucket(bucketName).file(fileName)\n\ndataStream.push('content-to-upload')\ndataStream.push(null)\n\nawait new Promise((resolve, reject) => {\n  dataStream.pipe(gcFile.createWriteStream({\n    resumable  : false,\n    validation : false,\n    metadata   : {'Cache-Control': 'public, max-age=31536000'}\n  }))\n  .on('error', (error : Error) => { \n    reject(error) \n  })\n  .on('finish', () => { \n    resolve(true)\n  })\n})\n\n",
+    "answer_id": 48073631,
+    "tags": [
+      "node.js",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 30046780,
+    "title": "Moving Google Cloud Storage bucket to another project",
+    "question_text": "What is the best way to move an existing Google Cloud Storage bucket to another project?\nI don't want to copy it outside Google Cloud Storage for the transfer, have two copies of the data or use another bucket name.\nHow close can I get to these requirements?\n",
+    "question_score": 21,
+    "answer_text": "Moving a bucket from one project to another is not currently possible. The easiest way to copy the data would be to spin up a GCE VM and use gsutil -m. This will at least save the bandwidth cost of moving the data.\nUpdate: there is now a Moving and renaming buckets documentation page.\n",
+    "answer_id": 30057782,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 51667403,
+    "title": "Upload JSON string to Google Cloud Storage without a file",
+    "question_text": "My case is when I receive data from some other source as a JSON string, then I want to upload this string to Google Cloud Storage without writing this string to a local file and upload this file. Is there any way to do this. Thank you.\nLook like this code below\nstorage\n  .bucket(bucketName)\n  .upload(jsonString, { destination: 'folder/test.json' })\n  .then(() => {\n    console.log('success');\n  })\n  .catch((err) => {\n    console.error('ERROR:', err);\n  });\n\nso I expected the Google Cloud Storage will have a file test.json with content from the jsonString\n",
+    "question_score": 21,
+    "answer_text": "It looks like this scenario has already been addressed in this other question.  \nBoth answers look good, but it will probably be easier to use the file.save() method (second answer).You can find the description of this method and yet another example here.\nHope this helps.\n",
+    "answer_id": 51732040,
+    "tags": [
+      "javascript",
+      "json",
+      "node.js",
+      "google-cloud-storage",
+      "storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 53413639,
+    "title": "What is the mechanism of Terraform state locking when using Google Cloud Platform?",
+    "question_text": "What is the Google Cloud Platform mechanism for locking state file when using Terraform?\nSomething like DynamoDB on AWS...\nthanks\n",
+    "question_score": 20,
+    "answer_text": "Where you store the state files (defined using a backend) is distinct from where you're deploying to. They could be the same, but don't have to be. For example, you could deploy resources to Azure while storing the state file in an AWS S3 bucket.\nIf you're interested in storing the state file in the Google Cloud, Terraform has a backend called gcs that includes locking. To quote the documentation:\n\ngcs stores the state as an object in a configurable prefix and bucket on Google Cloud Storage (GCS).\n\n",
+    "answer_id": 53414630,
+    "tags": [
+      "google-cloud-platform",
+      "terraform",
+      "google-cloud-storage",
+      "terraform-provider-gcp"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 49748910,
+    "title": "Python - download entire directory from Google Cloud Storage",
+    "question_text": "At the following page\nhttps://googlecloudplatform.github.io/google-cloud-python/latest/storage/blobs.html\nthere are all the API calls which can be used for Python & Google Cloud storage. Even in the \"official\" samples on github\nhttps://github.com/GoogleCloudPlatform/python-docs-samples/blob/master/storage/cloud-client/snippets.py\ndon't have a related example.\nFinally, downloading a directory with the same method used for download files gives the error\nError:  [Errno 21] Is a directory:\n\n",
+    "question_score": 20,
+    "answer_text": "You just have to first list all the files in a directory and then download them one by one:\nbucket_name = 'your-bucket-name'\nprefix = 'your-bucket-directory/'\ndl_dir = 'your-local-directory/'\n\nstorage_client = storage.Client()\nbucket = storage_client.get_bucket(bucket_name=bucket_name)\nblobs = bucket.list_blobs(prefix=prefix)  # Get list of files\nfor blob in blobs:\n    filename = blob.name.replace('/', '_') \n    blob.download_to_filename(dl_dir + filename)  # Download\n\nblob.name includes the entire directory structure + filename, so if you want the same file name as in the bucket, you might want to extract it first (instead of replacing / with _)\n",
+    "answer_id": 49749281,
+    "tags": [
+      "python",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 27291342,
+    "title": "Google Storage access based on IP Address",
+    "question_text": "Is there a way to give access to a Google Cloud Storage bucket based on the IP address it is coming from.\nOn Amazon s3, you can just set this in the access policy like this:\n\"Condition\" :  {\n       \"IpAddress\" : {\n          \"aws:SourceIp\" : [\"192.168.176.0/24\",\"192.168.143.0/24\"]\n      }\n}\n\nI do not want to use a signed url.\n",
+    "question_score": 20,
+    "answer_text": "UPDATE: This is now possible using VPC Service Controls\n\nNo, this is not currently possible.\nThere's currently a Feature request to restrict google cloud storage bucket by IP Address.\n",
+    "answer_id": 27298841,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 40895706,
+    "title": "Enabling gzip on Google cloud storage (static files)",
+    "question_text": "How do we enable gzip to reduce latency on both mobile and desktop users of static web resources?\n",
+    "question_score": 20,
+    "answer_text": "You can upload Google Cloud Storage objects with a gzip Content Encoding, and they'll be served zipped to clients that send Accept-Encoding: gzip, which most browsers do.\nSee Transcoding of gzip-compressed files for more information.\n",
+    "answer_id": 40895968,
+    "tags": [
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 50364583,
+    "title": "Google Cloud Storage Asking For Login While Downloading Public File",
+    "question_text": "I upload image in bucket of Google Cloud Storage via external API. I also assigned all access rights. I shared file download link with my friends which is similar to \nhttps://storage.cloud.google.com/buketName/fileName.extension\n\nBut the problem is that sometimes it asks for Google authentication login and sometimes not.\nBucket files permission is given to all users, still sometimes it ask for login. Don't know why?\n",
+    "question_score": 19,
+    "answer_text": "To reach public files without being logged in Google account you should use a link like this:\nhttps://storage.googleapis.com/[BUCKET_NAME]/[FILE_NAME]\n\nIn order to reach files with link that you provided, even if they are public, you have to be signed in with your Google account.\n",
+    "answer_id": 50368913,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 60982068,
+    "title": "How can I specify a region for the Cloud Storage buckets used by Cloud Build for a Cloud Run deployment?",
+    "question_text": "When deploying a docker container image to Cloud Run, I can choose a region, which is fine.  Cloud Run delegates the build to Cloud Build, which apparently creates two buckets to make this happen.  The unexpected behavior is that buckets aren't created in the region of the Cloud Run deployment, and instead default to multi-region US.\nHow do I specify the region as \"us-east1\" so the cost of storage is absorbed by the \"always free\" tier?  (Apparently US multi-region storage buckets store data in regions outside of the free tier limits, which resulted in a surprise bill - I am trying to avoid that bill.)\nIf it matters, I am also using Firebase in this project.  I created the Firebase default storage bucket in the us-east1 region with the hopes that it might also become the default for other buckets, but this is not so.  The final bucket list looks like this, where you can see the two buckets created automatically with the undesirable multi-region setting.\n\nThis is the shell script I'm using to build and deploy:\n#!/bin/sh\n\nproject_id=$1\nservice_id=$2\n\nif [ -z \"$project_id\" ]; then\n    echo \"First argument must be the Google Cloud project ID\" >&2\n    exit 1\nfi\n\nif [ -z \"$service_id\" ]; then\n    echo \"Second argument must be the Cloud Run app name\" >&2\n    exit 1\nfi\n\necho \"Deploying $service_id to $project_id\"\n\ntag=\"gcr.io/$project_id/$service_id\"\n\ngcloud builds submit \\\n    --project \"$project_id\" \\\n    --tag \"$tag\" \\\n&& \\\ngcloud run deploy \"$service_id\" \\\n    --project \"$project_id\" \\\n    --image \"$tag\" \\\n    --platform managed \\\n    --update-env-vars \"GOOGLE_CLOUD_PROJECT=$project_id\" \\\n    --region us-central1 \\\n    --allow-unauthenticated\n\n",
+    "question_score": 19,
+    "answer_text": "As you mention, Cloud Build creates a bucket or buckets with multi region because when creating the service in Cloud Run, there are only added the needed flags and arguments to deploy the service.\nThe documentation for the command gcloud builds submit mentions the following for the flag --gcs-source-staging-dir:\n\n--gcs-source-staging-dir=GCS_SOURCE_STAGING_DIR\n\nA directory in Google Cloud Storage to copy the source used for staging the build. If the specified bucket does not exist, Cloud Build will create one. If you don't set this field, gs://[PROJECT_ID]_cloudbuild/source is used.\n\nAs this flag is not set, the bucket is created in multi-region and in us. This behavior also applies for the flag --gcs-log-dir.\nNow the necessary steps to use the bucket in the dual-region, region or multi-region you want is using a cloudbuild.yaml and using the flag --gcs-source-staging-dir. You can do the following:\n\nCreate a bucket in the region, dual-region or multi-region you may want. For example I created a bucket called \"example-bucket\" in australia-southeast1.\nCreate a cloudbuild.yaml file. This is necessary to store the artifacts of the build in the bucket you want as mentioned here. An example is as follows:\n\nsteps:\n- name: 'gcr.io/cloud-builders/gcloud'\n    args:\n    - 'run'\n    - 'deploy'\n    - 'cloudrunservice'\n    - '--image'\n    - 'gcr.io/PROJECT_ID/IMAGE'\n    - '--region'\n    - 'REGION_TO_DEPLOY'\n    - '--platform'\n    - 'managed'\n    - '--allow-unauthenticated'\nartifacts:\n    objects:\n    location: 'gs://example-bucket'\n    paths: ['*']\n\n\nFinally you could run the following command:\n\ngcloud builds submit --gcs-source-staging-dir=\"gs://example-bucket/cloudbuild-custom\" --config cloudbuild.yaml\n\nThe steps mentioned before can adapted to your script. Please give a try :) and you will see that even if the Cloud Run service is deployed in Asia, Europe or US, the bucket specified before can be in another location.\n",
+    "answer_id": 60983361,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "google-cloud-build",
+      "google-cloud-run"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 19124162,
+    "title": "How to disable google cloud storage bucket list from acl control?",
+    "question_text": "We're using google cloud storage as our CDN.\nHowever, any visitors can list all files by typing: http://ourcdn.storage.googleapis.com/\nHow to disable it while all the files under the bucket is still public readable by default?  \nWe previously set the acl using \ngsutil defacl ch -g AllUsers:READ \n\n",
+    "question_score": 18,
+    "answer_text": "In GCP dashboard\uff1a\n\nget in your bucket\nclick \"Permissions\" tab and get in.\nin member list find \"allUsers\", change role from Storage Object Viewer to Storage Legacy Object Reader\n\nthen, listing should be disabled.\nUpdate:\nas @Devy comment, just check the note below here\n\nNote: roles/storage.objectViewer includes permission to list the objects in the bucket. If you don't want to grant listing publicly, use roles/storage.legacyObjectReader.\n\n",
+    "answer_id": 56354633,
+    "tags": [
+      "cdn",
+      "google-cloud-storage",
+      "google-cdn"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 29945764,
+    "title": "Moving multiple files with gsutil",
+    "question_text": "Let's say I've got the following files in a Google Cloud Storage bucket:\nfile_A1.csv\nfile_B2.csv\nfile_C3.csv\n\nNow I want to move a subset of these files, lets say file_A1.csv and file_B2.csv. Currently I do this like that:\ngsutil mv gs://bucket/file_A1.csv gs://bucket/file_A11.csv\ngsutil mv gs://bucket/file_B2.csv gs://bucket/file_B22.csv\n\nThis approach requires two call of more or less the same command and moves each file separately. I know, that if I move a complete directory I can add the -m option in order to accelerate this process. However, unfortunately I just want to move a subset of all files and keep the rest untouched in the bucket.\nWhen moving 100 files this way I need to execute 100 commands or so and this becomes quite time consuming. I there a way to combine each of the 100 files into just one command with addtionally the -m option?\n",
+    "question_score": 18,
+    "answer_text": "gsutil does not support this currently but what you could do is create a number of shell scripts, each performing a portion of the moves, and run them concurrently.\nNote that gsutil mv is based on the syntax of the unix mv command, which also doesn't support the feature you're asking for.\n",
+    "answer_id": 29947395,
+    "tags": [
+      "google-cloud-storage",
+      "move",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 45760768,
+    "title": "How to retrieve the most recent file in cloud storage bucket?",
+    "question_text": "Is this something that can be done with gsutil?\nhttps://cloud.google.com/storage/docs/gsutil/commands/ls does not seem to mention any sorting functionality  - only filtering by a date - which wouldn't work for my use case.\n",
+    "question_score": 18,
+    "answer_text": "Hello this still doesn't seems to exists, but there is a solution in this post: enter link description here\nThe command used is this one:\ngsutil ls -l gs://[bucket-name]/ | sort -k 2\n\nAs it allow you to filter by date you can get the most recent result in the bucket and recuperating the last line using another pipe if you need.\n",
+    "answer_id": 54218908,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 36751908,
+    "title": "How can I exclude a file from deploy in gcloud?",
+    "question_text": "I have built a Node.js app and what I do to deploy is cd into my project's directory and run gcloud preview app deploy. This works, but in the files I also have a JSON file which acts like the database for my application, which I do not want updated on the site when I deploy.\nI cannot seem to find any way of doing this.\nAny idea?\n",
+    "question_score": 17,
+    "answer_text": "I believe you will want to use the skip_files directive in your app.yaml to exclude paths or files you do not want deployed.\nSomething like:\nskip_files:\n  - ^your_data_dir/.*\\.json?\n\n",
+    "answer_id": 42767895,
+    "tags": [
+      "google-cloud-storage",
+      "google-cloud-platform",
+      "gcloud"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 43531595,
+    "title": "Can you pass a keyfile.json to gsutil?",
+    "question_text": "I have a (maybe unique?) use case in some Python scripts that I am running. Namely, I want the parallel awesomeness of gsutil and so I don't do from google.cloud import storage, rather I use subprocess calls such as:\nsubprocess.Popen([\"gsutil\", \"-q\", \"-m\", \"-o\", \"GSUtil:parallel_process_count=8,GSUtil:parallel_thread_count=8\", \"cp\", files, destination])\n\nin order to upload and download files from buckets.\nIn an instance group template I can pass in the service account via -scopes, but I'd like authentication to be handled at the application level. I tried setting environment variables and passing it to subprocess:\nos.environ[\"GOOGLE_APPLICATION_CREDENTIALS\"] = \"keyfile.json\"\ntmp_env = os.environ.copy()\nsubprocess.Popen(['gsutil', ...], env=tmp_env)\n\nbut to no avail. Running:\ngcloud auth activate-service-account --key-file /path/to/keyfile.json --project my-project -q\n\nseems to be the best way to authenticate with a json keyfile that does not require the Python API. But it doesn't work if I throw it in at the end of my Dockerfile, and while I could of course throw it in at the end of a startup.sh script that I have executed at the end of an instance group template embedded bootstrap.sh script, neither is really accomplishing what I'd like. Namely, both get away from my original goal of having \"gsutil authentication\" at the application level.\ntl;dr Is there a way to pass keyfile.json credentials to gsutil? Is this a feature the gsutil team has ever discussed? My apologies if I just haven't been hunting the Cloud Platform and gsutil docs well enough.\n",
+    "question_score": 17,
+    "answer_text": "You can provide a pointer to a JSON key file for gsutil in your .boto configuration file like so:\n[Credentials]\ngs_service_key_file = /path/to/your/keyfile.json\n\nThis is equivalent to running gsutil config -e for a standalone (non-gcloud)  install.\nIf you want to provide this on the command line as opposed to in your .boto configuration file, you can use the -o parameter similar to how you configured the process and thread counts in your command line.  To wit:\nsubprocess.Popen([\"gsutil\", \"-q\", \"-m\", \"-o\", \"Credentials:gs_service_key_file=/path/to/your/keyfile.json\",\n                 \"-o\", \"GSUtil:parallel_process_count=8\", \"-o\", GSUtil:parallel_thread_count=8\", \"cp\", files, destination])\n\nNote that you need to make sure the key file path is accessible from within your container.\n",
+    "answer_id": 43531766,
+    "tags": [
+      "google-cloud-storage",
+      "gsutil"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 35444880,
+    "title": "How to view an image stored in Google cloud storage bucket?",
+    "question_text": "I have a bucket that has images stored in it , when I retrieve the image using the public URL of the image it downloads it in the browser instead of showing the image in the browser , how can I view the image instead of downloading it. I use the following URL for the uploaded image.\nhttps://www.googleapis.com/download/storage/v1/b/image-downloader-bucket/o/a06266f6-6082-468e-92ca-f918a48533a8?generation=1455661996337000&alt=media\nCan someone let me know how to create the right URL for viewing the image ?\n",
+    "question_score": 17,
+    "answer_text": "If the object is publicly readable, you can view it directly at \"https://storage.googleapis.com/BUCKET_NAME/OBJECT_NAME\", which in your case would be https://storage.googleapis.com/image-downloader-bucket/a06266f6-6082-468e-92ca-f918a48533a8.\n",
+    "answer_id": 35444991,
+    "tags": [
+      "google-api",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 31855049,
+    "title": "How to change the scope of a Google Compute Engine service account to write data to a Google Cloud Storage bucket?",
+    "question_text": "There is an instance running on GCE and there is a GCS bucket in same project. But I am not able to write data to it. How can I write data from a VM instance to the storage bucket?\n",
+    "question_score": 17,
+    "answer_text": "Update: as of 15 Dec 2016, the feature setServiceAccount is now in beta:\n\nYou can change the service account and/or access scopes of an existing instance if you want to run as a different identity, or you determine that the instance needs a different set of scopes to call the required APIs. For example, you can change access scopes to grant access to a new API or change an instance so that it runs as a service account you created instead of the Compute Engine Default Service Account.\nTo change an instance's service account and access scopes, the instance must be temporarily stopped. To stop your instance, read the documentation for Stopping an instance. After changing the service account or access scopes, remember to restart the instance.\n\nThe documentation provides instructions for how to use this feature using the Google Cloud Console, gcloud CLI tool, as well as API. Here's an example using gcloud; see the docs for more info.\n\ngcloud beta compute instances set-scopes [INSTANCE_NAME] \\\n     --service-account [SERVICE_ACCOUNT_EMAIL] \\\n     [--no-scopes | --scopes [SCOPES,...]]\n\n\n\nPrevious answer (valid prior to 15 Dec 2016):\nYou can't change the scopes of a running VM instance. You can either:\n\ncreate a new instance (possibly reusing the disks of your current instance) with the right scopes specified at creation time, e.g.:\ngcloud compute instances create [...] --scopes storage-rw\n\nif you want to use gsutil manually from inside the VM, you can run gsutil config inside the VM and authenticate by following its prompts\nif you are planning to use an automated tool using Google APIs, use a service account\n\n",
+    "answer_id": 31868837,
+    "tags": [
+      "google-cloud-storage",
+      "google-compute-engine",
+      "service-accounts"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 50335898,
+    "title": "Google cloud storage directory size",
+    "question_text": "I'm trying to find out how to calculate the size of a directory inside a google-cloud-storage bucket.\nI've found two ways so far:\n\nUsing gsutils (which I can't really, because it won't be available in the machine I need to do this from)\nUsing the getMetadata method from the nodejs library.\n\nThe problem is that the getMetatada method only works on files, and not directories (or prefixes as they're called).\nI could list all the files and ask them all for their size but getMetadata doesn't allow for query batching and I would probably be making people angry at @google.\nDo you guys know of any way to do that properly in a respectful manner?\nSincerely\n",
+    "question_score": 17,
+    "answer_text": "If you were able to use gsutil, you could use du, like this:\ngsutil du -sh YOUR_BUCKET/YOUR_DIRECTORY\nThe -s flag will give you only the size of the directory, if you remove it you will also see the size of the files inside. The -h flag returns the size in a human-readable format (KiB,MiB, etc). If not present, it will display the size in bytes.\nBut, since you mention you can't do it like that, you will have to use, as mentioned, getMetadata. \nThis simple script will show the size in the console, in bytes, of all of your files in the folder you wish. You can later modify it to add up those sizes.\nvar http = require(\"http\");\nhttp.createServer(function (request, response) {\n   const Storage = require('@google-cloud/storage');\n   const projectId = \"PROJECT-ID\";\n   const bucketName = \"BUCKET-NAME\";\n   const storage = Storage({\n       projectId: projectId,\n   });\n  const options = {\n    prefix: \"FOLDER-IN-BUCKET/\"\n  }\n  storage\n    .bucket(bucketName)\n    .getFiles(options)\n    .then(results => {\n        const files = results[0];\n        files.forEach(file => {\n          storage.\n            bucket(bucketName)\n            .file(file.name)\n            .getMetadata()\n            .then(metadata_results => {\n                const metadata = metadata_results[0];\n                console.log(metadata.size);\n                console.log(metadata.name);\n          }).catch(metadata_err => {\n            console.error(metadata_err);\n          });\n        });\n     }).catch(err => {\n        console.error(err);\n    });\n   response.writeHead(200, {'Content-Type': 'text/plain'});\n   response.end('Hello World\\n');\n}).listen(8080);\nconsole.log(\"Hello World\");\n\nDon't forget to add the dependency for Cloud Storage in your package.json.\nYou can follow this suggestion, use daily storage logs, and read said logs from Node\n",
+    "answer_id": 50352683,
+    "tags": [
+      "node.js",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 53106396,
+    "title": "Granting access to a Google Cloud Storage bucket to a third-party",
+    "question_text": "I need a third-party to upload some files to a Google Cloud Storage bucket. What is the best (or easiest) way to give them access?\n",
+    "question_score": 17,
+    "answer_text": "The first two methods require that the user have a valid Google Account. I am ignoring Google Identity Platform in this answer. If the user has a Gmail Account, then this means they also have a Google Account. The third method uses a Google Service Account.\nMethod 1: Use the Google Cloud Storage Console: \n\nGo to Storage -> Browser.\nCheck the desired bucket. In the right side panel under permissions, click the Add button.\nAdd the user's Google Account email address. Select Storage Object Creator.\n\nThe role granted is roles/storage.objectCreator. This role grants the user permissions to create objects in the bucket but the user cannot delete or overwrite objects.\nLink to Cloud Storage Roles\nMethod 2: Use the gsutl CLI:\ngsutil iam ch user:username@example.com:ObjectCreator gs://examplebucket\n\nLink to gcloud IAM\nCommand to read the current bucket IAM policy:\ngsutil iam get gs://examplebucket\n\nMethod 3: Use a Google Service Account\nCreate a Google Service Account in the Google Cloud Console\n\nGo to IAM & admin -> Service accounts\nClick CREATE SERVICE ACCOUNT\nEnter a Service account name and Service account description\nClick CREATE\nIn the next screen Service account permissions, select a role.\nSelect Storage -> Storage Object Creator\nClick CONTINUE\nClick Create key\nCheck the JSON radio button for the Key type\nSave the json file to your local computer.\n\nYou now have Google Service Account credentials that can be setup with gsutil, gcloud and software programs.\nSetting up gcloud with Service Account Credentials\n",
+    "answer_id": 53108767,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 47072883,
+    "title": "Get Public URL from file uploaded with firebase-admin",
+    "question_text": "I use firebase-admin and firebase-functions to upload a file in Firebase Storage.\nI have this rules in storage:\nservice firebase.storage {\n  match /b/{bucket}/o {\n    match /images {\n      allow read;\n      allow write: if false;\n    }\n  }\n}\n\nAnd I want get a public URL with this code:\nconst config = functions.config().firebase;\nconst firebase = admin.initializeApp(config);\nconst bucketRef = firebase.storage();\n\nserver.post('/upload', async (req, res) => {\n\n  // UPLOAD FILE\n\n  await stream.on('finish', async () => {\n        const fileUrl = bucketRef\n          .child(`images/${fileName}`)\n          .getDownloadUrl()\n          .getResult();\n        return res.status(200).send(fileUrl);\n      });\n});\n\nBut I have this error .child is not a function.\nHow can I get the public url of a file with firebase-admin?\n",
+    "question_score": 17,
+    "answer_text": "From the sample application code on the using Cloud Storage documentation, you should be able to implement the following code to obtain the public download URL after the upload is successful:\n// Create a new blob in the bucket and upload the file data.\nconst blob = bucket.file(req.file.originalname);\nconst blobStream = blob.createWriteStream();\n\nblobStream.on('finish', () => {\n    // The public URL can be used to directly access the file via HTTP.\n    const publicUrl = format(`https://storage.googleapis.com/${bucket.name}/${blob.name}`);\n    res.status(200).send(publicUrl);\n});\n\nAlternatively, if you need a publicly accessible download URL, see this answer which suggests using getSignedUrl() from the Cloud Storage NPM module because the Admin SDK doesn't support this directly:\n\nYou'll need to generate a signed URL using getSignedURL via the\n  @google-cloud/storage NPM module.\nExample:\nconst gcs = require('@google-cloud/storage')({keyFilename: 'service-account.json'});\n// ...\nconst bucket = gcs.bucket(bucket);\nconst file = bucket.file(fileName);\nreturn file.getSignedUrl({\n  action: 'read',\n  expires: '03-09-2491'\n}).then(signedUrls => {\n  // signedUrls[0] contains the file's public URL\n});\n\n\n",
+    "answer_id": 47074049,
+    "tags": [
+      "firebase",
+      "google-cloud-storage",
+      "firebase-storage",
+      "firebase-admin"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 53667068,
+    "title": "Non-void method with doNothing() in Mockito?",
+    "question_text": "I have a unit test to test uploading a file to GCP storage. Here is the code for upload the file.\n@Override\npublic boolean upload(StorageConfiguration storageConfiguration, File file) throws MetaFeedException {\n    // get google storage connection.\n    Optional<Storage> storage = getStorageConnection(storageConfiguration.getJsonCredentialFilePath());\n\n    // if GCP storage is empty, return empty.\n    if (!storage.isPresent()) {\n        throw new MetaFeedException(\"Failed to establish connection with GCP storage\");\n    }\n\n    // upload blob with given file content\n    BlobId blobId = BlobId.of(storageConfiguration.getBucketName(),\n            storageConfiguration.getBucketPath().concat(file.getName()));\n    BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(storageConfiguration.getContentType()).build();\n    try {\n        return storage.get().create(blobInfo, Files.readAllBytes(Paths.get(file.getAbsolutePath()))).exists();\n    } catch (Exception e) {\n        throw new MetaFeedException(\"Error occurred while uploading file.\", e);\n    }\n}\n\nIn my unit tests, I've done something like this,\n@Test\npublic void should_upload_file_to_gcp_with_given_data() throws Exception {\n    File tempFile = File.createTempFile(\"file-name\", \"1\");\n\n    StorageConfiguration storageConfiguration = new StorageConfiguration();\n    storageConfiguration.setBucketName(\"sample-bucket\");\n    storageConfiguration.setBucketPath(\"ff/\");\n    storageConfiguration.setJsonCredentialFilePath(\"json-credentials\");\n    storageConfiguration.setContentType(\"text/plain\");\n\n    StorageOptions defaultInstance = mock(StorageOptions.class);\n    Storage mockStorage = spy(Storage.class);\n\n    when(defaultInstance.getService()).thenReturn(mockStorage);\n\n    BlobId blobId = BlobId.of(storageConfiguration.getBucketName(), storageConfiguration.getBucketPath().concat(tempFile.getName()));\n    BlobInfo blobInfo = BlobInfo.newBuilder(blobId).setContentType(storageConfiguration.getContentType()).build();\n\n    doNothing().when(mockStorage).create(blobInfo, Files.readAllBytes(Paths.get(tempFile.getAbsolutePath())));\n\n    boolean upload = gcpStorageManager.upload(storageConfiguration, tempFile);\n    Assert.assertTrue(upload);\n}\n\nWhat I'm trying to do is prevent calling the create() method. My point is I don't want to perform a real upload to GCP since it's a test. So I tried as above. But I got an error,\norg.mockito.exceptions.base.MockitoException: \nOnly void methods can doNothing()!\nExample of correct use of doNothing():\n    doNothing().\n    doThrow(new RuntimeException())\n    .when(mock).someVoidMethod();\n Above means:\nsomeVoidMethod() does nothing the 1st time but throws an exception \nthe 2nd time is called\n\nUPDATE\nOptional<Storage> storage;\n    try {\n        //connect with the json key file if the key path is not empty\n        if (StringUtils.isNotEmpty(jsonCredentialFilePath) && Files.exists(Paths.get(jsonCredentialFilePath))) {\n            storage = Optional.ofNullable(StorageOptions.newBuilder()\n                    .setCredentials(ServiceAccountCredentials.fromStream(new FileInputStream(jsonCredentialFilePath)))\n                    .build().getService());\n        } else {\n            // if no json key file provided connect to storage without key file.\n            storage = Optional.ofNullable(StorageOptions.getDefaultInstance().getService());\n        }\n    } catch (Exception e) {\n        throw new MetaFeedException(\"Error occurred while connecting to GCP storage\", e);\n    }\n\n    return storage;\n\nIs there a way to fix this test for uploading file to GCP?\n",
+    "question_score": 17,
+    "answer_text": "I had the following problem:\nI had a method that was returning a Page<...> ,but I can use doNothing() only on void method ,so the fix is easy:\n    @Override\n    public Page<ThreadServiceModel> findAll(Pageable pageable) {\n        return this.findAll(ThreadServiceModel.class, pageable);\n    }\n\nAnd here we go:\n        //Will fail and the actualy findAll will be invoked:\n        when(this.threadServices.findAll(ThreadServiceModel.class,pageable)).thenReturn(null);\n\n        //Will fail ,cuz you cannot call doNothing() on something that returns values\n\n        doNothing().when(this.threadServices).findAll(ThreadServiceModel.class,pageable);\n\n        //This is the solution ,and when you use doReturn() the actual method will be NOT invoked,\n        //+In my case i dont need value , but if i want I cant use...\n        doReturn(null).when(this.threadServices).findAll(ThreadServiceModel.class,pageable);\n\nSo the solution is simple ,use the last method on the code that I have showed you :)\n",
+    "answer_id": 55541049,
+    "tags": [
+      "java",
+      "junit",
+      "google-cloud-platform",
+      "mockito",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 36509116,
+    "title": "Writing to Google Cloud Storage from PubSub using Cloud Dataflow using DoFn",
+    "question_text": "I am trying write Google PubSub messages to Google Cloud Storage using Google Cloud Dataflow. I know that TextIO/AvroIO do not support streaming pipelines. However, I read in [1] that it is possible to write to GCS in a streaming pipeline from a ParDo/DoFn in a comment by the author. I constructed a pipeline by following their article as closely as I could. \nI was aiming for this behaviour:\n\nMessages written out in a batches of up to 100 to objects in GCS (one per window pane) under a path that corresponds to the time the message was published in dataflow-requests/[isodate-time]/[paneIndex].\n\nI get different results:\n\nThere is only a single pane in every hourly window. I therefore only get one file in every hourly 'bucket' (it's really an object path in GCS). Reducing MAX_EVENTS_IN_FILE to 10 made no difference, still only one pane/file.\nThere is only a single message in every GCS object that is written out\nThe pipeline occasionally raises a CRC error when writing to GCS.\n\nHow do I fix these problems and get the behaviour I'm expecting?\nSample log output:\n21:30:06.977 writing pane 0 to blob dataflow-requests/2016-04-08T20:59:59.999Z/0\n21:30:06.977 writing pane 0 to blob dataflow-requests/2016-04-08T20:59:59.999Z/0\n21:30:07.773 sucessfully write pane 0 to blob dataflow-requests/2016-04-08T20:59:59.999Z/0\n21:30:07.846 sucessfully write pane 0 to blob dataflow-requests/2016-04-08T20:59:59.999Z/0\n21:30:07.847 writing pane 0 to blob dataflow-requests/2016-04-08T20:59:59.999Z/0\n\nHere is my code:\npackage com.example.dataflow;\n\nimport com.google.cloud.dataflow.sdk.Pipeline;\nimport com.google.cloud.dataflow.sdk.io.PubsubIO;\nimport com.google.cloud.dataflow.sdk.options.DataflowPipelineOptions;\nimport com.google.cloud.dataflow.sdk.options.PipelineOptions;\nimport com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;\nimport com.google.cloud.dataflow.sdk.transforms.DoFn;\nimport com.google.cloud.dataflow.sdk.transforms.ParDo;\nimport com.google.cloud.dataflow.sdk.transforms.windowing.*;\nimport com.google.cloud.dataflow.sdk.values.PCollection;\nimport com.google.gcloud.storage.BlobId;\nimport com.google.gcloud.storage.BlobInfo;\nimport com.google.gcloud.storage.Storage;\nimport com.google.gcloud.storage.StorageOptions;\nimport org.joda.time.Duration;\nimport org.joda.time.format.ISODateTimeFormat;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\nimport java.io.IOException;\n\npublic class PubSubGcsSSCCEPipepline {\n\n    private static final Logger LOG = LoggerFactory.getLogger(PubSubGcsSSCCEPipepline.class);\n\n    public static final String BUCKET_PATH = \"dataflow-requests\";\n\n    public static final String BUCKET_NAME = \"myBucketName\";\n\n    public static final Duration ONE_DAY = Duration.standardDays(1);\n    public static final Duration ONE_HOUR = Duration.standardHours(1);\n    public static final Duration TEN_SECONDS = Duration.standardSeconds(10);\n\n    public static final int MAX_EVENTS_IN_FILE = 100;\n\n    public static final String PUBSUB_SUBSCRIPTION = \"projects/myProjectId/subscriptions/requests-dataflow\";\n\n    private static class DoGCSWrite extends DoFn<String, Void>\n        implements DoFn.RequiresWindowAccess {\n\n        public transient Storage storage;\n\n        { init(); }\n\n        public void init() { storage = StorageOptions.defaultInstance().service(); }\n\n        private void readObject(java.io.ObjectInputStream in)\n                throws IOException, ClassNotFoundException {\n            init();\n        }\n\n        @Override\n        public void processElement(ProcessContext c) throws Exception {\n            String isoDate = ISODateTimeFormat.dateTime().print(c.window().maxTimestamp());\n            String blobName = String.format(\"%s/%s/%s\", BUCKET_PATH, isoDate, c.pane().getIndex());\n\n            BlobId blobId = BlobId.of(BUCKET_NAME, blobName);\n            LOG.info(\"writing pane {} to blob {}\", c.pane().getIndex(), blobName);\n            storage.create(BlobInfo.builder(blobId).contentType(\"text/plain\").build(), c.element().getBytes());\n            LOG.info(\"sucessfully write pane {} to blob {}\", c.pane().getIndex(), blobName);\n        }\n    }\n\n    public static void main(String[] args) {\n        PipelineOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().create();\n        options.as(DataflowPipelineOptions.class).setStreaming(true);\n        Pipeline p = Pipeline.create(options);\n\n        PubsubIO.Read.Bound<String> readFromPubsub = PubsubIO.Read.named(\"ReadFromPubsub\")\n                .subscription(PUBSUB_SUBSCRIPTION);\n\n        PCollection<String> streamData = p.apply(readFromPubsub);\n\n        PCollection<String> windows = streamData.apply(Window.<String>into(FixedWindows.of(ONE_HOUR))\n                .withAllowedLateness(ONE_DAY)\n                .triggering(AfterWatermark.pastEndOfWindow()\n                        .withEarlyFirings(AfterPane.elementCountAtLeast(MAX_EVENTS_IN_FILE))\n                        .withLateFirings(AfterFirst.of(AfterPane.elementCountAtLeast(MAX_EVENTS_IN_FILE),\n                                AfterProcessingTime.pastFirstElementInPane()\n                                        .plusDelayOf(TEN_SECONDS))))\n                .discardingFiredPanes());\n\n        windows.apply(ParDo.of(new DoGCSWrite()));\n\n        p.run();\n    }\n\n\n}\n\n[1] https://labs.spotify.com/2016/03/10/spotifys-event-delivery-the-road-to-the-cloud-part-iii/\nThanks to Sam McVeety for the solution. Here is the corrected code for anyone reading:\npackage com.example.dataflow;\n\nimport com.google.cloud.dataflow.sdk.Pipeline;\nimport com.google.cloud.dataflow.sdk.io.PubsubIO;\nimport com.google.cloud.dataflow.sdk.options.DataflowPipelineOptions;\nimport com.google.cloud.dataflow.sdk.options.PipelineOptions;\nimport com.google.cloud.dataflow.sdk.options.PipelineOptionsFactory;\nimport com.google.cloud.dataflow.sdk.transforms.*;\nimport com.google.cloud.dataflow.sdk.transforms.windowing.*;\nimport com.google.cloud.dataflow.sdk.values.KV;\nimport com.google.cloud.dataflow.sdk.values.PCollection;\nimport com.google.gcloud.WriteChannel;\nimport com.google.gcloud.storage.BlobId;\nimport com.google.gcloud.storage.BlobInfo;\nimport com.google.gcloud.storage.Storage;\nimport com.google.gcloud.storage.StorageOptions;\nimport org.joda.time.Duration;\nimport org.joda.time.format.ISODateTimeFormat;\nimport org.slf4j.Logger;\nimport org.slf4j.LoggerFactory;\n\nimport java.io.IOException;\nimport java.nio.ByteBuffer;\nimport java.util.Iterator;\n\npublic class PubSubGcsSSCCEPipepline {\n\n    private static final Logger LOG = LoggerFactory.getLogger(PubSubGcsSSCCEPipepline.class);\n\n    public static final String BUCKET_PATH = \"dataflow-requests\";\n\n    public static final String BUCKET_NAME = \"myBucketName\";\n\n    public static final Duration ONE_DAY = Duration.standardDays(1);\n    public static final Duration ONE_HOUR = Duration.standardHours(1);\n    public static final Duration TEN_SECONDS = Duration.standardSeconds(10);\n\n    public static final int MAX_EVENTS_IN_FILE = 100;\n\n    public static final String PUBSUB_SUBSCRIPTION = \"projects/myProjectId/subscriptions/requests-dataflow\";\n\n    private static class DoGCSWrite extends DoFn<Iterable<String>, Void>\n        implements DoFn.RequiresWindowAccess {\n\n        public transient Storage storage;\n\n        { init(); }\n\n        public void init() { storage = StorageOptions.defaultInstance().service(); }\n\n        private void readObject(java.io.ObjectInputStream in)\n                throws IOException, ClassNotFoundException {\n            init();\n        }\n\n        @Override\n        public void processElement(ProcessContext c) throws Exception {\n            String isoDate = ISODateTimeFormat.dateTime().print(c.window().maxTimestamp());\n            long paneIndex = c.pane().getIndex();\n            String blobName = String.format(\"%s/%s/%s\", BUCKET_PATH, isoDate, paneIndex);\n\n            BlobId blobId = BlobId.of(BUCKET_NAME, blobName);\n\n            LOG.info(\"writing pane {} to blob {}\", paneIndex, blobName);\n            WriteChannel writer = storage.writer(BlobInfo.builder(blobId).contentType(\"text/plain\").build());\n            LOG.info(\"blob stream opened for pane {} to blob {} \", paneIndex, blobName);\n            int i=0;\n            for (Iterator<String> it = c.element().iterator(); it.hasNext();) {\n                i++;\n                writer.write(ByteBuffer.wrap(it.next().getBytes()));\n                LOG.info(\"wrote {} elements to blob {}\", i, blobName);\n            }\n            writer.close();\n            LOG.info(\"sucessfully write pane {} to blob {}\", paneIndex, blobName);\n        }\n    }\n\n    public static void main(String[] args) {\n        PipelineOptions options = PipelineOptionsFactory.fromArgs(args).withValidation().create();\n        options.as(DataflowPipelineOptions.class).setStreaming(true);\n        Pipeline p = Pipeline.create(options);\n\n        PubsubIO.Read.Bound<String> readFromPubsub = PubsubIO.Read.named(\"ReadFromPubsub\")\n                .subscription(PUBSUB_SUBSCRIPTION);\n\n        PCollection<String> streamData = p.apply(readFromPubsub);\n        PCollection<KV<String, String>> keyedStream =\n                streamData.apply(WithKeys.of(new SerializableFunction<String, String>() {\n                    public String apply(String s) { return \"constant\"; } }));\n\n        PCollection<KV<String, Iterable<String>>> keyedWindows = keyedStream\n                .apply(Window.<KV<String, String>>into(FixedWindows.of(ONE_HOUR))\n                        .withAllowedLateness(ONE_DAY)\n                        .triggering(AfterWatermark.pastEndOfWindow()\n                                .withEarlyFirings(AfterPane.elementCountAtLeast(MAX_EVENTS_IN_FILE))\n                                .withLateFirings(AfterFirst.of(AfterPane.elementCountAtLeast(MAX_EVENTS_IN_FILE),\n                                        AfterProcessingTime.pastFirstElementInPane()\n                                                .plusDelayOf(TEN_SECONDS))))\n                        .discardingFiredPanes())\n                .apply(GroupByKey.create());\n\n\n        PCollection<Iterable<String>> windows = keyedWindows\n                .apply(Values.<Iterable<String>>create());\n\n\n        windows.apply(ParDo.of(new DoGCSWrite()));\n\n        p.run();\n    }\n\n}\n\n",
+    "question_score": 17,
+    "answer_text": "There's a gotcha here, which is that you'll need a GroupByKey in order for the panes to be aggregated appropriate.  The Spotify example references this as \"Materialization of panes is done in \u201cAggregate Events\u201d transform which is nothing else than a GroupByKey transform\", but it's a subtle point.  You'll need to provide a key in order to do this, and in your case, it appears a constant value will work.\n  PCollection<String> streamData = p.apply(readFromPubsub);\n  PCollection<KV<String, String>> keyedStream =\n        streamData.apply(WithKeys.of(new SerializableFunction<String, String>() {\n           public Integer apply(String s) { return \"constant\"; } }));\n\nAt this point, you can apply your windowing function, and then a final GroupByKey to get the desired behavior:\n  PCollection<String, Iterable<String>> keyedWindows = keyedStream.apply(...)\n       .apply(GroupByKey.create());\n  PCollection<Iterable<String>> windows = keyedWindows\n       .apply(Values.<Iterable<String>>create());\n\nNow the elements in processElement will be Iterable<String>, with size 100 or more.\nWe've filed https://issues.apache.org/jira/browse/BEAM-184 to make this behavior clearer. \n",
+    "answer_id": 36511165,
+    "tags": [
+      "google-cloud-storage",
+      "google-cloud-dataflow",
+      "google-cloud-pubsub"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 26349901,
+    "title": "Delete all files in &#39;folder&#39; or with prefix in Google Cloud Bucket from Java",
+    "question_text": "I know the idea of 'folders' is sort of non existent or different in Google Cloud Storage, but I need a way to delete all objects in a 'folder' or with a given prefix from Java.\nThe GcsService has a delete function, but as far as I can tell it only takes 1 GscFilename object and does not honor wildcards (i.e., \"folderName/**\" did not work).\nAny tips?\n",
+    "question_score": 16,
+    "answer_text": "The API only supports deleting a single object at a time. You can only request many deletions using many HTTP requests or by batching many delete requests. There is no API call to delete multiple objects using wildcards or the like. In order to delete all of the objects with a certain prefix, you'd need to list the objects, then make a delete call for each object that matches the pattern.\nThe command-line utility, gsutil, does exactly that when you ask it to delete the path \"gs://bucket/dir/**. It fetches a list of objects matching that pattern, then it makes a delete call for each of them.\nIf you need a quick solution, you could always have your Java program exec gsutil.\nHere is the code that corresponds to the above answer in case anyone else wants to use it:\npublic void deleteFolder(String bucket, String folderName) throws CoultNotDeleteFile {\n  try\n  {\n    ListResult list = gcsService.list(bucket, new ListOptions.Builder().setPrefix(folderName).setRecursive(true).build());\n\n    while(list.hasNext())\n    {\n      ListItem item = list.next();\n      gcsService.delete(new GcsFilename(file.getBucket(), item.getName()));\n    }\n  }\n  catch (IOException e)\n  {\n    //Error handling\n  }\n}\n\n",
+    "answer_id": 26350142,
+    "tags": [
+      "java",
+      "google-cloud-storage",
+      "google-cloud-endpoints"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 58708081,
+    "title": "How to Read .json file in python code from google cloud storage bucket",
+    "question_text": "I'm trying to read a .json file as dict() in a python code from VM instance stored in google cloud storage bucket. \nI tried reading json file as blob:\nclient = storage.Client()\nbucket = client.get_bucket('bucket-id-here')\nblob = bucket.get_blob('remote/path/to/file.json')\nstr_json = blob.download_as_string()\n\nBut I'm unable to decode the str_json. Is my approach correct? if any other approach available please let me know.\nI need something like:\n# Method to load json\ndict = load_json(gcs_path='gs://bucket_name/filename.json')\n\n",
+    "question_score": 16,
+    "answer_text": "This method using GCS File System gcsfs an be used read files from Google Cloud storage.\n# Reading gcs files with gcsfs\nimport gcsfs\nimport json\n\ngcs_file_system = gcsfs.GCSFileSystem(project=\"gcp_project_name\")\ngcs_json_path = \"gs://bucket_name/path/to/file.json\"\nwith gcs_file_system.open(gcs_json_path) as f:\n  json_dict = json.load(f)\n\nThis method also works for images stored in GCS with skimage as,\nfrom skimage import io\nwith gcs_file_system.open(gcs_img_path) as f:\n  img = io.imread(f)\n\n",
+    "answer_id": 66096819,
+    "tags": [
+      "json",
+      "python-3.x",
+      "google-cloud-storage"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 40396552,
+    "title": "Google Storage (gs) wrapper file input/out for Cloud ML?",
+    "question_text": "Google recently announced the Clould ML, https://cloud.google.com/ml/ and it's very useful. However, one limitation is that the input/out of a Tensorflow program should support gs://.\nIf we use all tensorflow APIS to read/write files, it should OK, since these APIs support gs://.\nHowever, if we use native file IO APIs such as open, it does not work, because they don't understand gs://\nFor example:\n with open(vocab_file, 'wb') as f:\n        cPickle.dump(self.words, f)\n\nThis code won't work in Google Cloud ML.\nHowever, modifying all native file IO APIs to tensorflow APIs or Google Storage Python APIs is really tedious. Is there any simple way to do this? Any wrappers to support google storage systems, gs:// on top of the native file IO?\nAs suggested here Pickled scipy sparse matrix as input data?, perhaps we can use file_io.read_file_to_string('gs://...'), but still this requrements significant code modifcation.\n",
+    "question_score": 16,
+    "answer_text": "One solution is to copy all of the data to local disk when the program starts up. You can do that using gsutil inside the Python script that gets run, something like:\nvocab_file = 'vocab.pickled'\nsubprocess.check_call(['gsutil', '-m' , 'cp', '-r',\n                       os.path.join('gs://path/to/', vocab_file), '/tmp'])\n\nwith open(os.path.join('/tmp', vocab_file), 'wb') as f:\n  cPickle.dump(self.words, f)\n\nAnd if you have any outputs, you can write them to local disk and gsutil rsync them. (But, be careful to handle restarts correctly, because you may be put on a different machine).\nThe other solution is to monkey patch open (Note: untested):\nimport __builtin__\n\n# NB: not all modes are compatible; should handle more carefully.\n# Probably should be reported on\n# https://github.com/tensorflow/tensorflow/issues/4357\ndef new_open(name, mode='r', buffering=-1):\n  return file_io.FileIO(name, mode)\n\n__builtin__.open = new_open\n\nJust be sure to do that before any module actually tries to read from GCS.\n",
+    "answer_id": 40397032,
+    "tags": [
+      "tensorflow",
+      "google-cloud-storage",
+      "google-cloud-ml"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 41702071,
+    "title": "What is the equivalent for AWS Cloudfront service in Google Cloud?",
+    "question_text": "Today, I am using AWS S3 bucket and on top of it I am using AWS CloudFront.\nI want to have also a Google Cloud storage with CloudFront, so I found the Storage where I can create bucket and put their my static files/images which is equivalent to the S3 bucket. But what about CloudFront? Where do I set CloudFront in Google Cloud?\nThanks in advance.\n",
+    "question_score": 16,
+    "answer_text": "Google Cloud features built-in edge caching in its points of presence for services like Cloud Storage and App Engine, so in many cases you may not need a separate CDN product. I would suggest measuring your use case with and without a CDN from a few countries before adding in the extra expense. Keep in mind that objects need to be publicly readable with cache control settings that allow caching (which is the default for public objects) in order for Google's edge caches to cache them.\nGoogle Cloud does have a CDN service, though, called Google Cloud CDN. It ties in with Cloud Load Balancing. It offers direct support for GCS buckets, although that's still in alpha. The upside is that serving GCS resources via Cloud CDN adds some nice perks, such as the ability to use custom domains with HTTPS or mapping GCS bucket names to differently-named domains.\nIn addition, if you're happy with CloudFront, I believe that you can use GCS (or pretty much anything else) as an origin server for it.\n",
+    "answer_id": 41704566,
+    "tags": [
+      "amazon-s3",
+      "google-cloud-storage",
+      "amazon-cloudfront"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 25393209,
+    "title": "Moving files between folders in Google Cloud Storage with Google Cloud Console",
+    "question_text": "I have uploaded several files into the same folder on Google Cloud Storage using the Google Cloud Console.  I would now like to move several of the files to a newly created folder in Google Cloud Storage and I cannot see how to do that via the Google Cloud Console.  I found instructions to move the files via command prompt instructions on gsutil.  However, I am not comfortable with command line interfaces and have not been able to get gsutil to work on my machine.\nIs there a way to move files in Google Cloud Storage from one folder to another via the Google Cloud Console?\n",
+    "question_score": 16,
+    "answer_text": "Update: Google Cloud Shell provides a terminal within the Google Cloud Console site without having to manually create VMs; it comes with gsutil and Google Cloud SDK pre-installed and pre-authenticated.\n\nPrior answer: If you're having issues installing gsutil on your computer, consider the following approach:\n\nSpin up an f1-micro instance with the Google-provided Debian image which will have gsutil preinstalled.\n\nUse the SSH button to connect to it using the browser interface (you can also use gcutil or gcloud commands, if you have those installed and available).\n\nRun gcloud auth login --no-launch-browser within the instance. It will give you a URL to open with your browser. Once you open it, grant the OAuth permissions, and it will display a code. Paste that code back into the command-line window where you ran the command so that it gets the authentication token.\n\nRun the gsutil mv command, as suggested by Travis Hobrla:\ngsutil mv gs://bucket/source-object gs://bucket/dest-object\n\nOnce you're done with gsutil, delete the instance by clicking on the Delete button at the top of the VM instance detail page. Make sure that the box marked \"Delete boot disk when instance is deleted\" on the same VM instance page is checked, so that you don't leave an orphaned disk around, which you will be charged for.\nYou can also browse your persistent disks on the \"Disks\" tab right below the \"VM instances\" tab, and delete disks manually there, or make sure there aren't an orphaned disks in the future.\n\n\nGiven the current price of $0.013/hr for an f1-micro instance, this should cost you less than a penny to do this, as you'll only be charged while the instance exists.\n",
+    "answer_id": 25395144,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-storage",
+      "google-cloud-console"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 25530199,
+    "title": "How to upload data in bulk to the appengine datastore? Older methods do not work",
+    "question_text": "This should be a fairly common requirement, and a simple process: upload data in bulk to the appengine datastore. \nHowever, none of the older solutions mentioned on stackoverflow (links below*) seem to work anymore. The bulkloader method, which was the most reasonable solution when uploading to the datastore using the DB API doesn't work with the NDB API\nAnd now the bulkloader method seems to have been deprecated  and the old links, which are still present in the docs, lead to the wrong page. Here's an example\nhttps://developers.google.com/appengine/docs/python/tools/uploadingdata\nThis above link is still present on this page: https://developers.google.com/appengine/docs/python/tools/uploadinganapp\nWhat is the recommended method for bulkloading data now? \nThe two feasible alternatives seem to be 1) using the remote_api or 2) writing a CSV file to a GCS bucket and reading from that. Anybody have experience successfully using either method?\nAny pointers will be greatly appreciated. Thanks!\n[*The solutions offered at the links below are no longer valid]\n[1] how does one upload data in bulk to a google appengine datastore?\n[2] How to insert bulk data in Google App Engine Datastore?\n",
+    "question_score": 16,
+    "answer_text": "Some of you might be in my situation: I cannot use the import/export utility of datastore, because my data needs to be transformed before getting into the datastore. \nI ended up using apache-beam (google cloud dataflow).\nYou only need to write a few lines of \"beam\" code to\n\nread your data (for example, hosted on cloud storage) - you get a PCollection of strings, \ndo whatever transform you want (so you get a PCollection of datastore Entities), \ndump them to datastore sink.\n\nSee How to speedup bulk importing into google cloud datastore with multiple workers? for a concrete use case.\nI was able to write with a speed of 800 entities per second into my datastore with 5 workers. This enabled me to finish the importing task (with 16 million rows) in about 5 hours. If you want to make it faster, use more workers :D\n",
+    "answer_id": 50224421,
+    "tags": [
+      "python",
+      "google-app-engine",
+      "google-cloud-storage",
+      "google-cloud-datastore"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-storage",
+    "question_id": 27719495,
+    "title": "AccessDeniedException: 403 Forbidden on GCS using owner account",
+    "question_text": "I have tried to access files in a bucket and I keep getting access denied on the files. I can see them in the GCS console but can access them through that and cannot access them through gsutil either running the command below.\ngsutil cp gs://my-bucket/folder-a/folder-b/mypdf.pdf files/\nBut all this returns is AccessDeniedException: 403 Forbidden\nI can list all the files and such but not actually access them. I've tried adding my user to the acl but that still had no effect. All the files were uploaded from a VM through a fuse mount which worked perfectly and just lost all access.\nI've checked these posts but none seem to have a solution thats helped me\nCan't access resource as OWNER despite the fact I'm the owner\ngsutil copy returning \"AccessDeniedException: 403 Insufficient Permission\" from GCE\ngsutil cors set command returns 403 AccessDeniedException\n",
+    "question_score": 16,
+    "answer_text": "This is quite possible. Owning a bucket grants FULL_CONTROL permission to that bucket, which includes the ability to list objects within that bucket. However, bucket permissions do not automatically imply any sort of object permissions, which means that if some other account is uploading objects and sets ACLs to be something like \"private,\" the owner of the bucket won't have access to it (although the bucket owner can delete the object, even if they can't read it, as deleting objects is a bucket permission).\nI'm not familiar with the default FUSE settings, but if I had to guess, you're using your project's system account to upload the objects, and they're set to private. That's fine. The easiest way to test that would be to run gsutil from a GCE host, where the default credentials will be the system account. If that works, you could use gsutil to switch the ACLs to something more permissive, like \"project-private.\"\nThe command to do that would be:\ngsutil acl set -R project-private gs://muBucketName/\n\n",
+    "answer_id": 27728090,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-storage"
+    ]
+  }
+]

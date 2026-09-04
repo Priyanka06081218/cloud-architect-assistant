@@ -1,0 +1,439 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 30085326,
+    "title": "Google Cloud Bigtable vs Google Cloud Datastore",
+    "question_text": "What is the difference between Google Cloud Bigtable and Google Cloud Datastore / App Engine datastore, and what are the main practical advantages/disadvantages? AFAIK Cloud Datastore is build on top of Bigtable.\n",
+    "question_score": 158,
+    "answer_text": "Based on experience with Datastore and reading the Bigtable docs, the main differences are:\n\nBigtable was originally designed for HBase compatibility, but now has client libraries in multiple languages. Datastore was originally more geared towards Python/Java/Go web app developers (originally App Engine) \nBigtable is 'a bit more IaaS' than Datastore in that it's not 'just there' but requires a cluster to be configured.\nBigtable supports only one index - the 'row key' (the entity key in Datastore)\n\n\nThis means queries are on the Key, unlike Datastore's indexed properties\n\nBigtable supports atomicity only on a single row - there are no transactions\nMutations and deletions appear not to be atomic in Bigtable, whereas Datastore provides eventual and strong consistency, depending on the read/query method\nThe billing model is very different:\n\n\nDatastore charges for read/write operations, storage and bandwidth\nBigtable charges for 'nodes', storage and bandwidth\n\n\n",
+    "answer_id": 30086497,
+    "tags": [
+      "google-app-engine",
+      "google-cloud-platform",
+      "google-cloud-datastore",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 53489250,
+    "title": "Price aside, why ever choose Google Cloud Bigtable over Google Cloud Datastore?",
+    "question_text": "If I have a use case for both huge data storage and searchability, why would I ever choose Google Cloud Bigtable over Google Cloud Datastore?\nI've seen a few questions on SO and other sides \"comparing\" Bigtable and Datastore, but it seems to boil down to the same non-specific answers.\nHere's my current knowledge and my thoughts:\n\nDatastore is more expensive.\n\nIn the context of this question, let's forget entirely about pricing.\n\nBigtable is good for huge datasets.\n\nIt seems like Datastore is, too? I'm not seeing what specifically makes Bigtable objectively superior here.\n\nBigtable is better than Datastore for analytics.\n\nHow? Why? It seems like I can do analytics in Datastore as well, no problem. Why is Bigtable seemingly the unanimous decision industry-wide for analytics? What value do GMail, eBay, etc. get from Bigtable that Datastore can't provide?\n\nBigtable is integrated with Hadoop, Spark, etc.\n\nIs Datastore not as well, considering it's built on Bigtable?\nFrom this question, this statement was made in an answer: \n\nBigtable and Datastore are extremely different. Yes, the datastore is build on top of Bigtable, but that does not make it anything like it. That is kind of like saying a car is build on top of [car] wheels, and so a car is not much different from wheels.\n\nHowever, this seems analogy seems nonsensical, since the car (including the wheels) intrinsically provides more value than just the wheels of a car by themselves. \nIt seems at first glance that Bigtable is strictly worse than Datastore, only providing a single index and limiting quick searchability.  What am I missing?\n",
+    "question_score": 35,
+    "answer_text": "Bigtable and Datastore are optimized for slightly different use-cases, and offer different tradeoffs. The main ones are:\nData model:\n\nBigtable is a wide-column database -- think HBase and Cassandra\nDatastore is a document database -- think MongoDB\nNote that both of these can be used for key-value use cases\n\nCost model:\n\nBigtable charges per provisioned nodes \nDatastore is serverless and charges per operation\n\nIn general, Bigtable is a good choice if you need:\n\nFast point-reads and range scans (especially at scale). Bigtable will offer lower latency for key-value lookups, as well as fast scans of contiguous rows - a powerful tool since rows are stored in lexicographic order. If you have simple, predictable query patterns and design your schema well, reading from Bigtable can be incredibly efficient.\nHigh throughput writes (again, especially at scale). This is possible in part because Bigtable is eventually consistent - in exchange you can see big wins in price/performance.\n\nExample use-cases that are great for Bigtable include time series data (for IoT, monitoring, and more - think extremely write heavy workloads and massive amounts of data generated over x units of time), analytics (think fraud detection, personalization, recommendations), and ad-serving (every microsecond counts).\nDatastore (or Firestore) is a good choice if you need:\n\nQuery flexibility: Datastore offers document support and secondary indexes.\nStrong consistency and/or transactions: Bigtable has eventually consistent replication and does not support multi-row transactions.\nMobile SDKs: Datastore and Firestore are incredibly well-integrated with firebase ecosystem.\n\nExample use-cases include mobile and web applications, game state, user profiles, and product catalogs.\nTo answer a few of your questions explicitly:\n\nWhy is Bigtable used for analytics? It's mostly about performance: analytics use-cases are more likely to have large datasets and require high write throughput. It's a lot easier to run into the limits of a database if you're storing clickstream data, as opposed to something like user account information. Fast scans are also important for analytics use-cases: Bigtable allows you to retrieve all of the information you need about a user or a device extremely quickly, which you can process in a batch job or use to create recommendations and analysis on the fly.\nIs Bigtable strictly worse than Datastore? Datastore definitely provides more built-in functionality like secondary indexes and document support, and if you need those features, Datastore is a fantastic choice. But that functionality comes with tradeoffs. Bigtable provides perhaps lower-level, but incredibly performant APIs that allow users to make those tradeoffs for themselves: If a user values, say, write performance over secondary indexes, Bigtable is an excellent option. You can think of it as an extremely versatile and powerful infrastructural building block. I actually like the wheel/car analogy: sometimes you don't want the car -- if what you really need is a dirt bike, a set of solid wheels is much more useful :)\n\n",
+    "answer_id": 53506979,
+    "tags": [
+      "google-cloud-platform",
+      "nosql",
+      "google-cloud-datastore",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 34437572,
+    "title": "Google Bigtable vs BigQuery for storing large number of events",
+    "question_text": "Background\nWe'd like to store our immutable events in a (preferably) managed service. Average size of one event is less than 1 Kb and we have between 1-5 events per second. The main reason for storing these events is to be able to replay them (perhaps using table scanning) once we create future services that might be interested in these events. Since we're in the Google Cloud we're obviously looking at Google's services as first choice. \nI suspect that Bigtable would be a good fit for this but according to the price calculator it'll cost us more than 1400 USD per month (which to us is a big deal): \n\nLooking at something like BigQuery renders a price of 3 USD per month (if I'm not missing something essential):\n\nEven though a schema-less database would be better suited for us we would be fine with essentially storing our events as a blob with some metadata.\nQuestions\nCould we use BigQuery for this instead of Bigtable to reduce costs? For example BigQuery has something called streaming inserts which to me seems like something we could use. Is there anything that'll bite us in the short or long term that I might not be aware of if going down this route?\n",
+    "question_score": 25,
+    "answer_text": "Bigtable is great for large (>= 1TB) mutable data sets.  It has low latency under load and is managed by Google.  In your case, I think you're on the right track with BigQuery.\n",
+    "answer_id": 34438728,
+    "tags": [
+      "google-app-engine",
+      "google-bigquery",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 40908891,
+    "title": "Which HBase connector for Spark 2.0 should I use?",
+    "question_text": "Our stack is composed of Google Data Proc (Spark 2.0) and Google BigTable (HBase 1.2.0) and I am looking for a connector working with these versions.\nThe Spark 2.0 and the new DataSet API support is not clear to me for the connectors I have found:\n\nspark-hbase : https://github.com/apache/hbase/tree/master/hbase-spark\nspark-hbase-connector : https://github.com/nerdammer/spark-hbase-connector\nhortonworks-spark/shc : https://github.com/hortonworks-spark/shc\n\nThe project is written in Scala 2.11 with SBT.\nThanks for your help\n",
+    "question_score": 12,
+    "answer_text": "Update: SHC now seems to work with Spark 2 and the Table API. See https://github.com/GoogleCloudPlatform/cloud-bigtable-examples/tree/master/scala/bigtable-shc \nOriginal answer:\nI don't believe any of these (or any other existing connector) will do all that you would like today.\n\nspark-hbase will probably the right solution when it is release (HBase 1.4?), but currently only builds at head and is still working on Spark 2 support.\nspark-hbase-connector only seems to support RDD APIs, but since they are more stable, might be somewhat helpful. \nhortonworks-spark/shc probably won't work because I believe it only supports Spark 1 and uses the older HTable APIs which do not work with BigTable.\n\nI would recommend just using HBase MapReduce APIs with RDD methods like newAPIHadoopRDD (or possibly the spark-hbase-connector?). Then manually convert RDDs into DataSets. This approach is a lot easier in Scala or Java than Python.\nThis is an area that the HBase community is working to improve and Google Cloud Dataproc will incorporate those improvements as they happen.\n",
+    "answer_id": 40918947,
+    "tags": [
+      "scala",
+      "apache-spark",
+      "hbase",
+      "google-cloud-dataproc",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 35445540,
+    "title": "Google Cloud Bigtable backup and recovery",
+    "question_text": "I am new to Google Cloud Bigtable and have a very basic question as to whether the cloud offering protects my data against user error or application corruption?  I see a lot of mention on the Google website that the data is safe and protected but not clear if the scenario above is covered because I did not see references to how I can go about restoring data from a previous point-in-time copy.  I am sure someone on this forum knows!\n",
+    "question_score": 11,
+    "answer_text": "Updated 7/24/2020: Bigtable now supports both backups and replication.\nCurrently we create backups to protect against catastrophic events and provide for disaster recovery.\nAs of February 2017, Cloud Bigtable does not provide backups from user errors or application bugs at this time. We hope to make this feature available in a future release - there is no planned delivery date at this time.  In the meantime you may make your own snapshots using HBase or a similar process.\n",
+    "answer_id": 35468536,
+    "tags": [
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 47120916,
+    "title": "Conceptual difference concerning column families in Cassandras data model compared to Bigtable?",
+    "question_text": "I am currently trying to dig into Cassandra's data model and its relation to Bigtable, but ended up with a strong headache concerning the Column Family concept.\nMainly my question was asked and already answered. However, I'm not satisfied with the answers :)\nFirstly I've read the Bigtable paper especially concerning its data model, i.e. how data is stored. As far as I understood each table in Bigtable basically relies on a multi-dimensional sparse map with the dimensions row, column and time. The map is sorted by rows. Columns can be grouped with the name convention family:qualifier to a column family. Therefore, a single row can contain multiple column families (see the example figure in the paper).\nAlthough it is stated that Cassandra relies on Bigtable data model, I read multiple times that in Cassandra a column family contains multiple rows and is to some extent comparable to a table in relational data stores. Isn't this contrary to Bigtable's approach, where a row could contain multiple column families? What comes first, the column family or row :)? Are these concepts even comparable?\n",
+    "question_score": 10,
+    "answer_text": "The answer you linked to was from 6 years ago, and a lot has changed in Cassandra since. When Cassandra started out, its data model was indeed based on BigTable's. A row of data could include any number of columns, each of these columns has a name and a value. A row could have a thousand different columns, and a different row could have a thousand other columns - rows do not have to have the same columns. Such a database is called \"schema-less\", because there is no schema that each row needs to adhere to.\nBut Toto, we're not in Kansas any more - and Cassandra's model changed in focus (though not in essense) since, and I'll try to explain how and why:\nAs Cassandra matured, its developers started to realize that schema-less isn't as great as they once thought it was. Schemas are valuable in ensuring application correctness. Moreover, one doesn't normally get to 1000 columns in a single row just because there are 1000 individually-named fields in one record. Rather, the more common case is that the record actually contains 200 entries, each with 5 fields. The schema should fix these 5 fields that every one of these entries should have, and what defines each of these separate entries is called a \"clustering key\". So around the time of Cassandra 0.8, six years ago, these ideas where introduced to Cassandra as the \"CQL\" (Cassandra Query Language).\nFor example, in CQL one declares that a column-family (which was dutifully renamed \"table\") has a schema, with a known list of fields:  \nCREATE TABLE groups (\n    groupname text,\n    username text,\n    email text,\n    age int,\n    PRIMARY KEY (groupname, username)\n)\n\nThis schema says that each wide row in the table (now, in modern Cassandra, this was renamed a \"partition\") with the key \"groupname\" is a a possibly long list of users, each with username, email and age fields. The first name in the \"PRIMARY KEY\" specifier is the partition key (it determines the key of the wide rows), and the second is called the clustering key (it determines the key of the small rows that together make up the wide rows).\nDespite the new CQL dressup, Cassandra continued to implement these new concepts using the good-old-BigTable-wide-row-without-schema implementation. For example, consider that our data has a group \"mygroup\" with two people, (john, john@somewhere.com, 27) and (joe, joe@somewhere.com, 38). Cassandra adds the following four column names->values to the wide row:\njohn:email -> john@somewhere.com\njohn:age -> 27\njoe:email -> joe@somewhere.com\njoe:age -> 27\n\nNote how we ended up with a wide row with 4 columns - 2 non-key fields per row (email and age), multiplied by the number of rows in the partition (2). The clustering key field \"username\" no longer appears anywhere as the value, but rather as part of the column's name! So If we have two username values \"john\" and \"joe\", We have some columns prefixed \"john\" and some columns prefixed \"joe\", and when we read the column \"joe:email\" we know this is the value of the email field of the row which has username=joe.\nCassandra still has this internal duality - converting the user-facing CQL rows and clustering keys into old-style wide rows. Until recently, Cassandra's on-disk format known as \"SSTables\" was still schema-less and used composite names as shown above for column names. I wrote a detailed description of the SSTable format on Scylla's site https://github.com/scylladb/scylla/wiki/SSTables-Data-File (Scylla is a more efficient C++ re-implementation of Cassandra to which I contribute). However, column names are very inefficient in this format so Cassandra recently (in version 3.0) switched to a different file format, which for the first time, accepts clustering keys and schema-full rows as first class citizens. This was the last nail in the coffin of the schema-less Cassandra from 7 years ago. Cassandra is now schema-full, all the way.\n",
+    "answer_id": 47127723,
+    "tags": [
+      "cassandra",
+      "nosql",
+      "google-cloud-bigtable",
+      "scylla"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 50897883,
+    "title": "How to connect to Bigtable Emulator from a GoLang application? How to use it?",
+    "question_text": "I am trying to use BigTable Emulator. I have never used it before. I followed the documentation but not able to understand,\n\nHow to connect an application to Emulator.\nHow to set BIGTABLE_EMULATOR_HOST environment variable.\n\nPlease help by explaining it or pointing me to any examples or links.\nThank you.\n",
+    "question_score": 8,
+    "answer_text": "The BIGTABLE_EMULATOR_HOST environment variable overrides the normal connection logic. Having it set causes a client to connect to the emulator without any special changes needed in the code (i.e. the project/instance values passed to NewAdminClient()/NewClient() are ignored).\nThe command provided in step 2 of the Using the emulator instructions sets the environment variable for you.\nSee the implementation of GoogleCloudPlatform/golang-samples/bigtable/helloworld/main.go for a simple, concrete example of interacting with a BigTable instance.\n\nWalkthrough\nTo demonstrate using the Bigtable Emulator from go, I'm using a free tier, f1-micro Compute Engine instance. It's an instance where I hadn't used go before, so it's basically a clean slate.\nFirst things first, I setup my go environment:\n$ sudo apt install golang\n<... SNIP apt output ...>\n$ mkdir ~/go\n$ export GOPATH=$HOME/go\n\nThen I updated the google-cloud-sdk package and installed the google-cloud-sdk-bigtable-emulator package:\n$ sudo apt install google-cloud-sdk\n<... SNIP apt output ...>\n$ sudo apt install google-cloud-sdk-bigtable-emulator\n<... SNIP apt output ...>\n\nAt this point the emulator is ready to run, so I started it using the documented command:\n$ gcloud beta emulators bigtable start\nExecuting: /usr/lib/google-cloud-sdk/platform/bigtable-emulator/cbtemulator --host=localhost --port=8086\n[bigtable] Cloud Bigtable emulator running on 127.0.0.1:8086\n\nAfter starting it, it runs in the foreground, so I left that terminal alone and started a new one.\nIn the new terminal, the first thing is setting the BIGTABLE_EMULATOR_HOST environment variable. This step is documented in the emulator instructions.  The following command generates the shell command for setting the variable. To see the command it generates it, run it directly:\n$ gcloud beta emulators bigtable env-init\nexport BIGTABLE_EMULATOR_HOST=localhost:8086\n\nRunning the command enclosed in $(...) as documented tells the shell to execute the output of the command, thereby setting the variable:\n$ $(gcloud beta emulators bigtable env-init)\n\nNow that the emulator is running and the environment is ready, I need a client application to to connect to it. I chose to use the helloworld application from the GoogleCloudPlatform/golang-samples repository.\n$ git clone https://github.com/GoogleCloudPlatform/golang-samples.git\n$ cd golang-samples/bigtable/helloworld\n\nIn the main.go file in the above directory, the cloud.google.com/go/bigtable and golang.org/x/net/context packages are imported, so I ran go get to fetch both of them.\n$ go get cloud.google.com/go/bigtable\n$ go get golang.org/x/net/context\n\nThen I ran the example application, using dummy values for the -project and -instance flags, since it's going to be connecting to the locally running emulator.\n$ go run main.go -project foo -instance bar\n2018/06/18 00:39:27 Creating table Hello-Bigtable\n2018/06/18 00:39:27 Writing greeting rows to table\n2018/06/18 00:39:27 Getting a single greeting by row key:\n2018/06/18 00:39:27     greeting0 = Hello World!\n2018/06/18 00:39:27 Reading all greeting rows:\n2018/06/18 00:39:27     greeting0 = Hello World!\n2018/06/18 00:39:27     greeting1 = Hello Cloud Bigtable!\n2018/06/18 00:39:27     greeting2 = Hello golang!\n2018/06/18 00:39:27 Deleting the table\n\nNothing really happens in the emulator terminal to indicate it's being used. So, to demonstrate that it's actually interacting with the emulator, I stopped the emulator process (by pressing Ctrl-C in it's terminal) and tried executing the client application again:\n$ go run main.go -project foo -instance bar\n2018/06/18 00:40:03 Retryable error: rpc error: code = Unavailable desc = all SubConns are in TransientFailure, latest connection error: connection error: desc = \"transport: Error while dialing dial tcp [::1]:8086: getsockopt: connection refused\", retrying in 47.77941ms\n2018/06/18 00:40:03 Retryable error: rpc error: code = Unavailable desc = all SubConns are in TransientFailure, latest connection error: connection error: desc = \"transport: Error while dialing dial tcp [::1]:8086: getsockopt: connection refused\", retrying in 2.153551ms\n2018/06/18 00:40:03 Retryable error: rpc error: code = Unavailable desc = all SubConns are in TransientFailure, latest connection error: connection error: desc = \"transport: Error while dialing dial tcp [::1]:8086: getsockopt: connection refused\", retrying in 114.145821ms\n<... SNIP repeated errors ...>\n^Csignal: interrupt\n$\n\nSo, using an unmodified client application interacts with the emulator just by having the proper environment variable set.\n",
+    "answer_id": 50901602,
+    "tags": [
+      "go",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 69654599,
+    "title": "Does google cloud BigTable have a data browser?",
+    "question_text": "I need to view the data in a BigTable table, but I can't find a data browser in the web console.  (Dynamo has a nice browser in the AWS web console.)  Is there a data browser for BigTable, or am I limited to the cbt command line?\n",
+    "question_score": 8,
+    "answer_text": "Update: You can now view data in Bigtable using the Bigtable Studio query builder in the cloud console. Go to your instance and select \"Bigtable Studio\" in the side navigation. You can select your table, filter on the rowkey, limit columns and query within a time range.\nPrevious response:\nThere is currently no data browser in the web console, so you're correct that you're limited to the cbt command line. One option that can help making viewing your data easier is to query Bigtable through BigQuery. This can be great for one off ways you want to look at your data, but you should be careful with using it on any production data since some of the queries can easily do full table scans which impact performance.\n",
+    "answer_id": 69662446,
+    "tags": [
+      "google-cloud-bigtable",
+      "bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 30092964,
+    "title": "Google Cloud Bigtable coprocessor support",
+    "question_text": "Google Cloud BigTable doesn't support coprocessors: \n\nCoprocessors are not supported. You cannot create classes that\n  implement the interface org.apache.hadoop.hbase.coprocessor.\n\nhttps://cloud.google.com/bigtable/docs/hbase-differences \nI can understand that coprocessors require deployment of customer code (jars) on each Tablet (RS) node. Still, Endpoint coprocessors are vital to HBase applications to ensure data locality in some scenarios. HBase extensions such as Apache Phoenix rely on Observer coprocessors for maintaining secondary indexes, so lack of coprocessor support looks like a major area of incompatibility to me.\nIs Coprocessor support possible in the future and what workarounds exist for executing custom Java \"stored procedures\" on BigTable Tablets?\nUPDATE 1: List of Apache Phoenix coprosessors:\n\nGroupedAggregateRegionObserver\nIndexer\nMetaDataEndpointImpl\nMetaDataRegionObserver\nScanRegionObserver\nSequenceRegionObserver\nServerCachingEndpointImpl\nUngroupedAggregateRegionObserver\n\n",
+    "question_score": 8,
+    "answer_text": "Custom co-processors are not supported as of June 1, 2015.\n",
+    "answer_id": 30570743,
+    "tags": [
+      "hbase",
+      "apache-phoenix",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 52392904,
+    "title": "Big table vs Big Query usecase for timeseries data",
+    "question_text": "I am looking to finalize on Big table vs Big Query for my usecase of timeseries data.\nI had gone through https://cloud.google.com/bigtable/docs/schema-design-time-series\nThis is for storing an Omniture data which contains information like website visitor key(some Long key), his cookie id(some Long key), timestamp series data web hits for his IP, cookie\nWhat can be used as the rowkey for Big table? I cannot be using timestamp or CookieId as a prefix, as I learn from the best practices. But should have an identifier(preferably alphabet?) and then followed by timeseries suffix. The data has a volume of 500 Million with 52 columns stored in SQL table today. I think the data might be updated based on OLTP processing. But the table would be later queried on timeseries data for like OLAP processing.\na) Would Big table would be a best option here, or should I be using Big Query since just querying later based on timeseries data would help me more?\nb) If using Big table, what would be the best row key, since timeseries is the only meaning filter i see for my data. I believe, using other fields in the table like visitorkey, cookieid ids(Long ids) as prefix with timestamp would still cause entire data to be filling up 1 node in Bigtable, instead of distributing.\nPlease let me know. \n",
+    "question_score": 7,
+    "answer_text": "(I'm an engineer on the Cloud Bigtable Team)\nAs you've discovered from our docs, the row key format is the biggest decision you make when using Bigtable, as it determines which access patterns can be performed efficiently. Using visitorKey + cookie as a prefix before the timestamp sounds to me like it would avoid hotspotting issues, as there are almost certainly many more visitors to your site than there would be nodes in your cluster. Bigtable serves these sorts of time-series use cases all the time!\nHowever, you're also coming from a SQL architecture, which isn't always a good fit for Bigtable's schema/query model. So here are some questions to get you started:\n\nAre you planning to perform lots of ad hoc queries like \"SELECT A FROM Bigtable WHERE B=x\"? If so, strongly prefer BigQuery. Bigtable can't support this query without performing a full table scan. And in general Bigtable is geared more towards streaming back a simple subset of the data quickly, say, to a Dataflow job, rather than embedding complex processing in the queries themselves.\nWill you require multi-row OLTP transactions? Again, use BigQuery, as Bigtable only supports transactions within a single row.\nAre you streaming in new events at high QPS? Bigtable is much better for these sorts of high-volume updates. Remember that Bigtable's original purpose was as a random access sink for web crawler updates in Google's search index!\nDo you want to perform any sort of large-scale complex transformations on the data? Again, Bigtable is likely better here, as you can stream data out and back in faster and let custom business logic in a Dataflow job do whatever you want to it. \n\nYou can also combine the two services if you need some combination of these features. For example, say you're receiving high-volume updates all the time, but want to be able to perform complex ad hoc queries. If you're alright working with a slightly delayed version of the data, it could make sense to write the updates to Bigtable, then periodically scan the table using Dataflow and export a post-processed version of the latest events into BigQuery. GCP also allows BigQuery to serve queries directly from Bigtable in a some regions: https://cloud.google.com/bigquery/external-data-bigtable\n",
+    "answer_id": 52407903,
+    "tags": [
+      "google-bigquery",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 30757561,
+    "title": "Google Cloud Bigtable Durability/Availability Guarantees",
+    "question_text": "I would like someone from Google to provide some guidelines on the durability and availability guarantees provided by the Cloud Bigtable service.\nHere is my understanding so far:\n\nThe fact that the minimum cluster requires 3 nodes suggests that, at least within a zone, the data is highly durable and replicated to 3 nodes.\nHowever, this answer by a Googler states that \"Cloud Bigtable doesn\u2019t replicate data\" \u2014 directly contradicting the quote on the Cloud Bigtable homepage which claims it \"is built with a replicated storage strategy\". So which is it? Is it replicated or not? And if so, how many copies are kept?\nThe fact that clusters can only be set up within a particular zone suggests that the availability of a cluster is tied directly to the availability of that zone. So if I want to have a highly available Bigtable-based data storage, would it be best practice to set up independent clusters across multiple zones and handle the synchronisation of writes across the clusters myself?\n\nThere is no information on whether Bigtable clusters across zones are independent or not. If I were to set up clusters across multiple zones, and one zone goes down, could we expect the clusters in other zones to carry on working? Or is there some underlying single point of failure which could impact clusters even across zones?\nCompared to the App Engine datastore which is very specific about these details, the Cloud Bigtable documentation is rather lacking \u2014 or, at least, I've not managed to find a page which goes into detail on these aspects.\nThe Cloud Bigtable docs are similarly vague on other aspects, e.g. on the matter of size limits for values, the documentation states that individual values should stay below \"~10 MB per cell\". What on earth does \"~10 MB\" mean?! Can I hardcode a limit of exactly 10MB and expect it to always work or will that change from day to day dependent on unknown factors?\nAnyway, apologies if I sound agitated. I genuinely would like to use the Bigtable service. But I, like presumably many others, need to understand the durability/availability aspects of it before being able to invest in it. Thank you.\n",
+    "question_score": 7,
+    "answer_text": "On replication:\nThe answer you referenced is referring to replication of data across Bigtable Clusters, which is not supported at this time. (For example, a Bigtable Cluster in the United States replicating its writes to a second Cluster in Europe)\nThis concept is separate from replication of data within a Bigtable cluster, which is analogous to replication in HDFS, which is something that the product absolutely does today.\nOn availability:\nYes, the availability of a Bigtable Cluster is tied to the availability of a Google Cloud Zone.\nOn Independence:\nYes, Cloud Bigtable clusters are independent across zones. An outage in one zone should not impact the availability of other zones.\nOn data per cell:\nWe do not reject writes >10Mb per cell, we have this set as a guideline for getting optimal performance.\n",
+    "answer_id": 30762072,
+    "tags": [
+      "high-availability",
+      "google-cloud-platform",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 37912017,
+    "title": "Bigtable / HBase: Rich column family vs a single JSON Object",
+    "question_text": "I want to store quite a big amount of data on Google Cloud Bigtable (A few PetaBytes) for serving purposes. I plan to access the data using the primary key, sometimes by a key-prefix-query.\nNo data updates are planned. Only appends to existing tables.\nMy question is: Since I don't use any of my columns to filter / query / sort my queries (which is impossible in Bigtable anyway) Is there any benefit to store my data in separated columns rather than a single JSON document per row?\nThanks!\n",
+    "question_score": 6,
+    "answer_text": "Disclosure: I lead product management for Cloud Bigtable.\nIf you don't plan to retrieve or update data on a per-column granularity, your plan of storing JSON document as a single value is fine, particularly because if you store per-column data, the column family name itself (and the qualifier) need to also be stored within each row, thus adding storage overhead, which is proportional to the number of values and thus may be meaningful at your scale. In your model, you'll be using Bigtable as simply a key-value store.\nIf you do decide to break your JSON apart into many columns in the future, you can add additional column families to an existing Bigtable table (or just use additional column qualifiers within your existing column family) and rewrite your data via a parallel process such as Hadoop MapReduce or Google Cloud Dataflow.\nSide note: JSON is very verbose and takes up a bit of space; while you can precompress it yourself, Cloud Bigtable natively compresses data (transparently) to help mitigate this. That said, one alternative to consider is protocol buffers or another binary encoding to be more efficient with space.\nGiven that you plan to store multiple petabytes of data, you will likely need more than the default quota of 30 Bigtable nodes\u2014if so, please request additional quota for your use case.\nPlease see the Bigtable performance page for a ballpark measure of performance you should expect per Bigtable server node, but you should benchmark your specific read/write patterns to establish the baseline norms, and scale accordingly.\nBest of luck with your project!\n",
+    "answer_id": 38207182,
+    "tags": [
+      "json",
+      "hbase",
+      "google-cloud-bigtable",
+      "bigdata",
+      "nosql"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 52526659,
+    "title": "Convert Protobuf response to JSON in NodeJS",
+    "question_text": "How do we convert Protobuf response (eg. from Bigtable NodeJS Client) to JSON/String with correct braces. There are some resources for Python or Java(https://code.google.com/archive/p/protobuf-java-format/) but none for NodeJS yet which I have found. \nI am fairly new to Bigtable and NodeJS.\n",
+    "question_score": 6,
+    "answer_text": "I'm not an expert in nodejs, but it seems like the node protobuf library contains a toObject method that will give you a plain javascript object which you can pass to JSON.stringify():\nhttps://www.npmjs.com/package/protobufjs#usage\n",
+    "answer_id": 52540566,
+    "tags": [
+      "json",
+      "node.js",
+      "protocol-buffers",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 59368005,
+    "title": "Trying to simulate cell level TTL in bigtable but whole column family data is getting removed by garbage collection",
+    "question_text": "created a table with the following rules:\nso with this, data should expire after 1 second (as per docs)\nasync function createTable() {\n    console.log(\"Creating Table\");\n    const options = {\n        families: [\n            {\n                name: 'payloads',\n                rule: {\n                    age: {\n                        seconds: 1,\n                        nanos: 0,\n                    },\n                },\n            },\n        ],\n    };\n    try {\n        await table.create(options);\n        console.log(\"Successfully Created Table\");\n    } catch (err) {\n        console.error(`Error reading rows :`, err);\n    }\n}\n\nAnd then inserted the data like this: \n      const rowsToInsert = {\n            key: \"SUMEET\",\n            data: {\n                payloads: {\n                    '1': {\n                        value: \"NOTIFICATIONS_PAYLOAD_1\",\n                        timestamp: 1576500927000,\n                    },\n                    '2': {\n                        value: \"NOTIFICATIONS_PAYLOAD_2\",\n                        timestamp: 1576587327000,\n                    },\n                    '3': {\n                        value: \"NOTIFICATIONS_PAYLOAD_3\",\n                        timestamp: 1576673727000,\n                    },\n                    '4': {\n                        value: \"NOTIFICATIONS_PAYLOAD_4\",\n                        timestamp: 1576760127000,\n                    },\n                },\n            },\n        };\n\n        await table.insert(rowsToInsert);\n\nso i added four cells with different timeStamp:\n\nFirst with 5 minutes ahead of time when am writing the data\nSecond with 1 hour ahead\nthird with 1 day ahead\nfourth with 2 day ahead\n\nproblem here is when m reading the data whole column family data is getting deleted but it should delete only first and second cell only as per the rules set\nIs there anything am missing or am doing wrong ??\n",
+    "question_score": 6,
+    "answer_text": "The issue is in your timestamp, you are most likely setting dates from the past. I would recommend you to set the dates with the date methods from javascript instead of manually setting them up like you are doing right now.\nI did some tests with following code:\nconst Bigtable = require('@google-cloud/bigtable');\nconst bigtable = Bigtable();\nconst instance = bigtable.instance([instance]);\nconst table = instance.table([table]);\nconst now = new Date();\n\n\nasync function writeSimple() {\n    var now = new Date(Date.now());\n    var fiveMinutes = new Date(now.getTime() + 5 * 60000);\n    var anHour = new Date(now.getTime() + 60 * 60000);\n    var aDay = new Date(now.getTime() + 24 * 60 * 60000);\n    var twoDays = new Date(now.getTime() + 48 * 60 * 60000);\n  const rowsToInsert = {\n            key: \"SUMEET\",\n            data: {\n                payloads: {\n                    '1': {\n                        value: \"NOTIFICATIONS_PAYLOAD_1\",\n                        timestamp: now,\n                    },\n                    '2': {\n                        value: \"NOTIFICATIONS_PAYLOAD_2\",\n                        timestamp: fiveMinutes,\n                    },\n                    '3': {\n                        value: \"NOTIFICATIONS_PAYLOAD_3\",\n                        timestamp: anHour,\n                    },\n                    '4': {\n                        value: \"NOTIFICATIONS_PAYLOAD_4\",\n                        timestamp: aDay,\n                    },\n                    '5': {\n                        value: \"NOTIFICATIONS_PAYLOAD_5\",\n                        timestamp: twoDays,\n                    },\n                },\n            },\n        };\n\n        await table.insert(rowsToInsert);\n        console.log(`Successfully wrote row ${rowsToInsert.key}`);\n}\n\nand obtained a row like the following one:\n2019/12/17 16:53:33 -creds flag unset, will use gcloud credential\n----------------------------------------\nSUMEET\n  payloads:1                               @ 2019/12/17-16:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_1\"\n  payloads:2                               @ 2019/12/17-16:35:34.343000\n    \"NOTIFICATIONS_PAYLOAD_2\"\n  payloads:3                               @ 2019/12/17-17:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_3\"\n  payloads:4                               @ 2019/12/18-16:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_4\"\n  payloads:5                               @ 2019/12/19-16:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_5\"\n\nAnd after the garbage collector passed (around 15 minutes later) I got the result that you desired:\n2019/12/17 16:59:47 -creds flag unset, will use gcloud credential\n----------------------------------------\nSUMEET\n  payloads:3                               @ 2019/12/17-17:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_3\"\n  payloads:4                               @ 2019/12/18-16:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_4\"\n  payloads:5                               @ 2019/12/19-16:30:34.343000\n    \"NOTIFICATIONS_PAYLOAD_5\"\n\nI hope you find this useful!\n",
+    "answer_id": 59378007,
+    "tags": [
+      "node.js",
+      "google-cloud-platform",
+      "google-cloud-functions",
+      "google-cloud-bigtable",
+      "bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 38577163,
+    "title": "How to connect to a running bigtable emulator from java",
+    "question_text": "I am trying to use the bigtable emulator from gcloud beta emulators.\nI launch the emulator, grab the hostname (localhost) and port (in this instance 8885)\n\ngcloud beta emulators bigtable start\nExecuting: /usr/local/Caskroom/google-cloud-sdk/latest/google-cloud-sdk/platform/bigtable-emulator/cbtemulator --host=localhost --port=8885\n\nI am trying to connect to the emulator from a java test client,\nhere is what I provide:\nConfiguration conf = BigtableConfiguration.configure(projectId, instanceId);\n\nif(!Strings.isNullOrEmpty(host)){\n    conf.set(BigtableOptionsFactory.BIGTABLE_HOST_KEY, host);\n    conf.set(BigtableOptionsFactory.BIGTABLE_PORT_KEY, Integer.toString(port));\n}\nconnection = BigtableConfiguration.connect(configuration);\ntry (Table table = connection.getTable(\"tName\")){\n    table.put(<Put instance>);\n} \n\nWhen I execute the test code I get:\n16:36:37.369 [bigtable-batch-pool-1] INFO com.google.cloud.bigtable.grpc.async.AbstractRetryingRpcListener - Retrying failed call. Failure #1, got: Status{code=UNAVAILABLE, description=null, cause=java.net.ConnectException: Connection refused: localhost/0:0:0:0:0:0:0:1:8885}\njava.net.ConnectException: Connection refused: localhost/0:0:0:0:0:0:0:1:8885\n\nI am using the library: com.google.cloud.bigtable:bigtable-hbase-1.2:0.9.1\nAny idea of what I am doing wrong ?\nThanks !\n",
+    "question_score": 6,
+    "answer_text": "You need one additional config property to be set:\nconf.set(BigtableOptionsFactory.BIGTABLE_USE_PLAINTEXT_NEGOTIATION, true);\n\nAlso, from the log message it looks like it's trying to connect to an IPv6 address, which I don't think will work. Double-check that host is a valid IPv4 address.\nThe java client will make this easier to do in the near future.\n",
+    "answer_id": 38598800,
+    "tags": [
+      "java",
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 44230115,
+    "title": "Maintain data in Google Bigtable for longer periods",
+    "question_text": "We have use-cases where we would like to store a large volume of data in Google Bigtable for long periods:\n\nduring product development\nfor performance tuning\nfor demos\n\nWe need to store the data but we don't really need it to be \"online\" all the time. The current cost bottleneck seems to be the cost of nodes which in these cases are idle for long periods. \nHow is Google Bigtable being used during product development? I am aware of the development mode (and the emulator) and they are fine for some use-cases but we still need the production environment for other use-cases. \nReally, what would be ideal is the ability to switch \"off\" Bigtable (while still paying for data stored but not for nodes) and bring up the nodes when needed. I don't believe this feature exists. In its absence are there other possible workarounds/alternatives?\n",
+    "question_score": 6,
+    "answer_text": "It's an interesting question. I've done it with smaller projects using Datastore with much smaller sizes (~2Gb) that have hung around for years after disabling billing. Given how much it costs to do backup/restores on those projects, I could imagine this would be cost prohibitive solution in the BigTable world. It is disappointing that Google hasn't provided a better solution for this. They do talk about different storage classes so I'd imagine disabling a project would move its assets to coldline - but that is just rank speculation on my part. \n",
+    "answer_id": 44289082,
+    "tags": [
+      "bigtable",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 39650460,
+    "title": "How to delete a column of a single row in Google Cloud Bigtable with HBase API",
+    "question_text": "I'm using the HBase API to access Google Cloud Bigtable, but whenever I try to delete a column:\nDelete delete = new Delete(r.getRow());\ndelete.addColumn(CF, Bytes.toBytes(d.seqid()));\ndelete.addColumn(CF, COL_LEASE);\ntasksTable.delete(delete);\n\nI'm getting an UnsupportedOperationException:\njava.lang.UnsupportedOperationException: Cannot delete single latest cell.\nat com.google.cloud.bigtable.hbase.adapters.DeleteAdapter.throwIfUnsupportedPointDelete(DeleteAdapter.java:85)\nat com.google.cloud.bigtable.hbase.adapters.DeleteAdapter.adapt(DeleteAdapter.java:141)\nat com.google.cloud.bigtable.hbase.adapters.HBaseRequestAdapter.adapt(HBaseRequestAdapter.java:71)\nat com.google.cloud.bigtable.hbase.BigtableTable.delete(BigtableTable.java:307)\nat queue.BigTableRowBackedQueue.poll(BigTableRowBackedQueue.java:54)\n\nI saw in the code it occurs here.\nI can delete the entire row fine from the HBase Java client, and I can delete individual columns fine by using the HBase shell.\nHow can I delete columns without removing the row in the Java client?\n",
+    "question_score": 5,
+    "answer_text": "Sorry for your troubles.  Bigtable and HBase differ in a couple of ways, and this is one of them.\nDelete delete = new Delete(rowKey);\ndelete.addColumns(COLUMN_FAMILY, qual); // the 's' matters\ntable.delete(delete);\n\nHBase's Delete.addColumn deletes only the latest cell from the column.  The Delete.addColumn_s_ means delete all cells (i.e. all the various timestamps).  Alternatively, you can delete a specific cell via Delete.addColumn(byte[], byte[], long) where the long is a timestamp. \nThe hbase shell delete uses deleteColumns which maps to addColumns under the cover.  It also uses the s variation, which is why it works.\nFor reference here is our complete TestDelete suite which identify the use case you present as @Category(KnownGap.class) which we use to identify differences missing HBase features in the Bigtable client.\n",
+    "answer_id": 39668917,
+    "tags": [
+      "java",
+      "google-cloud-platform",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 51772882,
+    "title": "Can I atomically increment a column value in BigTable?",
+    "question_text": "Does BigTable support atomic increment operations similar to INCR in Redis?\nThere is this function in the Golang library for BT - https://godoc.org/cloud.google.com/go/bigtable#ReadModifyWrite.Increment. However, I can see a situation where two instances of an app try to increment at the same time, but it's only incremented once due to a race condition. \n",
+    "question_score": 5,
+    "answer_text": "Bigtable operations are atomic at a row level - you won't encounter a race condition with this API call.\n",
+    "answer_id": 51775325,
+    "tags": [
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 46031930,
+    "title": "Detect Google Cloud Project Id from a container in Google hosted Kubernetes cluster",
+    "question_text": "Detect Google Cloud Project Id from a container in Google hosted Kubernetes cluster.\nWhen connecting to BigTable; I need to provide the Google Project Id. Is there a way to detect this automatically from within K8s?\n",
+    "question_score": 5,
+    "answer_text": "Google has some libraries for this too: ServiceOptions.getDefaultProjectId\nhttps://googleapis.github.io/google-cloud-java/google-cloud-clients/index.html\nhttps://github.com/googleapis/google-cloud-java/blob/master/google-cloud-clients/google-cloud-core/src/main/java/com/google/cloud/ServiceOptions.java\nhttps://github.com/googleapis/google-cloud-java/tree/master/google-cloud-clients/google-cloud-core\n",
+    "answer_id": 46220015,
+    "tags": [
+      "kubernetes",
+      "google-cloud-platform",
+      "google-kubernetes-engine",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 53825393,
+    "title": "how does one support pagination using bigtable Go client?",
+    "question_text": "I store time series data in bigtable with a rowKey of userId#timestamp. Given query parameters of (userId, startTime, endTime) how can I support pagination i.e return 'limit' records starting from 'offset' ? \nnote that userId#startTime rowKey may not exist in bigtable but there will some datapoints before and after startTime/EndTime. Bigtable Go client seems to support ReadRows with a prefixRange argument. I could use a prefixRange of userId and 'seek' to the startTime as I iterate using ReadRows but this seems very inefficient if starTime/endTime is way in the past. is there a better way ??\n",
+    "question_score": 5,
+    "answer_text": "You can start a ReadRows operation from userId#startTime to userId#endTime with a NewRange and set a limit on the number of rows returned with a LimitRows read option.\nerr = tbl.ReadRows(ctx, NewRange(\"<userId>#<startTime>\", \"<userId>#<endTime>\"), func(r Row) bool {\n    fmt.Println(\"Got a row\")\n    return true\n}, LimitRows(100))\n\n",
+    "answer_id": 53837977,
+    "tags": [
+      "go",
+      "pagination",
+      "google-cloud-platform",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 47171291,
+    "title": "How to connect to a bigtable emulator using cbt command line?",
+    "question_text": "I ran the command gcloud beta emulators bigtable start but when I ran the command cbt listinstances, I got the error below\n\nGetting list of instances: rpc error: code = Unimplemented desc = unknown service google.bigtable.admin.v2.BigtableInstanceAdmin\n\nHow can I use cbt command to connect my local bigtable emulator?\nThe emulator command https://cloud.google.com/sdk/gcloud/reference/beta/emulators/bigtable/start\nThe cbt command\nhttps://cloud.google.com/bigtable/docs/go/cbt-reference\n",
+    "question_score": 5,
+    "answer_text": "The Cloud Bigtable emulator doesn't support any instance-level operations (CRUD for instances). You can use any arbitrary instance name when connecting to it and start by creating a table. \n",
+    "answer_id": 47177563,
+    "tags": [
+      "command-line",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 33135843,
+    "title": "Does Cloud Bigtable have a local development server like Cloud Datastore?",
+    "question_text": "If not, is there any document that list best practices to integration-test an application that uses Cloud Bigtable? Specifically the applications written in Java and Python.\nRef: https://cloud.google.com/datastore/docs/tools/devserver\n",
+    "question_score": 5,
+    "answer_text": "No document, but you might benefit from looking at how the client integration tests work.\n",
+    "answer_id": 33142588,
+    "tags": [
+      "emulation",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 52217149,
+    "title": "Is Bigtable or Datastore more suited to storing and using financial data for online applications?",
+    "question_text": "I'm creating a stock analysis web application. I want to store financial data for multiple stocks. Then I want to use a stock screener on them. This screener involves retrieving multiple stocks from the backend and performing a technical indicator test on them. Stocks that pass the indicator test will be returned to the user. Let's say i want to store a pandas.dataframe for exampleStock:\n          open    high      low   close    volume\ndate                                                 \n2017-08-01  247.46  247.50  246.716  247.32  55050401\n2017-08-02  247.47  247.60  246.370  247.44  47211216\n2017-08-03  247.31  247.34  246.640  246.96  40855997\n2017-08-04  247.52  247.79  246.970  247.41  60191838\n2017-08-07  247.49  247.87  247.370  247.87  31995021\n....\n\nI have been using DataStore. I create entities for each stock setting the key as the stocks symbol. I use a model like this:\nfrom google.appengine.ext import ndb\n\nclass Stocks(ndb.Model):\n    dates  = ndb.StringProperty(repeated=True)\n    open   = ndb.FloatProperty(repeated=True)\n    high   = ndb.FloatProperty(repeated=True)\n    low    = ndb.FloatProperty(repeated=True)\n    close  = ndb.FloatProperty(repeated=True)\n    volume = ndb.FloatProperty(repeated=True)\n\nThen I retrieve multiple entities to loop over with the techncial indicator check:\nimport numpy\n\nlistOfStocks = ndb.get_multi(list_of_keys)\nfor stock in listOfStocks:\n  doIndicatorCheck(numpy.array(stock.close))\n\nI want to make a query for stocks, do the indicator check and then return results to the user as fast as possible. Should I be using Bigtable for this or Datastore is fine? If Datastore is fine is this the ideal way to do it? \nThanks in advance.\n",
+    "question_score": 5,
+    "answer_text": "Disclosure: I am a product manager for Cloud Bigtable.\nIf you plan to have a large amount of financial data, covering the entire stock market, Cloud Bigtable is a good choice: it scales to terabytes and petabytes, and you can get low-latency responses to your requests, it is already in use in financial, risk and anti-fraud applications, and natively supports time series via its third dimension. See this blog post and video on how FIS used Cloud Bigtable for their bid on the SEC CAT project.\nThat said, Cloud Bigtable is strongly consistent in a single cluster, but eventually-consistent if you use replication, so you have to keep that in mind. If your users expect strong consistency, your options are:\n\nuse a single cluster instance (replication only within a single zone)\nif you use cross-zone replication, route requests to a single cluster via application profiles\nconsider using a different system which provides strong consistency\n\nFirestore will provide a serverless document database with strong consistency for your applications, so you should consider Firestore if that is important for your use case.\nIf you want to be able to run SQL queries on your data, consider:\n\nGoogle Cloud SQL \u2014 managed MySQL or PostgreSQL\nGoogle Cloud Spanner \u2014 petabyte-scale, transactional database\nGoogle BigQuery \u2014 serverless data warehouse\n\nHope this helps!\n",
+    "answer_id": 52230456,
+    "tags": [
+      "python",
+      "pandas",
+      "numpy",
+      "google-cloud-datastore",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 54970446,
+    "title": "How to handle hourly Bigtable connection closes?",
+    "question_text": "I have golang services with persistant Bigtable client.\nThe services are making hundred of read/write operation on Bigtable per sec.\nEvery hours from the service boot, I experience hundred of errors like this one:\nRetryable error: rpc error: code = Unavailable desc =\n the connection is draining, retrying in 74.49241ms\n\nThe error are followed by an increased processing time I can't allow when thoses errors occur.\nI was able to figure out that Bigtable client is using a pool of gRPC connections.\nIt seems that Bigtable gRPC server have a connection maxAge of 1 hour which can explain the error above and the processing time increasing during reconnection.\nA maxAgeGrace configuration is supposed to give additional time to complete current operations and avoid all pool connections to terminate at the same time.\nI increased connection pool size from default 4 to 12 with no real benefit\nHow do I prevent processing time to increase during reconnections and these error to happen, given my traffic will keep growing?\n",
+    "question_score": 5,
+    "answer_text": "Cloud bigtable clients use a pool of gRPC connections to connect to bigtable. Java client uses a channel pool per HBase connection, each channel pool has multiple gRPC connections. gRPC connections are shut down every hour (or after 15 minute of inactivity) and the underlying gRPC infrastructure performs a reconnect. The first request on each new connection performs a number of setup tasks such as TLS handshakes and warming server side caches. These operations are fairly expensive and may cause the latency spikes.\nBigtable is designed to be a high throughput system and the amortized cost of these reconnections with sustained query volume should be negligible. However, if the client application has very low QPS or long periods of idle time between queries and can not tolerate these latency spikes, it can create a new Hbase connection(java) or a new CBT client(golang) every 30-40 minutes and run no op calls (exist on hbase client or read a small row)  on the new connection/client to prime the underlying gRPC connections (one call per connection, for hbase default is twice the number of CPUs, go has 4 connections by default). Once primed you can swap out the new connection/client for the main operations in the client application. Here is sample go code for this workaround.\n",
+    "answer_id": 55223714,
+    "tags": [
+      "go",
+      "grpc",
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 69653629,
+    "title": "Are multiple Google BigTable nodes required for high availability?",
+    "question_text": "We are trialing the use of BigTable and are doing a capacity planning exercise. We think one node will satisfy our needs in the early stages of our implementation and we add more as necessary later.\nMy only question is, do we require more than one node in order to provide high availability? (My lack of understanding of what constitutes a \"node\" is obvious here, the answer to this question will help me to understand)\n",
+    "question_score": 5,
+    "answer_text": "To provide high availability of Cloud Bigtable instances, you need more Clusters, not nodes. A cluster represents the Bigtable service in a specific location and each cluster is located in a single zone. To attain high availability of your instance you need to create more cluster. You can also visit Google recommendation to know more about creating Cloud Bigtable High Availability.\nNote: Nodes in the cluster of Cloud Bigtable instances are the compute resources that Bigtable uses to manage your data. If you increase the number of nodes, you are increasing the performance of your cluster to support the larger workload.\n",
+    "answer_id": 69655882,
+    "tags": [
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 34927309,
+    "title": "Achieving declared Cloud Bigtable writes QPS",
+    "question_text": "We've setup Bigtable cluster with 5 nodes, and GCP console states that it should support 50K QPS @ 6ms for reads and writes.\nWe are trying to load a large dataset (~800M records) with ~50 fields containing mostly numeric data, and a few short strings. The keys are 11-digit numeric strings.\nWhen loading this dataset via HBase API from a single client VM in GCE we observe up to 4K QPS when putting each field into a separate column. We use single HBase connection, and multiple threads (5-30) doing batch puts of 10K records.\nWhen combining all fields into a single column (Avro-encoded, ~250 bytes per record), the write performance with batch puts improves to 10K QPS. Number of concurrent threads doesn't seem to affect QPS. When using a separate HBase connection per thread, write performance increases to 20K QPS with 5 threads.\nThe client VM is in the same availability zone as Bigtable cluster, and it stays almost idle during the load, so it doesn't look like the bottleneck is on the client side.\nQuestions:\n\nFrom our tests it appears that write QPS decreases with the number of columns inserted. Is this expected, and how can this relationship be quantified? (BTW, it'd be great if this was mentioned in Bigtable performance documentation).\nWhat may we be missing in order to achieve the declared write QPS? My understanding is that each cluster node should support 10K write QPS, however it appears that we are going against a single node with a single HBase connection, and only against 2 nodes with multiple HBase connections.\n\n",
+    "question_score": 5,
+    "answer_text": "BufferedMutator in 0.2.3-SNAPSHOT with OpenSSL and Java8 gives 22-23K QPS for small (1KB) mutations on 4 CPU machines and up to 90K on a 32 CPU machine.  0.2.2 gave 10K-12K QPS.  Open a single HBase connection for best performance.\nNote - removed note about OpenSSL as it's now the default\nSee https://github.com/GoogleCloudPlatform/cloud-bigtable-client for additional info.\n",
+    "answer_id": 34937271,
+    "tags": [
+      "google-cloud-bigtable"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-bigtable",
+    "question_id": 46465762,
+    "title": "Bigtable performance influence column families",
+    "question_text": "We are currently investigating the influence of using multiple column families on the performance of our bigtable queries. We found that splitting the columns into multiple column families does not increase the performance. Does anyone have had similar experiences? \nSome more details about our benchmark setup. At this moment each row in our production table contains around 5 columns, each containing between 0,1 to 1 KB of data. All columns are stored into one column family. When performing a row key range filter (which returns on average 340 rows) and apply a column regex fitler (which returns only 1 column for each row), the query takes on average 23,3ms. We created some test tables where we increased the amount of columns/data per row by a factor 5. In test table 1, we kept everything in one column family. As expected this increased the query time of that same query to 40,6ms. In test table 2 we kept the original data in one column family, but the extra data was put into another column family. When querying the column family containing the original data (thus containing the same amount of data as the original table), the query time was on average 44,3ms. So the performance even decreased when using more column families. \nThis is exactly the opposite of we would have expected. E.g. this is mentioned in the bigtable docs ( https://cloud.google.com/bigtable/docs/schema-design#column_families)\n\nGrouping data into column families allows you to retrieve data from a single family, or multiple families, rather than retrieving all of the data in each row. Group data as closely as you can to get just the information that you need, but no more, in your most frequent API calls.\n\nAnyone with an explanation for our findings?\nbenchmark results\n\n(edit: added some more details)\nThe content of a single row:\nTable 1:\n\ncf1\n\ncol1\ncol2\n...\ncol25\n\n\nTable 2:\n\ncf1\n\n\ncol1\ncol2\n..\ncol5\n\ncf2\n\n\ncol6\ncol7\n..\ncol25\n\n\nThe benchmark we are executing is using the go client. The code that calls the API looks basically as follows:\nfilter = bigtable.ChainFilters(bigtable.FamilyFilter(request.ColumnFamily),\n            bigtable.ColumnFilter(colPattern), bigtable.LatestNFilter(1))\ntbl := bf.Client.Open(table)\nrr := bigtable.NewRange(request.RowKeyStart, request.RowKeyEnd)\nerr = tbl.ReadRows(c, rr, func(row bigtable.Row) bool {return true}, bigtable.RowFilter(filter))\n\n",
+    "question_score": 5,
+    "answer_text": "The reason why there is no speed up in performance when splitting data over multiple column families, is that they are stored in the same \"locality group\", i.e. file. Internally Google does offer the possibility to split different column families over different locality groups, but this isn't exposed in their managed Cloud Bigtable service. See the comments on this answer.\n",
+    "answer_id": 55893839,
+    "tags": [
+      "bigdata",
+      "google-cloud-platform",
+      "google-cloud-bigtable"
+    ]
+  }
+]

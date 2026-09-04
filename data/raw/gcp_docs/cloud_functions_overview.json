@@ -1,0 +1,5 @@
+{
+  "url": "https://cloud.google.com/functions/docs/concepts/overview",
+  "section": "cloud_functions_overview",
+  "text": "If you are creating a new function, see the\nConsole Quickstart\non Cloud Run.\nHome\nDocumentation\nApplication hosting\nCloud Run\nCloud Run functions\nGuides\nSend feedback\nStay organized with collections\nSave and categorize content based on your preferences.\nFunctions overview\nSee the following documentation based on your function version:\nFor Cloud Run functions, see\nCloud Run documentation\n.\nLearn how to\ndeploy a Cloud Run function\n.\nIf you have existing functions and need to use\ngcloud functions\ncommands\nor the Cloud Functions v2 API for backward compatibility, see\nDeploy functions created with the v2 API\n.\nFor Cloud Run functions (1st gen), see\nDeploy a function (1st gen)\n.\nFor a comparison of the two versions, see\nCompare Cloud Run functions\n.\nSend feedback"
+}

@@ -1,0 +1,253 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 76175487,
+    "title": "Sudden ImportError: cannot import name &#39;appengine&#39; from &#39;requests.packages.urllib3.contrib error on pipeline",
+    "question_text": "My pipelines and schedulers were running smoothly without any problems. After I went out to lunch, I changed the number of epochs a Neural Network would run, save the .yaml file again and leave it in the bucket named \"budgetff\".\nAfterwards, everything stopped working.\n\n\nThere are the errors and I have 0 clue as to how they are appearing. The code within the components doesn't even seem to start. I've made several different components without any success because they just fail at this step.\nIf it helps, I installed the kfp --pre and did the imports like this\nimport kfp.v2.dsl, kfp.v2.compiler\nfrom kfp.v2.dsl import Artifact, Dataset, Input, Metrics, Model, Output\n\nkfp-2.0.0-beta.15 - This is the kfp version running on VertexAi and I'm using Kubeflow with @kfp.v2.dsl.components.\nI was trying to just run my pipelines. Forcing a run on the scheduler. When it didn't work, I just tried on the notebook.\n",
+    "question_score": 45,
+    "answer_text": "I ran into the same issue today and was scratching my head. I found adding appengine-python-standard to the packages_to_install argument in the component decorator solved the issue:\n@component(base_image=\"python:3.7\", packages_to_install=[\"appengine-python-standard\",...])\n\nFor context, I'm using KFP v1.8.20 through Vertex workbench. Fingers crossed, it works for v2.0.0-beta.15.\n",
+    "answer_id": 76177300,
+    "tags": [
+      "google-cloud-vertex-ai",
+      "kubeflow",
+      "kubeflow-pipelines",
+      "vertex-ai-pipeline"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 72251787,
+    "title": "Permission &quot;artifactregistry.repositories.downloadArtifacts&quot; denied on resource",
+    "question_text": "While the artifact repository was successfully creating, running a docker push to push the image to the google artifact registry fails with a permissions error even after granting all artifact permissions to the accounting I am using on gcloud cli.\nCommand used to push image:\ndocker push us-central1-docker.pkg.dev/project-id/repo-name:v2\n\nError message:\nThe push refers to repository [us-central1-docker.pkg.dev/project-id/repo-name]\n6f6f4a472f31: Preparing\nbc096d7549c4: Preparing\n5f70bf18a086: Preparing\n20bed28d4def: Preparing\n2a3255c6d9fb: Preparing\n3f5d38b4936d: Waiting\n7be8268e2fb0: Waiting\nb889a93a79dd: Waiting\n9d4550089a93: Waiting\na7934564e6b9: Waiting\n1b7cceb6a07c: Waiting\nb274e8788e0c: Waiting\n78658088978a: Waiting\ndenied: Permission \"artifactregistry.repositories.downloadArtifacts\" denied on resource \"projects/project-id/locations/us-central1/repositories/repo-name\" (or it may not exist)\n\n\n\n",
+    "question_score": 31,
+    "answer_text": "I was able to recreate your use case. This happens when you are trying to push an image on a repository in which its specific hostname (associated with it's repository location) is not yet  added to the credential helper configuration for authentication. You may refer to this Setting up authentication for Docker  as also provided by @DazWilkin in the comments for more details.\nIn my example, I was trying to push an image on a repository that has a location of us-east1 and got the same error since it is not yet added to the credential helper configuration.\n\nAnd after I ran the authentication using below command (specifically for us-east1 since it is the location of my repository), the image was successfully pushed:\ngcloud auth configure-docker us-east1-docker.pkg.dev\n\n\nQUICK TIP: You may  get your authentication command specific for your repository when you open your desired repository in the console, and then click on the SETUP INSTRUCTIONS.\n\n",
+    "answer_id": 72255017,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-ml",
+      "google-cloud-vertex-ai",
+      "docker-push"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 78007243,
+    "title": "Utilizing Gemini: Through Vertex AI or through Google/generative-ai?",
+    "question_text": "I'm in the process of developing a chatbot application and I'm exploring options for integrating Gemini, a large language model (LLM).\nI'm considering whether to utilize Vertex AI (@google-cloud/vertexai) for integration or to directly incorporate Gemini (@google/generative-ai)\ngoogle-cloud/vertexai:\nhttps://cloud.google.com/vertex-ai/docs/generative-ai/start/quickstarts/quickstart-multimodal\ngoogle/generative-ai:\nhttps://ai.google.dev/tutorials/node_quickstart.\nGiven that Gemini is an LLM and Vertex AI is a platform, I'm seeking insights on which  approach might be more suitable for my project.  Any recommendations or considerations would be greatly appreciated .\n",
+    "question_score": 15,
+    "answer_text": "Gemini is a large language model as you specified. You can use it (via API calls) by calling either Google AI APIs or Vertex AI APIs.\nIf you are relatively new to Gemini and wants to explore the feature and build some prototype for your chatbot app, Google AI APIs (with Google AI Studio) is a fast way to get started. While your app and idea matures and you'd like to leverage more MLOps tools that streamline the usage, deployment, and monitoring of models, you can move to Google Cloud Vertex AI which provides Gemini APIs along with many other features. Basically, to help you productionize your app.\nDepending on your app requirement and stages of your development, you can choose the path:\n\nStart with Google AI Studio and migrate Gemini app to Vertex AI\nPrototype and build with Vertex AI if you already have GCP established.\n\nPay attention to the Google AI vs. Vertex AI differences when making decision.\nUpdate (2025):\nGoogle released a new GenAI SDK that provides a unified interface to Gemini >2.0models through both the Gemini Developer API and the Gemini API on Vertex AI. With a few exceptions, code that runs on one platform will run on both. This means that you can prototype an application using the Gemini Developer API and then migrate the application to Vertex AI without rewriting your code.\nDetail see here.\n",
+    "answer_id": 78008422,
+    "tags": [
+      "node.js",
+      "google-cloud-platform",
+      "google-cloud-vertex-ai",
+      "google-gemini"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 69904211,
+    "title": "Vertex AI prediction - Autoscaling cannot set minimum node to 0",
+    "question_text": "I am unclear abut Vertex AI pricing for model predictions. In the documentation, under the heading More about automatic scaling of prediction nodes one of the points mentioned is:\n\n\"If you choose automatic scaling, the number of nodes scales\nautomatically, and can scale down to zero for no-traffic durations\"\n\nThe example provided in the documentation later also seems to suggest that during a period with no traffic, zero nodes are in use. However, when I create an Endpoint in Vertex AI, under the Autoscaling heading it says:\n\n\"Autoscaling: If you set a minimum and maximum, compute nodes will scale to meet traffic demand within those boundaries\"\n\nThe  value of 0 under \"Minimum number of compute nodes\" is not allowed so you have to enter 1 or greater, and it is mentioned that:\n\nDefault is 1. If set to 1 or more, then compute resources will\ncontinuously run even without traffic demand. This can increase cost\nbut avoid dropped requests due to node initialization.\n\nMy question is, what happens when I select autoscaling by setting Minimum to 1 and Maximum to, say, 10. Does 1 node always run continuously? Or does it scale down to 0 nodes in no traffic condition as the documentation suggests.\nTo test I deployed an Endpoint with Autoscaling (min and max set to 1) and then when I sent a prediction request the response was almost immediate, suggesting the node was already up. I did that again after about an hour and again the response was immediate suggesting that the node never shut down probably. Also, for high latency requirements, is having autoscale to 0 nodes, if that is indeed possible, even practical, i.e., what latency can we expect for starting up from 0 nodes?\n",
+    "question_score": 10,
+    "answer_text": "Are you using an N1 or a non-N1 machine type? If you want to autoscale to zero, you must use non-N1 machines. See second note from node allocation:\n\nNote: Versions that use a Compute Engine (N1) machine type cannot scale down to zero nodes. They can scale down to 1 node, at minimum.\n\nUpdate: AI Platform supports scaling to zero, while Vertex AI currently does not. From the scaling documentation, nodes can scale but there is no mention that it can scale down to zero. Here's a public feature request for people who wants to track this issue.\nWith regards to latency requirements, the actual output will vary. However, one thing to note according to the documentation is that the service may not be able to bring nodes online fast enough to keep up with large spikes of request traffic. If your traffic regularly has steep spikes, and if reliably low latency is important to your application, you may want to consider manual scaling.\nAdditional Reference: https://cloud.google.com/ai-platform/prediction/docs/machine-types-online-prediction#automatic_scaling\n",
+    "answer_id": 69923045,
+    "tags": [
+      "google-cloud-platform",
+      "google-ai-platform",
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 70356856,
+    "title": "Vertex AI Model Batch prediction, issue with referencing existing model and input file on Cloud Storage",
+    "question_text": "I'm struggling to correctly set Vertex AI pipeline which does the following:\n\nread data from API and store to GCS and as as input for batch prediction.\nget an existing model (Video classification on Vertex AI)\ncreate Batch prediction job with input from point 1.\nAs it will be seen, I don't have much experience with Vertex Pipelines/Kubeflow thus I'm asking for help/advice, hope it's just some beginner mistake.\nthis is the gist of the code I'm using as pipeline\n\nfrom google_cloud_pipeline_components import aiplatform as gcc_aip\nfrom kfp.v2 import dsl\n\nfrom kfp.v2.dsl import component\nfrom kfp.v2.dsl import (\n    Output,\n    Artifact,\n    Model,\n)\n\nPROJECT_ID = 'my-gcp-project'\nBUCKET_NAME = \"mybucket\"\nPIPELINE_ROOT = \"{}/pipeline_root\".format(BUCKET_NAME)\n\n\n@component\ndef get_input_data() -> str:\n    # getting data from API, save to Cloud Storage\n    # return GS URI\n    gcs_batch_input_path = 'gs://somebucket/file'\n    return gcs_batch_input_path\n\n\n@component(\n    base_image=\"python:3.9\",\n    packages_to_install=['google-cloud-aiplatform==1.8.0']\n)\ndef load_ml_model(project_id: str, model: Output[Artifact]):\n    \"\"\"Load existing Vertex model\"\"\"\n    import google.cloud.aiplatform as aip\n\n    model_id = '1234'\n    model = aip.Model(model_name=model_id, project=project_id, location='us-central1')\n\n\n\n@dsl.pipeline(\n    name=\"batch-pipeline\", pipeline_root=PIPELINE_ROOT,\n)\ndef pipeline(gcp_project: str):\n    input_data = get_input_data()\n    ml_model = load_ml_model(gcp_project)\n\n    gcc_aip.ModelBatchPredictOp(\n        project=PROJECT_ID,\n        job_display_name=f'test-prediction',\n        model=ml_model.output,\n        gcs_source_uris=[input_data.output],  # this doesn't work\n        # gcs_source_uris=['gs://mybucket/output/'],  # hardcoded gs uri works\n        gcs_destination_output_uri_prefix=f'gs://{PIPELINE_ROOT}/prediction_output/'\n    )\n\n\nif __name__ == '__main__':\n    from kfp.v2 import compiler\n    import google.cloud.aiplatform as aip\n    pipeline_export_filepath = 'test-pipeline.json'\n    compiler.Compiler().compile(pipeline_func=pipeline,\n                                package_path=pipeline_export_filepath)\n    # pipeline_params = {\n    #     'gcp_project': PROJECT_ID,\n    # }\n    # job = aip.PipelineJob(\n    #     display_name='test-pipeline',\n    #     template_path=pipeline_export_filepath,\n    #     pipeline_root=f'gs://{PIPELINE_ROOT}',\n    #     project=PROJECT_ID,\n    #     parameter_values=pipeline_params,\n    # )\n\n    # job.run()\n\nWhen running the pipeline it throws this exception when running Batch prediction:\ndetails = \"List of found errors: 1.Field: batch_prediction_job.model; Message: Invalid Model resource name. \nso I'm not sure what could be wrong. I tried to load model in the notebook (outside of component) and it correctly returns.\nSecond issue I'm having is referencing GCS URI as output from component to batch job input.\n   input_data = get_input_data2()\n   gcc_aip.ModelBatchPredictOp(\n        project=PROJECT_ID,\n        job_display_name=f'test-prediction',\n        model=ml_model.output,\n        gcs_source_uris=[input_data.output],  # this doesn't work\n        # gcs_source_uris=['gs://mybucket/output/'],  # hardcoded gs uri works\n        gcs_destination_output_uri_prefix=f'gs://{PIPELINE_ROOT}/prediction_output/'\n    )\n\nDuring compilation, I get following exception TypeError: Object of type PipelineParam is not JSON serializable, though I think this could be issue of ModelBatchPredictOp component.\nAgain any help/advice appreciated, I'm dealing with this from yesterday, so maybe I missed something obvious.\nlibraries I'm using:\ngoogle-cloud-aiplatform==1.8.0  \ngoogle-cloud-pipeline-components==0.2.0  \nkfp==1.8.10  \nkfp-pipeline-spec==0.1.13  \nkfp-server-api==1.7.1\n\nUPDATE\nAfter comments, some research and tuning, for referencing model this works:\n@component\ndef load_ml_model(project_id: str, model: Output[Artifact]):\n    region = 'us-central1'\n    model_id = '1234'\n    model_uid = f'projects/{project_id}/locations/{region}/models/{model_id}'\n    model.uri = model_uid\n    model.metadata['resourceName'] = model_uid\n\nand then I can use it as intended:\nbatch_predict_op = gcc_aip.ModelBatchPredictOp(\n        project=gcp_project,\n        job_display_name=f'batch-prediction-test',\n        model=ml_model.outputs['model'],\n        gcs_source_uris=[input_batch_gcs_path],\ngcs_destination_output_uri_prefix=f'gs://{BUCKET_NAME}/prediction_output/test'\n    )\n\nUPDATE 2\nregarding GCS path, a workaround is to define path outside of the component and pass it as an input parameter, for example (abbreviated):\n@dsl.pipeline(\n    name=\"my-pipeline\",\n    pipeline_root=PIPELINE_ROOT,\n)\ndef pipeline(\n        gcp_project: str,\n        region: str,\n        bucket: str\n):\n    ts = datetime.datetime.now().strftime(\"%Y%m%d-%H%M%S\")\n    \n    gcs_prediction_input_path = f'gs://{BUCKET_NAME}/prediction_input/video_batch_prediction_input_{ts}.jsonl'\n    batch_input_data_op = get_input_data(gcs_prediction_input_path)  # this loads input data to GCS path\n\n    batch_predict_op = gcc_aip.ModelBatchPredictOp(\n        project=gcp_project,\n        model=training_job_run_op.outputs[\"model\"],\n        job_display_name='batch-prediction',\n        # gcs_source_uris=[batch_input_data_op.output],\n        gcs_source_uris=[gcs_prediction_input_path],\n        gcs_destination_output_uri_prefix=f'gs://{BUCKET_NAME}/prediction_output/',\n    ).after(batch_input_data_op)  # we need to add 'after' so it runs after input data is prepared since get_input_data doesn't returns anything\n\n\nstill not sure, why it doesn't work/compile when I return GCS path from get_input_data component\n",
+    "question_score": 10,
+    "answer_text": "I'm glad you solved most of your main issues and found a workaround for model declaration.\nFor your input.output observation on gcs_source_uris, the reason behind it is because the way the function/class returns the value. If you dig inside the class/methods of google_cloud_pipeline_components  you will find that it implements a structure that will allow you to use .outputs from the returned value of the function called.\nIf you go to the implementation of one of the components of the pipeline you will find that it returns an output array from convert_method_to_component function. So, in order to have that implemented in your custom class/function your function should return a value which can be called as an attribute. Below is a basic implementation of it.\nclass CustomClass():\n     def __init__(self):\n       self.return_val = {'path':'custompath','desc':'a desc'}\n      \n     @property\n     def output(self):\n       return self.return_val \n\nhello = CustomClass()\nprint(hello.output['path'])\n\nIf you want to dig more about it you can go to the following pages:\n\nconvert_method_to_component, which is the implementation of convert_method_to_component\n\nProperties, basics of property in python.\n\n\n",
+    "answer_id": 70437141,
+    "tags": [
+      "kubeflow-pipelines",
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 77717061,
+    "title": "Google Gemini API error: &quot;The response is blocked due to safety reason.&quot; although I set the harm block threshold to BLOCK_NONE",
+    "question_text": "I have this piece of code:\npublic static String simpleQuestion(String projectId, String location, String modelName) throws Exception {\n        // Initialize client that will be used to send requests.\n        // This client only needs to be created once, and can be reused for multiple requests.\n        try (VertexAI vertexAI = new VertexAI(projectId, location)) {\n            String output;\n            GenerativeModel model = new GenerativeModel(modelName, vertexAI);\n            model.setGenerationConfig(GenerationConfig.newBuilder().build());\n            model.setSafetySettings(Collections.singletonList(\n                    SafetySetting.newBuilder()\n                            .setThreshold(SafetySetting\n                                    .HarmBlockThreshold.BLOCK_NONE).build()));\n            GenerateContentResponse response = model.generateContent(\"What can you tell me about Pythagorean theorem\");\n            output = ResponseHandler.getText(response);\n            return output;\n        }\n    }\n\nand sometimes I get this error;\ncontext/6.1.1/spring-context-6.1.1.jar com.mysticriver.service.GoogleGeminiService\nException in thread \"main\" java.lang.IllegalArgumentException: The response is blocked due to safety reason.\n    at com.google.cloud.vertexai.generativeai.preview.ResponseHandler.getText(ResponseHandler.java:46)\n\neven I have HarmBlockThreshold.BLOCK_NONE in the settings\n",
+    "question_score": 8,
+    "answer_text": "Problem\nYou need to set the harm block threshold for a specific harm category.\nSolution\nChange this...\nSafetySetting.newBuilder()\n  .setThreshold(SafetySetting.HarmBlockThreshold.BLOCK_NONE)\n  .build()\n\n...to this.\nSafetySetting.newBuilder()\n  .setCategory(HarmCategory.HARM_CATEGORY_YOUR_CATEGORY)\n  .setThreshold(SafetySetting.HarmBlockThreshold.BLOCK_NONE)\n  .build()\n\nList of all harm categories:\n\nHARM_CATEGORY_SEXUALLY_EXPLICIT\nHARM_CATEGORY_HATE_SPEECH\nHARM_CATEGORY_HARASSMENT\nHARM_CATEGORY_DANGEROUS_CONTENT\n\n",
+    "answer_id": 77721609,
+    "tags": [
+      "java",
+      "spring-boot",
+      "google-cloud-vertex-ai",
+      "google-gemini"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 72122744,
+    "title": "Google Cloud Vertex AI with Golang: rpc error: code = Unimplemented desc = unexpected HTTP status code received from server: 404 (Not Found)",
+    "question_text": "I have a Vertex AI model deployed on an endpoint and want to do some prediction from my app in Golang.\nTo do this I create code inspired by this example : https://cloud.google.com/go/docs/reference/cloud.google.com/go/aiplatform/latest/apiv1?hl=en\nconst file = \"MY_BASE64_IMAGE\"\n\nfunc main() {\n\n    ctx := context.Background()\n\n    c, err := aiplatform.NewPredictionClient(cox)\n    if err != nil {\n        log.Printf(\"QueryVertex NewPredictionClient - Err:%s\", err)\n    }\n    defer c.Close()\n\n    parameters, err := structpb.NewValue(map[string]interface{}{\n        \"confidenceThreshold\": 0.2,\n        \"maxPredictions\":      5,\n    })\n    if err != nil {\n        log.Printf(\"QueryVertex structpb.NewValue parameters - Err:%s\", err)\n    }\n\n    instance, err := structpb.NewValue(map[string]interface{}{\n        \"content\": file,\n    })\n    if err != nil {\n        log.Printf(\"QueryVertex structpb.NewValue instance - Err:%s\", err)\n    }\n\n    reqP := &aiplatformpb.PredictRequest{\n        Endpoint:   \"projects/PROJECT_ID/locations/LOCATION_ID/endpoints/ENDPOINT_ID\",\n        Instances:  []*structpb.Value{instance},\n        Parameters: parameters,\n    }\n\n    resp, err := c.Predict(cox, reqP)\n    if err != nil {\n        log.Printf(\"QueryVertex Predict - Err:%s\", err)\n    }\n\n    log.Printf(\"QueryVertex Res:%+v\", resp)\n}\n\nI put the path to my service account JSON file on GOOGLE_APPLICATION_CREDENTIALS environment variable.\nBut when I run my test app I obtain this error message:\nQueryVertex Predict - Err:rpc error: code = Unimplemented desc = unexpected HTTP status code received from server: 404 (Not Found); transport: received unexpected content-type \"text/html; charset=UTF-8\"\nQueryVertex Res:<nil>\n\n",
+    "question_score": 7,
+    "answer_text": "As @DazWilkin suggested, configure the client option to specify the specific regional endpoint with a port 443:\noption.WithEndpoint(\"<region>-aiplatform.googleapis.com:443\")\n\nTry like below:\nfunc main() {\n \n   ctx := context.Background()\n   c, err := aiplatform.NewPredictionClient(\n       ctx,\n       option.WithEndpoint(\"<region>-aiplatform.googleapis.com:443\"),\n   )\n   if err != nil {\n       log.Printf(\"QueryVertex NewPredictionClient - Err:%s\", err)\n   }\n   defer c.Close()\n       .\n       .\n\n",
+    "answer_id": 72252095,
+    "tags": [
+      "go",
+      "grpc",
+      "gcloud",
+      "google-cloud-vertex-ai",
+      "google-ai-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 71573565,
+    "title": "Google Cloud Vertex AI with .Net",
+    "question_text": "I am new to google cloud service VERTEX AI.\nI am looking to Create, train, and deploy an AutoML text classification model through .Net application. I did not find anything for .Net with Vertex AI. If someone can please guide my to the location or any .Net code samples, will be really helpful.\n",
+    "question_score": 7,
+    "answer_text": "You can check Google.Cloud.AutoML.V1 NuGet package for .NET. Additionally, check the Github of Google.Cloud.AutoML.V1 NuGet Package where you can see the sample codes.\n",
+    "answer_id": 71579667,
+    "tags": [
+      ".net",
+      "machine-learning",
+      "google-cloud-platform",
+      "nlp",
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 74807026,
+    "title": "Vertex AI feature store vs BigQuery",
+    "question_text": "I was trying to figure out key differences between using GCP Vertex AI feature store and Saving preprocessed features to BigQuery and loading whenever it gets necessary.\nI still cannot understand why to choose the first option, rather than the second option, which seems to be easier and more accessible.\nIs there any good reason to use feature store in Vertex AI, rather than storing features in BigQuery tables formats?\n",
+    "question_score": 6,
+    "answer_text": "Vertex AI Feature Store and BigQuery, both can be used to store the features as mentioned by you. But Vertex AI Feature Store has several advantages over BigQuery that makes it favorable for storing features.\nAdvantages of Vertex AI Feature Store over BigQuery :\n\nVertex AI Feature Store is designed to create and manage featurestores, entity types, and features whereas BigQuery is a data warehouse where you can perform analysis on data.\nVertex AI Feature Store can be used for batch and online storage but BigQuery is not a solution for storage.\nVertex AI Feature Store can be used for sharing the features across the organization from the central repository which BigQuery does not provide.\nVertex AI Feature Store is a managed solution for online feature serving which is not supported by BigQuery.\nFor more information, you can check this link.\n\n",
+    "answer_id": 74847455,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery",
+      "google-cloud-vertex-ai",
+      "feature-engineering"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 69117885,
+    "title": "Sending http request Google Vertex AI end point",
+    "question_text": "I've just deployed an ML model on Google vertex AI, it can make predictions using vertex AI web interface. But is it possible to send a request from a browser, for example, to this deployed model. Something like\nhttp://myapp.cloud.google.com/input=\"features of an example\" \n\nand get the prediction as output.\nThanks\n",
+    "question_score": 6,
+    "answer_text": "Yes, you can send using endpoint URL as.\nhttps://us-central1-aiplatform.googleapis.com/v1beta1/projects/<PROJECT_ID>/locations/us-central1/endpoints/<ENDPOINT_ID>:predict\n\nData should be given as in POST parameter.\n{\n  \"instances\": \n    [1.4838871833555929,\n 1.8659883497083019,\n 2.234620276849616,\n 1.0187816540094903,\n -2.530890710602246,\n -1.6046416850441676,\n -0.4651483719733302,\n -0.4952254087173721,\n 0.774676376873553]\n}\n\nURL should be Region Based.\n",
+    "answer_id": 69127799,
+    "tags": [
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 77746136,
+    "title": "How to exclude one of the variants of com.google.guava dependency while building Gradle projects",
+    "question_text": "I have included the below dependency in the build.gradle file of my gradle project to work with VertexAi LLM Libraries.\nimplementation group: 'dev.langchain4j', name: 'langchain4j-vertex-ai', version: '0.22.0'\n\nI am facing a problem while testing the main function.\nThe Idea IntelliJ prompt says that it is unable to choose between two variants of com.google.guava:guava:32.1.2-jre (which is a dependency for the VertexAi dependency)\nI got the following error message\nThe consumer was configured to find an API of a library compatible with Java 11, preferably in the form of class files, and its dependencies declared externally.\n\nHowever we cannot choose between the following variants of com.google.guava:guava:32.1.2-jre\n      - androidApiElements\n      - jreApiElements\n\nI think I need to use the jreApiElements variant since I am dealing only with a web application. It looks like the IDE is confused because both variants provided the same number of parameters.\nAll of them match the consumer attributes:\n  - Variant 'androidApiElements' capabilities com.google.collections:google-collections:32.1.2-jre and com.google.guava:guava:32.1.2-jre declares an API of a library compatible with Java 8, packaged as a jar, and its dependencies declared externally:\n      - Unmatched attributes:\n          - Provides attribute 'org.gradle.jvm.environment' with value 'android' but the consumer didn't ask for it\n          - Provides release status but the consumer didn't ask for it\n  - Variant 'jreApiElements' capabilities com.google.collections:google-collections:32.1.2-jre and com.google.guava:guava:32.1.2-jre declares an API of a library compatible with Java 8, packaged as a jar, and its dependencies declared externally:\n      - Unmatched attributes:\n          - Provides attribute 'org.gradle.jvm.environment' with value 'standard-jvm' but the consumer didn't ask for it\n          - Provides release status but the consumer didn't ask for it\n\nPlease let me know how to choose the jreApiElements variant while excluding the androidApiElements variant. Preferable to do it in build.gradle/project gradle settings since I want the code to be portable.\nI have tried the below solutions:\n\nSetting the right gradle version in the gradle wrapper properties\nfile\n\nAdding the parameter applicationDefaultJvmArgs =\n[\"-org.gradle.jvm.environment=standard-jvm\"] to build.gradle file\n(This made the build fail so I removed it)\n\nAdding the below 2 dependencies in build.gradle\nimplementation group: 'com.google.cloud', name: 'google-cloud-aiplatform', version: '3.24.0'\nimplementation group: 'com.google.guava', name: 'guava', version: '32.1.2-jre'\n\n\nNone of the above solutions worked. Please let me know how can exclude the the android variant of the guava dependency\n",
+    "question_score": 5,
+    "answer_text": "The recommendation that we've gotten from some Gradle experts is listed in our release notes. (I should really mention it in our home page, sorry.)\nsourceSets.all {\n  configurations.getByName(runtimeClasspathConfigurationName) {\n    attributes.attribute(Attribute.of(\"org.gradle.jvm.environment\", String), \"standard-jvm\")\n  }\n  configurations.getByName(compileClasspathConfigurationName) {\n    attributes.attribute(Attribute.of(\"org.gradle.jvm.environment\", String), \"standard-jvm\")\n  }\n}\n\nWe're also told that upgrading from Gradle 6 to Gradle 7 may eliminate the need for that.\nThat said, we've heard of a few different but related problems. So if this doesn't help in your case, someone may be able to provide another possible solution.\n",
+    "answer_id": 77746619,
+    "tags": [
+      "java",
+      "gradle",
+      "guava",
+      "intellij-14",
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 76248975,
+    "title": "Why do I get a 404 for googleapis.com/v1/projects chat-bison@001:predict?",
+    "question_text": "I'm using the example curl I get from:\nhttps://console.cloud.google.com/vertex-ai/generative/language/my-prompts/create/text?authuser=2&project=my-app\n\nhttps://us-central1-aiplatform.googleapis.com/v1/projects/my-app/locations/us-central1/publishers/google/chat-bison@001:predict\nbut I get a 404 everytime. I have the right Bearer auth token. Everything seems to be correct but 404!\n",
+    "question_score": 5,
+    "answer_text": "The built URL apparently is incorrect.\n\nThe model is supposed to be text-bison (without the @001)\nThe URL \"template\" is supposed to be https://${API_ENDPOINT}/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${MODEL_ID}:predict (/models was missing)\n\nAll in all:\nAPI_ENDPOINT=\"us-central1-aiplatform.googleapis.com\"\nPROJECT_ID=\"<projectID>\"\nMODEL_ID=\"text-bison\"\n\ncurl \\\n-X POST \\\n-H \"Authorization: Bearer $(gcloud auth print-access-token)\" \\\n-H \"Content-Type: application/json\" \\\n\"https://${API_ENDPOINT}/v1/projects/${PROJECT_ID}/locations/us-central1/publishers/google/models/${MODEL_ID}:predict\" -d \\\n$'{\n  \"instances\": [\n    {\n      \"content\": \"Write a short poem:\"\n    }\n  ],\n  \"parameters\": {\n    \"temperature\": 0.2,\n    \"maxOutputTokens\": 256,\n    \"topP\": 0.8,\n    \"topK\": 40\n  }\n}'\n\nSource: https://cloud.google.com/vertex-ai/docs/generative-ai/start/quickstarts/api-quickstart\n",
+    "answer_id": 76253207,
+    "tags": [
+      "google-cloud-vertex-ai",
+      "google-ai-platform"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 73584269,
+    "title": "Vertex AI automatic retraining",
+    "question_text": "I\u2019m trying to create a Vertex AI endpoint with Monitoring enabled that can trigger a Vertex AI pipeline execution when one of the deployed models drops its performance.\nHowever, Vertex AI does not provide any built-in feature to do it.\nIs there a method to capture the alert thrown by Vertex AI Monitoring and trigger the Pipeline?\n",
+    "question_score": 5,
+    "answer_text": "\nThe Vertex AI Model Monitoring jobs are logged as part of Cloud Logging 1.\nYou can react to those loggings using log-based alerts 2. For that, you need to configure a notification channel to PubSub 3\nBased on those PubSub message you can trigger a Cloud Function 4\nThe Cloud Function can initiate the Vertex AI Pipeline run to re-train the model 5\n\nhttps://cloud.google.com/vertex-ai/docs/model-monitoring/using-model-monitoring#cloud-logging-info\nhttps://cloud.google.com/logging/docs/alerting/log-based-alerts\nhttps://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.notificationChannels#NotificationChannel\nhttps://cloud.google.com/functions/docs/calling/pubsub\nhttps://cloud.google.com/vertex-ai/docs/reference/rest/v1/projects.locations.pipelineJobs/create\n",
+    "answer_id": 73880942,
+    "tags": [
+      "python",
+      "google-cloud-platform",
+      "google-cloud-vertex-ai",
+      "mlops",
+      "vertex-ai-pipeline"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 70833594,
+    "title": "GCP Vertex AI Service Agent access to GCR image Error",
+    "question_text": "I am getting the below error.\nDoes anyone have any idea how to solve it?\nFailed to create pipeline job. Error: Vertex AI Service Agent \n'XXXXX@gcp-sa-aiplatform-cc.iam.gserviceaccount.com' should be granted\n access to the image gcr.io/gcp-project-id/application:latest\n\n",
+    "question_score": 5,
+    "answer_text": "{PROJECT_NUMBER}@gcp-sa-aiplatform-cc.iam.gserviceaccount.com is google's AI Platform service agent.\nThis Service agent requires access to read/pull the docker image from your project's gcr to create container for pipeline run.\nIf You have permission to edit IAM roles, You can try adding Artifact Registry roles to the above service agent.\nYou can start with adding roles/artifactregistry.reader.\nHope this helps :)\n",
+    "answer_id": 73203469,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-vertex-ai"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-vertex-ai",
+    "question_id": 69857932,
+    "title": "Specify signature name on Vertex AI Predict",
+    "question_text": "I've deployed a tensorflow model in vertex AI platform using TFX Pipelines. The model have custom serving signatures but I'm strugling to specify the signature when I'm predicting.\nI've the exact same model deployed in GCP AI Platform and I'm able to specify it.\nAccording to the vertex documentation, we must pass a dictionary containing the Instances (List) and the Parameters (Dict) values.\nI've submitted these arguments to this function:\ninstances: [{\"argument_n\": \"value\"}]\n\nparameters: {\"signature_name\": \"name_of_signature\"}\n\nDoesn't work, it still get the default signature of the model.\nIn GCP AI Platform, I've been able to predict directly specifying in the body of the request the signature name:\nresponse = service.projects().predict(\n        name=name,\n        body={\"instances\": instances,\n        \"signature_name\": \"name_of_signature\"},\n    ).execute()\n\n@EDIT\nI've discovered that with the rawPredict method from gcloud it works.\nHere is an example:\n!gcloud ai endpoints raw-predict {endpoint} --region=us-central1 \\\n--request='{\"signature_name\":\"name_of_the_signature\", \\\n\"instances\": [{\"instance_0\": [\"value_0\"], \"instance_1\": [\"value_1\"]}]}'\n\nUnfortunately, looking at google api models code it only have the predict method, not the raw_predict. So I don't know if it's available through python sdk right now.\n",
+    "question_score": 5,
+    "answer_text": "Vertex AI is a newer platform with limitations that will be improved over time. \u201csignature_name\u201d can be added to HTTP JSON Payload in RawPredictRequest or from gcloud as you have done but right now this is not available in regular predict requests.\nUsing HTTP JSON payload :\nExample:\ninput.json :\n{\n   \"instances\": [\n     [\"male\", 29.8811345124283, 26.0, 1, \"S\", \"New York, NY\", 0, 0],\n     [\"female\", 48.0, 39.6, 1, \"C\", \"London / Paris\", 0, 1]],\n \n     \"signature_name\": <string>\n}\n\n\ncurl \\\n-X POST \\\n-H \"Authorization: Bearer $(gcloud auth print-access-token)\" \\\n-H \"Content-Type: application/json\" \\\nhttps://us-central1-aiplatform.googleapis.com/v1/projects/${PROJECT_ID}/locations/us-central1/endpoints/${ENDPOINT_ID}:rawPredict \\\n-d \"@input.json\"\n\n\n",
+    "answer_id": 69893636,
+    "tags": [
+      "google-cloud-platform",
+      "vertex",
+      "google-ai-platform",
+      "tfx",
+      "google-cloud-vertex-ai"
+    ]
+  }
+]

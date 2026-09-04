@@ -1,0 +1,346 @@
+[
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 39919815,
+    "title": "What&#39;s the difference between BigQuery and Bigtable?",
+    "question_text": "Is there any reason why someone would use Bigtable instead of BigQuery? Both seem to support Read and Write operations with the latter offering also advanced 'Query' operations.\nI need to develop an affiliate network (thus I need to track clicks and 'sales') so I'm quite confused by the difference because BigQuery seems to be just Bigtable with a better API.\n",
+    "question_score": 107,
+    "answer_text": "The difference is basically this:\nBigQuery is a query Engine for datasets that don't change much, or change by appending. It's a great choice when your queries require a \"table scan\" or the need to look across the entire database. Think sums, averages, counts, groupings. BigQuery is what you use when you have collected a large amount of data, and need to ask questions about it.\nBigTable is a database. It is designed to be the foundation for a large, scaleable application. Use BigTable when you are making any kind of app that needs to read and write data, and scale is a potential issue.\n",
+    "answer_id": 39926480,
+    "tags": [
+      "google-cloud-platform",
+      "google-bigquery",
+      "cloud",
+      "bigtable",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 60412688,
+    "title": "What&#39;s the difference between Google Cloud Spanner and Cloud SQL?",
+    "question_text": "I am novice in GCP stack so I am so confused about several listed technologies for storing data:\nhttps://cloud.google.com/products/databases\nSpecifically, I'm interested in the differences between Cloud Spanner and Cloud SQL.\nFrom my current view I don't see any significant difference between Cloud SQL(with postgres under the hood) and Cloud Spanner. I found that it has a bit different syntax but it doesn't answer when I should prefer this technology to spring cloud sql.\nCould you please explain it ?\nP.S.\nI consider spring cloud SQL as a traditional database with automatic replication and horizontal scalability managed by google.\n",
+    "question_score": 48,
+    "answer_text": "There is not a big difference between them in terms on what they do (storing data in tables). The difference is how they handle the data in a small and big scale\nCloud Spanner is used when you need to handle massive amounts of data with an elevated level of consistency and with a big amount of data handling (+100,000 reads/write per second). Spanner gives much better scalability and better SLOs.\nOn the other hand, Spanner is also much more expensive than Cloud SQL.\nIf you just want to store some data of your customer in a cheap way but still don't want to face server configuration Cloud SQL is the right choice.\nIf you are planning to create a big product or if you want to be ready for a huge increase in users for your application (viral games/applications) Spanner is the right product.\nYou can find detailed information about Cloud Spanner in this official paper\n",
+    "answer_id": 60413196,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-sql",
+      "google-cloud-spanner",
+      "spring-cloud-gcp"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 18384883,
+    "title": "Why is Google&#39;s TrueTime API hard to duplicate?",
+    "question_text": "I'm not sure why the press in general says that Google's TrueTime API is hard to replicate (Wired, Slashdot, etc).\nI can understand how it would be a tough thing to get the low error intervals that Google is achieving, but I don't see how the API itself would be very difficult.\nFor example, I whipped up a hacked together version. Here's the interval.\n    typedef struct TT_interval {\n            struct timeval earliest;\n            struct timeval latest;\n    } TT_interval;\n\nHere's the now function.\n    int TT_now(TT_interval* interval)\n    {\n        struct ntptimeval tv;\n        struct timeval delta;\n\n        struct timeval* earliest_p = &(interval->earliest);\n        struct timeval* latest_p = &(interval->latest);\n        struct timeval* now_p = &(tv.time);\n        struct timeval* delta_p = &delta;\n\n        timerclear(&delta);\n        timerclear(&interval->earliest);\n        timerclear(&interval->latest);\n\n        if(ntp_gettime(&tv) == 0) {\n            tv.maxerror = tv.maxerror > 0 ? tv.maxerror : -(tv.maxerror);\n\n            delta.tv_sec = delta.tv_sec + (tv.maxerror / 1000);\n            delta.tv_usec = delta.tv_usec + ((tv.maxerror % 1000) * 1000);\n\n            if(delta.tv_usec > 1000000) {\n                delta.tv_usec -= 1000000;\n                delta.tv_sec++;\n            }\n\n            timeradd(now_p, delta_p, latest_p);\n            timersub(now_p, delta_p, earliest_p);\n        } else {\n            printf(\"error on ntp_gettime. %s\\n\", strerror(errno));\n            return ERROR;\n        }\n\n        return SUCCESS;\n    }\n\nFinally, here's the before and after functions (which are wrappers around the now function and could use a bit of DRY refactoring).\n    int TT_before(TT_interval* interval, bool* success)\n    {\n        struct timeval* latest_p;\n        struct timeval* earliest_p;\n        TT_interval now;\n\n        if(TT_now(&now) != SUCCESS) {\n            return ERROR;\n        }\n\n        latest_p = &(interval->latest);\n        earliest_p = &(now.earliest);\n\n        if(timercmp(latest_p, earliest_p, <) != 0) {\n            *success = true;\n            return SUCCESS;\n        } else {\n            *success = false;\n            return SUCCESS;\n        }\n\n        return ERROR;\n    }\n\n   int TT_after(TT_interval* interval, bool* success)\n    {\n        struct timeval* latest_p;\n        struct timeval* earliest_p;\n        TT_interval now;\n\n        if(TT_now(&now) != SUCCESS) {\n            return ERROR;\n        }\n\n        earliest_p = &(interval->latest);\n        latest_p = &(now.earliest);\n\n        if(timercmp(latest_p, earliest_p, <) != 0) {\n            *success = true;\n            return SUCCESS;\n        } else {\n            *success = false;\n            return SUCCESS;\n        }\n\n        return ERROR;\n    }\n\nI seem to be getting interval errors of around 5,000us to 350,000us (using a public NTPd). This is a far cry from Google's numbers, but you need to start somewhere.\nOther than lackluster performance, is there a major flaw in this design that would prevent something like Spanner from being built on top?\n",
+    "question_score": 35,
+    "answer_text": "The challenge in implementing a TrueTime API lies in the guarantees you must provide. Namely, the absolute time must never be outside the TrueTime interval on any server in the system. If this can happen, then absolute ordering of events is lost, as are most of the guarantees of Spanner.\nThe Spanner paper achieves this by a combination of means (section 3):\n\nMultiple time servers, with disparate sources (GPS, atomic clocks), including time servers from other datacenters.\nMarzullo\u2019s algorithm to detect liars and multiplex the various trusted time sources into an update of the local machine clock.\nAn assumed clock drift of 200us/s at spanservers, applied between clock synchronizations.\nKicking machines from the system that exhibit measured local clock drift > threshold (threshold << 200us/s by necessity).\n\nNow, you can achieve this with simpler means - NTP and an assumed error interval of 10 minutes would trivially do. But as noted in the question, there are performance implications to this. Read-write transactions (4.2.1) must wait on commit, with an expected wait time of 2*errorAverage - 20 minutes in this example. Similarly, read-only transactions (4.2.2) at time \"now\" - rather than a time in the past - must wait for safetime to advance far enough; at least 10 minutes in this example. So to have a high performance system, you need to minimize the error intervals as far as possible, without losing your guarantees, which is where the complexity arises.\nI'm not sure how ntp_adjtime is being called in your system - it's possible it's already being set using multiple untrusted and uncorrelated time sources, in which case you're most of the way there already. If you can also ensure that the maxerror value is guaranteed to be advancing faster than the possible clock drift of your system, you should be good to go. Most of the performance of Spanner, without your own personal atomic clock :).\n",
+    "answer_id": 18492024,
+    "tags": [
+      "c",
+      "time",
+      "google-cloud-platform",
+      "distributed-computing",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42289920,
+    "title": "Local development with cloud-spanner",
+    "question_text": "Is there any way to do local development with cloud spanner? I've taken a look through the docs and the CLI tool and there doesn't seem to be anything there. Alternatively, can someone suggest a SQL database that behaves similarly for reads (not sure what to do about writes)?\nEDIT: To clarify, I'm looking for a database which speaks the same flavour of SQL as Cloud Spanner so I can do development locally. The exact performance characteristics are not as important as the API and consistency behaviour. I don't think Cockroach meets these requirements?\n",
+    "question_score": 21,
+    "answer_text": "There is now an emulator offered from Google for local development. As of 5/2020, it's in beta.\nhttps://cloud.google.com/spanner/docs/emulator\nIt only stores data in memory, but you may be able to use the gcloud command line to backup and restore your development data to and from disk as needed.\nhttps://cloud.google.com/spanner/docs/backup/gcloud\n",
+    "answer_id": 61827624,
+    "tags": [
+      "sql",
+      "database",
+      "google-cloud-platform",
+      "google-cloud-spanner",
+      "cockroachdb"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 40274040,
+    "title": "What is the TrueTime API in Google&#39;s Spanner?",
+    "question_text": "I tried to read the document multiple times but failed to understand it. Can someone explain it in layman's terms?\n",
+    "question_score": 14,
+    "answer_text": "TrueTime is an API available at Google that directly exposes clock uncertainty.\nComparing to standard datetime libraries, instead of a particular timestamp, TrueTime's now() function returns an interval of time [earliest, latest].\nIt also provides two functions:\n\nafter(t) returns true if t has definitely passed. E.g. t < now().earliest.\nbefore(t) returns true if t has definitely not arrived, or t > now().latest.\n\nWhat's impressive, is that the implementation of now() returns intervals with generally small uncertainty.\nSpanner uses TrueTime API to assign a commit timestamps to transactions in the way that it satisfies external consistency: if a transaction T1 commits before another transaction T2 starts, then T1\u2019s commit timestamp is smaller than T2\u2019s.\nMore in the Spanner paper http://static.googleusercontent.com/media/research.google.com/en//archive/spanner-osdi2012.pdf\n",
+    "answer_id": 40291988,
+    "tags": [
+      "database",
+      "google-cloud-platform",
+      "distributed",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42519288,
+    "title": "External Backups/Snapshots for Google Cloud Spanner",
+    "question_text": "Is it possible to snapshot a Google Cloud Spanner Database/table(s)? For compliance reasons we have to have daily snapshots of the current database that can be rolled back to in the event of a disaster: is this possible in Spanner? Is there intention to support it if not?\nFor those who might ask why we would need it as Spanner is replicated/redundant etc - it doesn't guard against human error (dropping a table by accident) or sabotage/espionage hence the question and requirement.\nThanks, M\n",
+    "question_score": 13,
+    "answer_text": "Today, you can stream out a consistent snapshot by reading out all the data using your favorite tool (mapreduce, spark, dataflow) and reads at a specific timestamp (using Timestamp Bounds). \nhttps://cloud.google.com/spanner/docs/timestamp-bounds\nYou have about an hour to do the export before the data gets garbage collected.\nIn the future, we will provide a Apache Beam/Dataflow connector to do this in a more scalable fashion. This will be our preferred method for doing import/export of data into Cloud Spanner.\nLonger term, we will support backups and the ability to restore to a backup but that functionality is not currently available.\n",
+    "answer_id": 42520108,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 45202401,
+    "title": "Cloud SQL Horizontal Scaling",
+    "question_text": "Is cloud spanner the only solution for horizontal scaling of mysql instances on the google cloud? Is there a way to scale in cloud sql?\n",
+    "question_score": 10,
+    "answer_text": "As Albert Cui stated, Cloud Spanner does not have a horizontally-scaling MySQL database behind it, but rather a different implementation that is a transactional, ACID relational database with strong consistency, accepts SQL (though it's not fully compliant with SQL), is globally distributed and scales horizontally.\nFor more information you can consult the Cloud Spanner documentation\nAbout Cloud SQL, you can scale read capacity horizontally with read replicas, and it can scale vertically (that is, increase the hardware capacity of the instance in which it runs) with no more effort than choosing an instance of a higher tier and only a couple of minutes of downtime. Keep in mind that it doesn't scale automatically, and it can't scale memory, CPU power or capacity independently, you need to choose from predefined instance tiers.\nAccording to this article by Google, you can scale Cloud SQL horizontally by using the MySQL implementation and ProxySQL. However, keep in mind that this goes beyond the Cloud SQL managed service.\nFor more information you can consult the Cloud SQL documentation\n",
+    "answer_id": 50867395,
+    "tags": [
+      "google-cloud-sql",
+      "gcloud",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 44443984,
+    "title": "Avoiding hash-join with IN clause and sub-query in Spanner",
+    "question_text": "I have the following query optimization problem in Spanner, and hoping there's a trick I'm missing that will help me bend the query planner to my will.\nHere's the simplified schema:\ncreate table T0 (\n  key0  int64 not null,\n  value int64,\n  other int64 not null,\n) primary key (key0);\n\ncreate table T1 {\n  key1  int64 not null,\n  other int64 not null\n} primary key (key1);\n\nAnd a query with a subquery in an IN clause:\nselect value from T0 t0\nwhere t0.other in (\n  select t1.other from T1 t1 where t1.key1 in (42, 43, 44)  -- note: this subquery is a good deal more complex than this\n)\n\nWhich produces a 10 element set, via a hash join of T0 against the output of the subquery:\nOperator                     Rows  Executions\n-----------------------      ----- ----------\nSerialize Result               10          1\nHash Join                      10          1\n  Distributed union         10000          1\n    Local distributed union 10000          1\n    Table Scan: T0          10000          1\n  Distributed cross apply:      5          1\n   ...lots moar T1 subquery stuff...\n\nNote that, while the subquery is complex, it actually produces a very small set. Unfortunately, it also scans the entirety of T1 to feed to the hash join, which is very slow.\nHowever, if I take the output of the subquery on T1 and manually shove it into the IN clause:\nselect value from T0\nwhere other in (5, 6, 7, 8, 9)  -- presume this `IN` clause to be the output of the above subquery\n\nIt is dramatically faster, presumably because it just hits T0's index once per entry, not using a hash join on the full contents:\nOperator                Rows Executions\n----------------------- ---- ----------\nDistributed union         10          1\nLocal distributed union   10          1\nSerialize Result          10          1\nFilter                    10          1\nIndex Scan:               10          1\n\nI could simply run two queries, and that's my best plan so far. But I'm hoping I can find some way to cajole Spanner into deciding that this is what it ought to do with the output of the subquery in the first example. I've tried everything I can think of, but this may simply not be expressible in SQL at all.\nAlso: I haven't quite proven this yet, but in some cases I fear that the 10 element subquery output could blow up to a few thousand elements (T1 will grow more or less without bound, easily to millions). I've manually tested with a few hundred elements in the splatted-out IN clause and it seems to perform acceptably, but I'm a little concerned it could get out of hand.\nNote that I also tried a join on the subquery, like so:\nselect t0.other from T0 t0\njoin (\n  -- Yes, this could be a simple join rather than a subquery, but in practice it's complex\n  -- enough that it can't be expressed that way.\n  select t1.other from T1 t1 where t1.key = 42\n) sub on sub.other = t0.other\n\nBut it did something truly horrifying in the query planner, that I won't even try to explain here.\n",
+    "question_score": 10,
+    "answer_text": "Does your actual subquery in the IN clause use any variables from T0?\nIf not, what happens if you try your join query with the tables reordered (and a distinct added for correctness, unless you know that the values will be distinct)?\nSELECT t0.other FROM  (\n      -- Yes, this could be a simple join rather than a subquery, but in practice it's complex\n      -- enough that it can't be expressed that way.\n      SELECT DISTINCT t1.other FROM T1 t1 WHERE t1.key = 42\n    ) sub \nJOIN T0 t0\nON sub.other = t0.other\n\n",
+    "answer_id": 44509323,
+    "tags": [
+      "sql",
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42359411,
+    "title": "Cloud Spanner \u2014&#160;Equivalent Syntax for `SHOW TABLES`?",
+    "question_text": "It's not clear how to run a query (or conduct an API call) to list all tables. Is this possible with Spanner?\n",
+    "question_score": 9,
+    "answer_text": "Ah, looks like this is documented here: https://cloud.google.com/spanner/docs/information-schema. In particular:\nSELECT\n  t.table_name\nFROM\n  information_schema.tables AS t\nWHERE\n  t.table_catalog = '' and t.table_schema = ''\n\n",
+    "answer_id": 42359510,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 54667344,
+    "title": "Difference between Google Cloud Firestore vs Google Cloud Spanner?",
+    "question_text": "There seems to be an increasing overlapping and proliferation of cloud database technologies.\nIn order to make sense of it a comparative approach might help.\nWhat are the exact differences between Google Cloud Firestore vs Google Cloud Spanner ?\n",
+    "question_score": 8,
+    "answer_text": "Cloud Firestore is:\n\nA flexible, NoSQL (non-relational) scalable database for mobile, web, and server development from Firebase and Google Cloud Platform.\n\nOn the other hand, Cloud Spanner:\n\nHorizontally scalable, strongly consistent, relational database service.\n\nSo the main difference between them is that one is a non-relational database while the other is relational. Furthermore, Cloud Firestore is also a real-time database, which means that for every change that takes place in the database you are instantly notified.\n",
+    "answer_id": 54667565,
+    "tags": [
+      "google-cloud-platform",
+      "nosql",
+      "google-cloud-firestore",
+      "google-cloud-datastore",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42278193,
+    "title": "Does Google Cloud Spanner support stored procedures?",
+    "question_text": "Does Google Cloud Spanner support stored procedures?  \nI've had a quick search through the docs at https://cloud.google.com/spanner/docs/overview but couldn't find any reference to stored procs / user defined routines anywhere.\nIt would be good to find out for certain if they are/aren't supported.\n",
+    "question_score": 8,
+    "answer_text": "No, it does not support stored procedures. You could use something like App Engine for small server side scripts or call Dataflow jobs for larger ones.\n",
+    "answer_id": 42278578,
+    "tags": [
+      "database",
+      "stored-procedures",
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 44318957,
+    "title": "Renaming columns and tables",
+    "question_text": "Does the spanner supports renaming of columns and tables? That would be helpful while managing schema changes along with creating a new table from an existing one in a single statement. \n",
+    "question_score": 6,
+    "answer_text": "You cannot rename a column or a table. Other kinds of alterations are possible, but not renaming. A work-around for renaming columns is available in this answer: Is it possible to rename columns?\n",
+    "answer_id": 45106492,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 58494969,
+    "title": "Understanding spanner explanation",
+    "question_text": "I've a table of 860M rows in Google Cloud Spanner and I'm trying to understand how explanation works.\nThe table has a string column geoid and there is an index at this column.\nWhen I run the following query it takes only 36ms:\nSELECT count(*)\nFROM usbg_2015\nWHERE geoid= '340170175001'\n\nTable structure is:\nCREATE TABLE usbg_2015 (\n    geoid STRING(12),\n    quadkey STRING(24),\n) PRIMARY KEY (geoid, quadkey)\n\nHowever, I don't understand why the explanation says it uses a Table Scan instead of an Index Scan. I understood a Table scan as a full scan of the table, in this case reading 860M rows and it should take more time than 36ms. What I'm missing?\n\n",
+    "question_score": 6,
+    "answer_text": "In the explanation, Table Scan merely means that it reads the data from a table and does not necessarily mean a full table scan. Same goes for index scan. It means that it is reading from an index. In both cases, if there is a seekable predicate (e.g., constant prefixes on primary key or indexed column), they will do the seek.\nThe plan used the base table, and seek-and-scanned 11 rows, otherwise you would see 860M rows returned as a result out of the Table Scan.\nIs geoid the leading primary key column of the table usbg_2015? That is the only explanation that I can think of given the plan.\n",
+    "answer_id": 58495944,
+    "tags": [
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42656559,
+    "title": "Does Google Cloud Spanner support default column values?",
+    "question_text": "Having the capability to compute a UTC timestamp as the default value for a column is a handy feature of most popular database solutions. Does Google Cloud Spanner support this? If not, is this a possible roadmap item?\n",
+    "question_score": 6,
+    "answer_text": "Cloud Spanner doesn't actually allow any default value to be specified regardless of type. This means the implicit default is Null, or Error, depending on whether to column was specified with NOT NULL\nCloud Spanner internally stores a 'timestamp' of when a row was committed, but it doesn't expose this directly. It also doesn't behave like a default value (set once), so unfortunately the answer to your question is currently no.\nDefinitely something for the team to consider.\n",
+    "answer_id": 42657588,
+    "tags": [
+      "database",
+      "google-cloud-platform",
+      "database-schema",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42303190,
+    "title": "Cloud Spanner read vs Cloud Spanner SQL API",
+    "question_text": "There are two different APIs provided by Cloud Spanner. What\u2019s the difference between Cloud Spanner read vs Cloud Spanner SQL API?\n",
+    "question_score": 6,
+    "answer_text": "Under the hood, they both use the same execution machinery, so you should see very similar performance for both APIs.\nThe SQL API is more expressive, since it supports constructs like ORDER BY, LIMIT, filtering, etc.  But in some cases the Read API can be simpler to use. For example if you're just doing a simple table range scan on a table with a multi-column primary key, and you want to see all rows with primary key greater than (\"A\",\"B\",\"C\") and less than (\"X\",\"Y\",\"Z\").\nIf you have any doubt about which API to use, I would recommend using the query (SQL) API, as it can grow with you as you realize your simple request actually increases in complexity as your application changes organically over time. You need to add an extra selection condition? That is no problem with the SQL API. You actually need to change the ordering of your result set? That is also easy.\n",
+    "answer_id": 42303191,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 45964937,
+    "title": "Performance difference for STRING(MAX)?",
+    "question_text": "Is there a performance penalty (or improvement) for using STRING(MAX) instead of some fixed limit like STRING(256)?\n",
+    "question_score": 5,
+    "answer_text": "Nope. STRING(MAX) is treated exactly the same as strings of limited length under-the-hood. Same applies for BYTES(MAX). So there is no performance difference.\nThe main reason to use a fixed limit is if there are logical constraints you want to enforce in your schema. For example: if you are using a STRING to store 2-letter country codes, then you might want to using STRING(2).\nNote that, according to the docs, you can always change the length limit for a string, except with one caveat:\n\nSupported Schema Updates: Increase or decrease the length limit for a\nSTRING or BYTES type (including to MAX), unless it is a primary \nkey column inherited by one or more child tables.\n\n",
+    "answer_id": 45964938,
+    "tags": [
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 48716264,
+    "title": "Google DataFlow Apache Beam",
+    "question_text": "I am trying to use Apache Beam to create a Dataflow pipeline and I am not able to follow the documentation and cannot find any examples.\nThe pipeline is simple.\n\nCreate a pipeline\nRead from a pub/sub topic\nWrite to spanner.\n\nCurrently, I am stuck at step 2. I cannot find any example of how to read from pub/sub and and consume it.\nThis is the code I have so far and would like to \nclass ExtractFlowInfoFn extends DoFn<PubsubMessage, KV<String, String>> {\n    public void processElement(ProcessContext c) {\n        KV.of(\"key\", \"value\");\n    }\n}\n\npublic static void main(String[] args) {\n\n    Pipeline p = Pipeline.create(\n    PipelineOptionsFactory.fromArgs(args).withValidation().create());\n\n    p.apply(\"ReadFromPubSub\", PubsubIO.readMessages().fromSubscription(\"test\"))\n     .apply(\"ConvertToKeyValuePair\", ParDo.of(new ExtractFlowInfoFn()))\n     .apply(\"WriteToLog\", ));\n};\n\nI was able to come up with the code by following multiple examples. To be honest, I have no idea what I am doing here. \nPlease, either help me understand this or link me to the correct documentation. \n",
+    "question_score": 5,
+    "answer_text": "Example of pulling messages from Pub/Sub and writing to Cloud Spanner:\nimport com.google.cloud.spanner.Mutation;\nimport org.apache.beam.sdk.io.gcp.spanner.SpannerIO;\nimport org.apache.beam.sdk.transforms.DoFn.ProcessElement;\n\nclass MessageToMutationDoFn extends DoFn<PubsubMessage, Mutation> {\n\n    @ProcessElement\n    public void processElement(ProcessContext c) {\n\n        // TODO: create Mutation object from PubsubMessage\n\n        Mutation mutation = Mutation.newInsertBuilder(\"users_backup2\")\n            .set(\"column_1\").to(\"value_1\")\n            .set(\"column_2\").to(\"value_2\")\n            .set(\"column_3\").to(\"value_3\")\n            .build();\n\n        c.output(mutation);\n    }\n}\n\npublic static void main(String[] args) {\n\n    Pipeline p = Pipeline.create();\n\n    p.apply(\"ReadFromPubSub\", PubsubIO.readMessages().fromSubscription(\"test\"))\n     .apply(\"MessageToMutation\", ParDo.of(new MessageToMutationDoFn()))\n     .apply(\"WriteToSpanner\", SpannerIO.write()\n         .withProjectId(\"projectId\")\n         .withInstanceId(\"spannerInstanceId\")\n         .withDatabaseId(\"spannerDatabaseId\"));\n\n    p.run();\n}\n\nReference: Apache Beam SpannerIO, Apache Beam PubsubIO\n",
+    "answer_id": 48717128,
+    "tags": [
+      "google-cloud-dataflow",
+      "apache-beam",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 78249901,
+    "title": "SELECT AS STRUCT/VALUES",
+    "question_text": "I am wondering what the possible use cases are for the SELECT AS STRUCT|VALUES modifier for GoogleSQL beyond the sort of textbook examples in the documentation.\nThe AS STRUCT reduces a non-scalar row into a scalar `STRUCT, so something like:\nSELECT \"David\" AS name, 20 AS age\n\nCould be converted into a subquery-able (scalar) item by doing something like:\nSELECT  (\n    SELECT AS STRUCT \"David\" AS name, 20 AS age\n)\n\nOr adding a bunch of debug info into a single (scalar) column by doing something like:\nSELECT \"David\" AS name, 20 AS age, \n    (SELECT AS STRUCT 1 AS a, 2 AS b) debug\nFROM (SELECT NULL)\n\nBut beyond that I can't see too much use, and I've never used it outside of trivial debugging queries myself. I was wondering if hopefully someone on the BigQuery team can explain:\n\nWhat are some actual examples when you use or find these two modifier keywords being used?\nDo any other SQL dialects use that construction (or a similar construction) and if not, why did GoogleSQL need to support it?\n\n",
+    "question_score": 5,
+    "answer_text": "The STRUCT type is a container of ordered fields where each field has a type and name (optional). It can be used to combine multiple fields under one name.\n\nBut beyond that I can't see too much use, and I've never used it\noutside of trivial debugging queries myself.\n\nStruct can be used to structure your data. For example:\nCREATE TEMPORARY TABLE rectangles (\n  name string,\n  coordinates STRUCT<\n    topLeft STRUCT<x Int64, y int64>,\n    bottomRight STRUCT<x Int64, y int64>\n  >\n);\n\nINSERT INTO rectangles (name, coordinates) VALUES\n('rectangle 1', ((10, 10), (90, 90)));\n\nHere is the resulting table schema and data.\n\nWhat are some actual examples when you use or find these two modifier\nkeywords being used?\n\nSELECT AS STRUCT (and other struct constructors) create a struct from multiple values. This could be used to bypass some restrictions, for example, when the data must consist of 1 column x n rows:\nSELECT ARRAY(\n  SELECT AS STRUCT gender, name\n  FROM bigquery-public-data.usa_names.usa_1910_2013\n  WHERE year = 2001 AND STate = 'WA'\n  ORDER BY number\n  LIMIT 5\n)\n\nWithout struct, you will get the following error:\nARRAY subquery cannot have more than one column unless\nusing SELECT AS STRUCT to build STRUCT values\n\nAnother example where the IN clause subquery needs to return more than one column for tuple comparison:\nSELECT *\nFROM bigquery-public-data.usa_names.usa_1910_2013\nWHERE (state, year, number) IN (\n  SELECT AS STRUCT state, year, MAX(number)\n  FROM bigquery-public-data.usa_names.usa_1910_2013\n  WHERE year BETWEEN 2001 AND 2003\n  GROUP BY state, year\n)\n\nWithout struct, you will get the following error:\nSubquery of type IN must have only one output column\n\nNote that an IN clause subquery CAN return more than one column according to SQL standard (more on this below).\nSELECT AS VALUE operates on a one column select and that column must be a struct.\nWhile the input for AS STRUCT and AS VALUE is different, the result for both  is a value table \u2014 a one column table where that column is a struct type and has no name. You may substitute SELECT AS STRUCT in the previous section with SELECT AS VALUE and make necessary changes to the columns.\n\nDo any other SQL dialects use that construction (or a similar\nconstruction) and if not, why did GoogleSQL need to support it?\n\nThe answer depends on what you're trying to do.\n\nYou can think of struct as a user defined type (see the coordinates type in rectangles example above). Only PostgreSQL CREATE TYPE with Composite Type comes close.\nYou may use JSON functions to convert arbitrary data to a JSON object. All major RDBMS vendors support JSON functions.\nYou may use XML functions to convert arbitrary data to an XML document. SQL Server supports XML.\nYou may use Array functions to combine multiple values into one. But most RDBMS require same data type for all items in the array.\nIf it is just tuple comparison, the SQL standard allows you to compare tuples like SELECT (1, 1, 0) < (1, 1, 1) and WHERE (t1.a, t1.b, t1.c) IN (SELECT t2.a, t2.b, t2.c FROM t2 ...). Not all RDMBS implement this.\n\n",
+    "answer_id": 78276656,
+    "tags": [
+      "sql",
+      "google-bigquery",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 49504594,
+    "title": "&quot;Spanner operation failed&quot; creating NULL_FILTERED indexes",
+    "question_text": "I am unable to create indexes on Cloud Spanner tables, receiving the error, \"Spanner operation failed\".\nEven after increasing the cluster size to from 6 to 16 nodes, I am unable to create two indexes on a ~12 million row table.\n\nWhat I did:\n\nCreated objects table in Spanner on 3-node cluster\nTable has 10-12 columns consisting of STRING, INT64, and one ARRAY<STRING>\nPrimary key is two columns; a shard value (hash of object_id) and object_id\nLoaded ~12 million rows\nTable had no indexes (other than the primary key) when loaded\nLoading pegged 3-node; upgraded to 6 nodes\n\nWhat I tried:\n\nTried to build three indexes (via DDL in console) -- received \"Spanner operation failed\"\nIncreased Spanner node count from 6 --> 12,\nWas able to build 1 of 3 indexes (UNIQUE on single STRING column)\nTried to build other two indexes (UNIQUE NULL_FILTERED on single STRING columns) -- received \"Spanner operation failed\"\nIncreased Spanner nodes from 12 --> 16 (account max)\nTried to build other two indexes (UNIQUE NULL_FILTERED on single STRING columns) -- received \"Spanner operation failed\"\n\nWhat else I tried (updated):\n\nRemoved NULL_FILTERED clauses and tried to build other two indexes. Did not resolve, still unable to build.\n\n",
+    "question_score": 5,
+    "answer_text": "Response from GCS:\nOur product team was able to find the reason the indexes are not able to be created. As it appears, within the data, you have two entries that are not unique and thus creates a uniqueness violation[1] and prevent the index from being created. This error is thrown prior to the index attempt and that is why the index creation fails before it is even attempted. \nYou can use a query to find the duplicate entries: \nSELECT column, count(column) \nFROM table\nGROUP BY column\nHAVING COUNT(column) > 1\n\nYou can modify this query to search all keys at the same time or modify it after each search. Once the duplicates have been taken care of, you should be able to manage these entries and run the index creation again.\n\nI hope the Spanner team can fix this bug and return the correct error in a future release.\n",
+    "answer_id": 49680762,
+    "tags": [
+      "database",
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 43587138,
+    "title": "How to bind to IN parameters in Cloud Spanner Java API",
+    "question_text": "Is it possible, using the Google Cloud Spanner Java SDK, to bind to the parameters supplied to the IN portion of a query?\ne.g.\nList<String> names = new ArrayList<String>();\nnames.add(\"Alice\");\nnames.add(\"Bob\");\nString sql = \"SELECT * FROM people WHERE name IN (@names)\";\nStatement statement = Statement\n                .newBuilder(sql)\n                .bind(\"names\").to(names)\n                .build();\n\nIf we bind names using toStringArray, it errors. And if we set the following:\nnames = \"'Alice','Bob'\";\n\nThen the generated SQL is:\nSELECT * FROM people WHERE name IN (\"'Alice','Bob'\")\n\n\nNote the extra quotations.  Any idea how we can do this without %s string substitution to avoid inject attacks?\n\n",
+    "question_score": 5,
+    "answer_text": "2 changes to your code:\nList<String> names = new ArrayList<String>();\nnames.add(\"Alice\");\nnames.add(\"Bob\");\nString sql = \"SELECT * FROM people WHERE name IN UNNEST(@names)\";\nStatement statement = Statement\n                .newBuilder(sql)\n                .bind(\"names\").toStringArray(names)\n                .build();\n\nFirst is to make the condition IN UNNEST as we're going to be binding an array rather than repeated values.\nSecond is to change to to toStringArray to bind the array as you originally tried.\nTo better visualize this, the array that you bind is essentially this:\nSELECT * FROM people WHERE name IN UNNEST([\"Alice\", \"Bob\"])\n\n",
+    "answer_id": 43593177,
+    "tags": [
+      "java",
+      "sql",
+      "google-cloud-platform",
+      "google-cloud-spanner"
+    ]
+  },
+  {
+    "source": "stackoverflow",
+    "cloud": "gcp",
+    "tag": "google-cloud-spanner",
+    "question_id": 42271558,
+    "title": "Autoincrement in Google Cloud Spanner",
+    "question_text": "Google Cloud Spanner recommends against using monotonically increasing integers for primary keys. This makes a perfect sense for top-level tables as it would create hotspots. But what about interleaved tables? They are going to be stored on the same node anyway. They are also kept in a sorted order so using UUID or some other random ID seems suboptimal, especially if they are going to be retrieved in the sorted order as well.\nIs reading the max id and storing maxId + 1 for a new row the right solution here?\n",
+    "question_score": 5,
+    "answer_text": "The interleaved child tables rows are prefixed with the parent table's key, so it is okay to think of them as non-sequential keys as long the parent key is non-sequential. In this situation it should generally be okay since as you note, this entire key range will be served by one Span Server. If you are concerned about hot spotting a single Span server in this situation it would be best to not interleave the table.\nIt should also be noted that it's really monotonically increasing or decreasing keys that are recommended against, as they have the same effect, just at opposite sides of the range.\n",
+    "answer_id": 42277359,
+    "tags": [
+      "database-design",
+      "google-cloud-platform",
+      "scalability",
+      "data-modeling",
+      "google-cloud-spanner"
+    ]
+  }
+]
