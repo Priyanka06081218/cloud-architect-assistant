@@ -10,6 +10,7 @@ GITHUB_TOKEN      = os.getenv("GITHUB_TOKEN")
 OPENAI_API_KEY    = os.getenv("OPENAI_API_KEY")
 FINETUNE_MODEL = os.getenv("FINETUNE_MODEL", "")
 VLLM_BASE_URL  = os.getenv("VLLM_BASE_URL", "")
+OPENAI_MODEL   = os.getenv("OPENAI_MODEL", "gpt-4o-mini")
 
 # Folder paths — AWS
 RAW_AWS_DOCS      = "data/raw/aws_docs"

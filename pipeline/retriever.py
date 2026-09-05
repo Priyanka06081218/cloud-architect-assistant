@@ -20,6 +20,14 @@ EMBED_MODEL = "all-MiniLM-L6-v2"
 # If a collection has fewer than this many documents, treat it as unpopulated.
 MIN_DOCS = 10
 
+# Human-readable cloud names used in RAG query strings.
+# Add new clouds here rather than inline at each call site.
+CLOUD_DISPLAY: dict[str, str] = {
+    "aws":   "AWS",
+    "azure": "Azure",
+    "gcp":   "GCP",
+}
+
 # Load model and client once — reused for every query
 _model  = None
 _client = None
@@ -99,7 +107,7 @@ def retrieve_for_architecture(requirements: dict) -> str:
     suffix   = _collection_suffix(cloud)
     col_name = f"architecture_patterns{suffix}"
 
-    cloud_name = {"aws": "AWS", "azure": "Azure", "gcp": "GCP"}.get(cloud.lower(), cloud.upper())
+    cloud_name = CLOUD_DISPLAY.get(cloud.lower(), cloud.upper())
     query  = f"{requirements['workload_type']} {requirements['scale']} {cloud_name} architecture best practices"
     chunks = retrieve(col_name, query, n_results=5)
 
@@ -119,7 +127,7 @@ def retrieve_for_tradeoffs(requirements: dict) -> str:
     suffix   = _collection_suffix(cloud)
     col_name = f"service_comparisons{suffix}"
 
-    cloud_name   = {"aws": "AWS", "azure": "Azure", "gcp": "GCP"}.get(cloud.lower(), cloud.upper())
+    cloud_name   = CLOUD_DISPLAY.get(cloud.lower(), cloud.upper())
     constraints  = ", ".join(requirements.get("constraints", []))
     query  = f"{cloud_name} service comparison {requirements['workload_type']} {constraints}"
     chunks = retrieve(col_name, query, n_results=4)
@@ -139,7 +147,7 @@ def retrieve_for_terraform(services: list[str], cloud_provider: str = "aws") -> 
     suffix   = _collection_suffix(cloud_provider)
     col_name = f"terraform_examples{suffix}"
 
-    cloud_name = {"aws": "AWS", "azure": "Azure", "gcp": "GCP"}.get(cloud_provider.lower(), cloud_provider.upper())
+    cloud_name = CLOUD_DISPLAY.get(cloud_provider.lower(), cloud_provider.upper())
     query  = f"Terraform {cloud_name} {' '.join(services)}"
     chunks = retrieve(col_name, query, n_results=4)
 

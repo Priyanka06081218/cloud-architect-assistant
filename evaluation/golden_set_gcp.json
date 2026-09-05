@@ -4,299 +4,741 @@
     "query": "Design a GCP architecture for a small e-commerce store expecting 10,000 daily users with a budget under $400/month and 99.9% availability.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["web", "e-commerce", "managed-db", "gcp"],
+    "tags": [
+      "web",
+      "e-commerce",
+      "managed-db",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": 400,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Cloud Run", "Cloud SQL", "Cloud CDN"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [80, 380]
+    "expected_services": [
+      "Cloud Run",
+      "Cloud SQL",
+      "Cloud CDN"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      80,
+      380
+    ],
+    "required_capabilities": [
+      "container_compute",
+      "relational_db",
+      "cdn"
+    ]
   },
   {
     "id": "gcp-web-002",
     "query": "Host a static marketing website on GCP for a startup. Traffic is 5,000 visitors per day. Budget is $50/month. No backend needed.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["static", "cdn", "low-cost", "gcp"],
+    "tags": [
+      "static",
+      "cdn",
+      "low-cost",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": 50,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Cloud Storage", "Cloud CDN"],
-    "forbidden_services": ["GKE", "BigQuery", "Lambda", "Azure Functions", "DynamoDB"],
-    "expected_cost_range": [3, 45]
+    "expected_services": [
+      "Cloud Storage",
+      "Cloud CDN"
+    ],
+    "forbidden_services": [
+      "GKE",
+      "BigQuery",
+      "Lambda",
+      "Azure Functions",
+      "DynamoDB"
+    ],
+    "expected_cost_range": [
+      3,
+      45
+    ],
+    "required_capabilities": [
+      "object_storage",
+      "cdn"
+    ]
   },
   {
     "id": "gcp-web-003",
     "query": "Build a corporate website with a CMS backend on GCP for 20,000 daily users. Budget is $300/month. Needs a relational database for content storage.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["web", "cms", "gcp", "relational-db"],
+    "tags": [
+      "web",
+      "cms",
+      "gcp",
+      "relational-db"
+    ],
     "expected_constraints": {
       "budget_usd": 300,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["Cloud Run", "Cloud SQL", "Cloud CDN"],
-    "forbidden_services": ["Lambda", "GKE", "BigQuery", "DynamoDB", "Azure Functions"],
-    "expected_cost_range": [80, 280]
+    "expected_services": [
+      "Cloud Run",
+      "Cloud SQL",
+      "Cloud CDN"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "GKE",
+      "BigQuery",
+      "DynamoDB",
+      "Azure Functions"
+    ],
+    "expected_cost_range": [
+      80,
+      280
+    ],
+    "required_capabilities": [
+      "container_compute",
+      "relational_db",
+      "cdn"
+    ]
   },
   {
     "id": "gcp-serverless-001",
-    "query": "Design a mobile API backend on GCP for an app with 50,000 daily active users. Minimize costs — use serverless where possible.",
+    "query": "Design a mobile API backend on GCP for an app with 50,000 daily active users. Minimize costs \u2014 use serverless where possible.",
     "category": "serverless",
     "difficulty": "easy",
-    "tags": ["serverless", "mobile", "cost-optimized", "gcp"],
+    "tags": [
+      "serverless",
+      "mobile",
+      "cost-optimized",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Cloud Run", "Firestore"],
-    "forbidden_services": ["GKE", "BigQuery", "Lambda", "DynamoDB", "Azure Functions"],
-    "expected_cost_range": [20, 150]
+    "expected_services": [
+      "Cloud Run",
+      "Firestore"
+    ],
+    "forbidden_services": [
+      "GKE",
+      "BigQuery",
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions"
+    ],
+    "expected_cost_range": [
+      20,
+      150
+    ],
+    "required_capabilities": [
+      "container_compute",
+      "nosql_db"
+    ]
   },
   {
     "id": "gcp-serverless-002",
     "query": "Design a webhook processing system on GCP that receives 1 million events per day with highly spiky traffic patterns. Budget is $200/month.",
     "category": "serverless",
     "difficulty": "medium",
-    "tags": ["serverless", "event-driven", "spiky-traffic", "gcp"],
+    "tags": [
+      "serverless",
+      "event-driven",
+      "spiky-traffic",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": 200,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Cloud Functions", "Pub/Sub"],
-    "forbidden_services": ["GKE", "BigQuery", "Lambda", "Kinesis", "Service Bus"],
-    "expected_cost_range": [15, 180]
+    "expected_services": [
+      "Cloud Functions",
+      "Pub/Sub"
+    ],
+    "forbidden_services": [
+      "GKE",
+      "BigQuery",
+      "Lambda",
+      "Kinesis",
+      "Service Bus"
+    ],
+    "expected_cost_range": [
+      15,
+      180
+    ],
+    "required_capabilities": [
+      "serverless_compute",
+      "message_queue"
+    ]
   },
   {
     "id": "gcp-serverless-003",
     "query": "Build an event-driven order processing system on GCP handling 100,000 orders per day. Each order triggers inventory checks, payment validation, and fulfillment.",
     "category": "serverless",
     "difficulty": "medium",
-    "tags": ["serverless", "event-driven", "order-processing", "gcp"],
+    "tags": [
+      "serverless",
+      "event-driven",
+      "order-processing",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Pub/Sub", "Cloud Functions", "Firestore"],
-    "forbidden_services": ["GKE", "Lambda", "DynamoDB", "SQS", "Service Bus"],
-    "expected_cost_range": [50, 400]
+    "expected_services": [
+      "Pub/Sub",
+      "Cloud Functions",
+      "Firestore"
+    ],
+    "forbidden_services": [
+      "GKE",
+      "Lambda",
+      "DynamoDB",
+      "SQS",
+      "Service Bus"
+    ],
+    "expected_cost_range": [
+      50,
+      400
+    ],
+    "required_capabilities": [
+      "message_queue",
+      "serverless_compute",
+      "nosql_db"
+    ]
   },
   {
     "id": "gcp-data-001",
     "query": "Design a real-time IoT data pipeline on GCP for 10,000 devices sending telemetry every 10 seconds. Data must be queryable within 5 seconds of ingestion.",
     "category": "data",
     "difficulty": "medium",
-    "tags": ["iot", "real-time", "streaming", "gcp"],
+    "tags": [
+      "iot",
+      "real-time",
+      "streaming",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Pub/Sub", "Dataflow", "Bigtable"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Kinesis", "Event Hub"],
-    "expected_cost_range": [200, 900]
+    "expected_services": [
+      "Pub/Sub",
+      "Dataflow",
+      "Bigtable"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Kinesis",
+      "Event Hub"
+    ],
+    "expected_cost_range": [
+      200,
+      900
+    ],
+    "required_capabilities": [
+      "event_stream",
+      "nosql_db"
+    ]
   },
   {
     "id": "gcp-data-002",
     "query": "Build a cloud data warehouse on GCP for an enterprise with 10TB of historical data and 500GB new data per day. Business analysts need to run ad-hoc SQL queries at any scale.",
     "category": "data",
     "difficulty": "hard",
-    "tags": ["data-warehouse", "analytics", "enterprise", "gcp"],
+    "tags": [
+      "data-warehouse",
+      "analytics",
+      "enterprise",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["BigQuery", "Cloud Storage", "Dataflow"],
-    "forbidden_services": ["Redshift", "Lambda", "Synapse", "DynamoDB"],
-    "expected_cost_range": [300, 3000]
+    "expected_services": [
+      "BigQuery",
+      "Cloud Storage",
+      "Dataflow"
+    ],
+    "forbidden_services": [
+      "Redshift",
+      "Lambda",
+      "Synapse",
+      "DynamoDB"
+    ],
+    "expected_cost_range": [
+      300,
+      3000
+    ],
+    "required_capabilities": [
+      "object_storage"
+    ]
   },
   {
     "id": "gcp-data-003",
     "query": "Design a clickstream analytics pipeline on GCP for a media company processing 50 million page views per day. Needs real-time dashboards and nightly batch reports.",
     "category": "data",
     "difficulty": "medium",
-    "tags": ["analytics", "streaming", "batch", "gcp"],
+    "tags": [
+      "analytics",
+      "streaming",
+      "batch",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["Pub/Sub", "BigQuery", "Dataflow"],
-    "forbidden_services": ["Kinesis", "Lambda", "Redshift", "Event Hub"],
-    "expected_cost_range": [300, 2000]
+    "expected_services": [
+      "Pub/Sub",
+      "BigQuery",
+      "Dataflow"
+    ],
+    "forbidden_services": [
+      "Kinesis",
+      "Lambda",
+      "Redshift",
+      "Event Hub"
+    ],
+    "expected_cost_range": [
+      300,
+      2000
+    ],
+    "required_capabilities": [
+      "message_queue",
+      "object_storage"
+    ]
   },
   {
     "id": "gcp-scale-001",
     "query": "Design a GCP architecture for an e-commerce platform expecting 500,000 concurrent users during peak sales events. Must handle traffic spikes 20x normal load.",
     "category": "scale",
     "difficulty": "hard",
-    "tags": ["high-traffic", "e-commerce", "scale", "gcp"],
+    "tags": [
+      "high-traffic",
+      "e-commerce",
+      "scale",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "compliance": []
     },
-    "expected_services": ["GKE", "Cloud Load Balancing", "Cloud Spanner", "Memorystore"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [3000, 20000]
+    "expected_services": [
+      "GKE",
+      "Cloud Load Balancing",
+      "Cloud Spanner",
+      "Memorystore"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      3000,
+      20000
+    ],
+    "required_capabilities": [
+      "kubernetes",
+      "load_balancer",
+      "relational_db",
+      "cache"
+    ]
   },
   {
     "id": "gcp-scale-002",
     "query": "Build a video streaming platform on GCP for 1 million daily active users watching HD content. Latency must be under 2 seconds globally.",
     "category": "scale",
     "difficulty": "hard",
-    "tags": ["media", "streaming", "global", "gcp"],
+    "tags": [
+      "media",
+      "streaming",
+      "global",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "compliance": []
     },
-    "expected_services": ["GKE", "Cloud CDN", "Cloud Storage", "Cloud Load Balancing"],
-    "forbidden_services": ["Lambda", "EC2", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [5000, 30000]
+    "expected_services": [
+      "GKE",
+      "Cloud CDN",
+      "Cloud Storage",
+      "Cloud Load Balancing"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "EC2",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      5000,
+      30000
+    ],
+    "required_capabilities": [
+      "kubernetes",
+      "cdn",
+      "object_storage",
+      "load_balancer"
+    ]
   },
   {
     "id": "gcp-scale-003",
     "query": "Design a real-time gaming leaderboard on GCP supporting 100,000 concurrent players with sub-10ms read latency.",
     "category": "scale",
     "difficulty": "medium",
-    "tags": ["gaming", "low-latency", "real-time", "gcp"],
+    "tags": [
+      "gaming",
+      "low-latency",
+      "real-time",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Cloud Run", "Memorystore", "Firestore"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [500, 4000]
+    "expected_services": [
+      "Cloud Run",
+      "Memorystore",
+      "Firestore"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      500,
+      4000
+    ],
+    "required_capabilities": [
+      "container_compute",
+      "cache",
+      "nosql_db"
+    ]
   },
   {
     "id": "gcp-compliance-001",
     "query": "Build a HIPAA-compliant patient records system on GCP for a healthcare provider. Stores 5 million patient records. Must encrypt data at rest and in transit, audit all access.",
     "category": "compliance",
     "difficulty": "hard",
-    "tags": ["hipaa", "healthcare", "compliance", "gcp"],
+    "tags": [
+      "hipaa",
+      "healthcare",
+      "compliance",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
-      "compliance": ["HIPAA"]
+      "compliance": [
+        "HIPAA"
+      ]
     },
-    "expected_services": ["Cloud SQL", "Secret Manager", "Security Command Center"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [500, 4000]
+    "expected_services": [
+      "Cloud SQL",
+      "Secret Manager",
+      "Security Command Center"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      500,
+      4000
+    ],
+    "required_capabilities": [
+      "relational_db",
+      "secret_management"
+    ]
   },
   {
     "id": "gcp-compliance-002",
     "query": "Design a PCI-DSS compliant payment processing system on GCP for a fintech company handling 50,000 transactions per day. Cardholder data must be tokenized.",
     "category": "compliance",
     "difficulty": "hard",
-    "tags": ["pci-dss", "payments", "fintech", "gcp"],
+    "tags": [
+      "pci-dss",
+      "payments",
+      "fintech",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
-      "compliance": ["PCI-DSS"]
+      "compliance": [
+        "PCI-DSS"
+      ]
     },
-    "expected_services": ["Cloud Armor", "Secret Manager", "VPC"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [800, 5000]
+    "expected_services": [
+      "Cloud Armor",
+      "Secret Manager",
+      "VPC"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      800,
+      5000
+    ],
+    "required_capabilities": [
+      "waf",
+      "secret_management"
+    ]
   },
   {
     "id": "gcp-compliance-003",
     "query": "Build a GDPR-compliant customer data platform on GCP for a European retail company. Must support right-to-erasure, data residency in EU, and consent tracking.",
     "category": "compliance",
     "difficulty": "medium",
-    "tags": ["gdpr", "eu", "data-privacy", "gcp"],
+    "tags": [
+      "gdpr",
+      "eu",
+      "data-privacy",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
-      "compliance": ["GDPR"]
+      "compliance": [
+        "GDPR"
+      ]
     },
-    "expected_services": ["Cloud Storage", "Secret Manager"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [300, 2500]
+    "expected_services": [
+      "Cloud Storage",
+      "Secret Manager"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      300,
+      2500
+    ],
+    "required_capabilities": [
+      "object_storage",
+      "secret_management"
+    ]
   },
   {
     "id": "gcp-ml-001",
     "query": "Build an LLM-powered customer support chatbot on GCP that handles 10,000 queries per day. Should use Gemini for responses and store conversation history.",
     "category": "ml",
     "difficulty": "medium",
-    "tags": ["llm", "chatbot", "ai", "gcp"],
+    "tags": [
+      "llm",
+      "chatbot",
+      "ai",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Vertex AI", "Firestore", "Cloud Run"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure OpenAI", "Cosmos DB"],
-    "expected_cost_range": [500, 4000]
+    "expected_services": [
+      "Vertex AI",
+      "Firestore",
+      "Cloud Run"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure OpenAI",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      500,
+      4000
+    ],
+    "required_capabilities": [
+      "ml_platform",
+      "nosql_db",
+      "container_compute"
+    ]
   },
   {
     "id": "gcp-ml-002",
     "query": "Design an ML training and inference pipeline on GCP for a demand forecasting model. Trains weekly on 3 years of sales data stored in BigQuery and serves 50,000 predictions per day.",
     "category": "ml",
     "difficulty": "hard",
-    "tags": ["ml", "training", "inference", "gcp"],
+    "tags": [
+      "ml",
+      "training",
+      "inference",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["Vertex AI", "BigQuery", "Cloud Storage"],
-    "forbidden_services": ["Azure ML", "Lambda", "DynamoDB", "Cosmos DB"],
-    "expected_cost_range": [1000, 10000]
+    "expected_services": [
+      "Vertex AI",
+      "BigQuery",
+      "Cloud Storage"
+    ],
+    "forbidden_services": [
+      "Azure ML",
+      "Lambda",
+      "DynamoDB",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      1000,
+      10000
+    ],
+    "required_capabilities": [
+      "ml_platform",
+      "object_storage"
+    ]
   },
   {
     "id": "gcp-microservices-001",
     "query": "Design a microservices platform on GCP for a SaaS company with 50 services, 10,000 enterprise customers, and multi-region deployment across EU and US.",
     "category": "microservices",
     "difficulty": "hard",
-    "tags": ["microservices", "multi-region", "enterprise", "gcp"],
+    "tags": [
+      "microservices",
+      "multi-region",
+      "enterprise",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "compliance": []
     },
-    "expected_services": ["GKE", "Pub/Sub", "Cloud Monitoring"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Service Bus"],
-    "expected_cost_range": [5000, 30000]
+    "expected_services": [
+      "GKE",
+      "Pub/Sub",
+      "Cloud Monitoring"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Service Bus"
+    ],
+    "expected_cost_range": [
+      5000,
+      30000
+    ],
+    "required_capabilities": [
+      "kubernetes",
+      "message_queue",
+      "monitoring"
+    ]
   },
   {
     "id": "gcp-iot-001",
     "query": "Design a smart city IoT platform on GCP for 1 million connected devices (traffic sensors, cameras, air quality monitors). Must process and alert on anomalies in real time.",
     "category": "iot",
     "difficulty": "hard",
-    "tags": ["iot", "smart-city", "real-time", "gcp"],
+    "tags": [
+      "iot",
+      "smart-city",
+      "real-time",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Pub/Sub", "Dataflow", "Bigtable", "Cloud Monitoring"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Kinesis", "Event Hub"],
-    "expected_cost_range": [2000, 12000]
+    "expected_services": [
+      "Pub/Sub",
+      "Dataflow",
+      "Bigtable",
+      "Cloud Monitoring"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Kinesis",
+      "Event Hub"
+    ],
+    "expected_cost_range": [
+      2000,
+      12000
+    ],
+    "required_capabilities": [
+      "event_stream",
+      "nosql_db",
+      "monitoring"
+    ]
   },
   {
     "id": "gcp-security-001",
     "query": "Design a zero-trust network architecture on GCP for an enterprise SaaS product with 5,000 employees. Must enforce identity-based access with no implicit trust inside the network.",
     "category": "security",
     "difficulty": "medium",
-    "tags": ["zero-trust", "security", "enterprise", "gcp"],
+    "tags": [
+      "zero-trust",
+      "security",
+      "enterprise",
+      "gcp"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "compliance": []
     },
-    "expected_services": ["Cloud Armor", "Cloud Load Balancing", "Secret Manager", "IAM"],
-    "forbidden_services": ["Lambda", "DynamoDB", "Azure Functions", "Cosmos DB"],
-    "expected_cost_range": [400, 3000]
+    "expected_services": [
+      "Cloud Armor",
+      "Cloud Load Balancing",
+      "Secret Manager",
+      "IAM"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "DynamoDB",
+      "Azure Functions",
+      "Cosmos DB"
+    ],
+    "expected_cost_range": [
+      400,
+      3000
+    ],
+    "required_capabilities": [
+      "waf",
+      "load_balancer",
+      "secret_management"
+    ]
   }
 ]

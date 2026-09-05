@@ -11,7 +11,7 @@
 
 import json
 import logging
-from config import FINETUNE_MODEL, VLLM_BASE_URL
+from config import FINETUNE_MODEL, VLLM_BASE_URL, OPENAI_MODEL
 
 try:
     from langfuse.decorators import observe, langfuse_context
@@ -94,7 +94,7 @@ def _llm_call(prompt: str, temperature: float = 0.3, json_mode: bool = True) -> 
     from config import OPENAI_API_KEY
     client = OpenAI(api_key=OPENAI_API_KEY)
     kwargs = dict(
-        model="gpt-4o-mini",
+        model=OPENAI_MODEL,
         messages=[{"role": "user", "content": prompt}],
         temperature=temperature,
     )
@@ -102,7 +102,7 @@ def _llm_call(prompt: str, temperature: float = 0.3, json_mode: bool = True) -> 
         kwargs["response_format"] = {"type": "json_object"}
     response = client.chat.completions.create(**kwargs)
     langfuse_context.update_current_observation(
-        model="gpt-4o-mini",
+        model=OPENAI_MODEL,
         usage={"input": response.usage.prompt_tokens, "output": response.usage.completion_tokens},
         metadata={"backend": "openai", "temperature": temperature, "json_mode": json_mode},
     )

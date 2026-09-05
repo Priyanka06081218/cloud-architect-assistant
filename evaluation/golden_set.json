@@ -4,304 +4,639 @@
     "query": "Design an AWS architecture for a small e-commerce store expecting 10,000 daily users with a budget under $300/month and 99.9% availability.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["web", "e-commerce", "managed-db"],
+    "tags": [
+      "web",
+      "e-commerce",
+      "managed-db"
+    ],
     "expected_constraints": {
       "budget_usd": 300,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["CloudFront", "RDS"],
-    "forbidden_services": ["Direct Connect", "Redshift", "EMR"],
-    "expected_cost_range": [60, 280]
+    "expected_services": [
+      "CloudFront",
+      "RDS"
+    ],
+    "forbidden_services": [
+      "Direct Connect",
+      "Redshift",
+      "EMR"
+    ],
+    "expected_cost_range": [
+      60,
+      280
+    ],
+    "required_capabilities": [
+      "cdn",
+      "relational_db",
+      "load_balancer"
+    ]
   },
   {
     "id": "web-002",
     "query": "Host a static marketing website and blog for a startup. Traffic is 5,000 visitors/day. Budget is $100/month. No backend needed.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["static", "cdn", "low-cost"],
+    "tags": [
+      "static",
+      "cdn",
+      "low-cost"
+    ],
     "expected_constraints": {
       "budget_usd": 100,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["S3", "CloudFront"],
-    "forbidden_services": ["EKS", "RDS", "EMR", "Direct Connect"],
-    "expected_cost_range": [3, 30]
+    "expected_services": [
+      "S3",
+      "CloudFront"
+    ],
+    "forbidden_services": [
+      "EKS",
+      "RDS",
+      "EMR",
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      3,
+      30
+    ],
+    "required_capabilities": [
+      "object_storage",
+      "cdn"
+    ]
   },
   {
     "id": "web-003",
     "query": "Build a corporate website with a CMS backend for 2,000 daily users. Budget is $150/month. Needs a database for content storage.",
     "category": "web",
     "difficulty": "easy",
-    "tags": ["web", "cms", "small-scale"],
+    "tags": [
+      "web",
+      "cms",
+      "small-scale"
+    ],
     "expected_constraints": {
       "budget_usd": 150,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["CloudFront", "RDS"],
-    "forbidden_services": ["Direct Connect", "Redshift", "EKS"],
-    "expected_cost_range": [40, 140]
+    "expected_services": [
+      "CloudFront",
+      "RDS"
+    ],
+    "forbidden_services": [
+      "Direct Connect",
+      "Redshift",
+      "EKS"
+    ],
+    "expected_cost_range": [
+      40,
+      140
+    ],
+    "required_capabilities": [
+      "cdn",
+      "relational_db"
+    ]
   },
   {
     "id": "serverless-001",
-    "query": "Design a mobile API backend for an app with 50,000 daily active users. Minimize costs — use serverless where possible.",
+    "query": "Design a mobile API backend for an app with 50,000 daily active users. Minimize costs \u2014 use serverless where possible.",
     "category": "serverless",
     "difficulty": "easy",
-    "tags": ["serverless", "mobile", "cost-optimized"],
+    "tags": [
+      "serverless",
+      "mobile",
+      "cost-optimized"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["API Gateway", "Lambda", "DynamoDB"],
-    "forbidden_services": ["EKS", "EC2", "EMR"],
-    "expected_cost_range": [15, 120]
+    "expected_services": [
+      "API Gateway",
+      "Lambda",
+      "DynamoDB"
+    ],
+    "forbidden_services": [
+      "EKS",
+      "EC2",
+      "EMR"
+    ],
+    "expected_cost_range": [
+      15,
+      120
+    ],
+    "required_capabilities": [
+      "api_gateway",
+      "serverless_compute",
+      "nosql_db"
+    ]
   },
   {
     "id": "serverless-002",
     "query": "Design a webhook processing system that receives 1 million events per day with highly spiky traffic patterns. Budget is $200/month.",
     "category": "serverless",
     "difficulty": "medium",
-    "tags": ["serverless", "event-driven", "spiky-traffic"],
+    "tags": [
+      "serverless",
+      "event-driven",
+      "spiky-traffic"
+    ],
     "expected_constraints": {
       "budget_usd": 200,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["SQS", "Lambda"],
-    "forbidden_services": ["EKS", "EMR", "Redshift"],
-    "expected_cost_range": [10, 80]
+    "expected_services": [
+      "SQS",
+      "Lambda"
+    ],
+    "forbidden_services": [
+      "EKS",
+      "EMR",
+      "Redshift"
+    ],
+    "expected_cost_range": [
+      10,
+      80
+    ],
+    "required_capabilities": [
+      "message_queue",
+      "serverless_compute"
+    ]
   },
   {
     "id": "serverless-003",
     "query": "Build a scheduled batch processing system for nightly financial reports. Jobs run once per day, each taking 30 minutes. Minimize always-on infrastructure cost.",
     "category": "serverless",
     "difficulty": "easy",
-    "tags": ["batch", "scheduled", "cost-optimized"],
+    "tags": [
+      "batch",
+      "scheduled",
+      "cost-optimized"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["S3"],
-    "forbidden_services": ["EKS", "Direct Connect"],
-    "expected_cost_range": [5, 60]
+    "expected_services": [
+      "S3"
+    ],
+    "forbidden_services": [
+      "EKS",
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      5,
+      60
+    ],
+    "required_capabilities": [
+      "serverless_compute",
+      "object_storage"
+    ]
   },
   {
     "id": "data-001",
     "query": "Design a real-time data pipeline for 10,000 IoT sensors sending telemetry every second. Need a live analytics dashboard.",
     "category": "data",
     "difficulty": "medium",
-    "tags": ["iot", "streaming", "real-time", "analytics"],
+    "tags": [
+      "iot",
+      "streaming",
+      "real-time",
+      "analytics"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Kinesis"],
-    "forbidden_services": ["Direct Connect"],
-    "expected_cost_range": [80, 500]
+    "expected_services": [
+      "Kinesis"
+    ],
+    "forbidden_services": [
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      80,
+      500
+    ],
+    "required_capabilities": [
+      "event_stream"
+    ]
   },
   {
     "id": "data-002",
     "query": "Build an ETL pipeline that processes 500GB of raw data per day into a data warehouse for business intelligence reporting. SLA: data must be available within 4 hours of landing.",
     "category": "data",
     "difficulty": "medium",
-    "tags": ["etl", "data-warehouse", "batch"],
+    "tags": [
+      "etl",
+      "data-warehouse",
+      "batch"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["S3", "Redshift"],
-    "forbidden_services": ["Lambda"],
-    "expected_cost_range": [200, 900]
+    "expected_services": [
+      "S3",
+      "Redshift"
+    ],
+    "forbidden_services": [
+      "Lambda"
+    ],
+    "expected_cost_range": [
+      200,
+      900
+    ],
+    "required_capabilities": [
+      "object_storage"
+    ]
   },
   {
     "id": "data-003",
     "query": "Design a clickstream analytics pipeline for an e-commerce platform processing 100,000 events per hour. Results should be queryable within 15 minutes.",
     "category": "data",
     "difficulty": "medium",
-    "tags": ["clickstream", "near-real-time", "analytics"],
+    "tags": [
+      "clickstream",
+      "near-real-time",
+      "analytics"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "compliance": []
     },
-    "expected_services": ["Kinesis", "S3"],
-    "forbidden_services": ["Direct Connect"],
-    "expected_cost_range": [80, 400]
+    "expected_services": [
+      "Kinesis",
+      "S3"
+    ],
+    "forbidden_services": [
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      80,
+      400
+    ],
+    "required_capabilities": [
+      "event_stream",
+      "object_storage"
+    ]
   },
   {
     "id": "ml-001",
     "query": "Build an image classification API that processes 100,000 inference requests per day with under 500ms response time.",
     "category": "ml",
     "difficulty": "medium",
-    "tags": ["ml-inference", "api", "latency-sensitive"],
+    "tags": [
+      "ml-inference",
+      "api",
+      "latency-sensitive"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "latency_ms": 500,
       "compliance": []
     },
-    "expected_services": ["S3"],
-    "forbidden_services": ["Direct Connect", "Redshift"],
-    "expected_cost_range": [80, 500]
+    "expected_services": [
+      "S3"
+    ],
+    "forbidden_services": [
+      "Direct Connect",
+      "Redshift"
+    ],
+    "expected_cost_range": [
+      80,
+      500
+    ],
+    "required_capabilities": [
+      "object_storage",
+      "ml_platform"
+    ]
   },
   {
     "id": "ml-002",
     "query": "Design infrastructure for fine-tuning a large language model periodically on a custom dataset. Training runs weekly, each taking 8 hours on GPU. Store training artifacts and serve the fine-tuned model via API.",
     "category": "ml",
     "difficulty": "medium",
-    "tags": ["ml-training", "gpu", "llm", "periodic"],
+    "tags": [
+      "ml-training",
+      "gpu",
+      "llm",
+      "periodic"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.99,
       "compliance": []
     },
-    "expected_services": ["S3"],
-    "forbidden_services": ["Lambda", "Direct Connect"],
-    "expected_cost_range": [150, 900]
+    "expected_services": [
+      "S3"
+    ],
+    "forbidden_services": [
+      "Lambda",
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      150,
+      900
+    ],
+    "required_capabilities": [
+      "object_storage",
+      "ml_platform"
+    ]
   },
   {
     "id": "ml-003",
     "query": "Build a real-time product recommendation engine for 500,000 active users. Recommendations must be returned in under 100ms.",
     "category": "ml",
     "difficulty": "hard",
-    "tags": ["recommendations", "real-time", "low-latency"],
+    "tags": [
+      "recommendations",
+      "real-time",
+      "low-latency"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "latency_ms": 100,
       "compliance": []
     },
-    "expected_services": ["ElastiCache"],
-    "forbidden_services": ["Direct Connect"],
-    "expected_cost_range": [250, 1200]
+    "expected_services": [
+      "ElastiCache"
+    ],
+    "forbidden_services": [
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      250,
+      1200
+    ],
+    "required_capabilities": [
+      "cache"
+    ]
   },
   {
     "id": "compliance-001",
     "query": "Design a HIPAA-compliant data pipeline for storing and processing patient health records. Data must be encrypted at rest and in transit. Full audit logging required.",
     "category": "compliance",
     "difficulty": "hard",
-    "tags": ["hipaa", "healthcare", "encryption", "audit"],
+    "tags": [
+      "hipaa",
+      "healthcare",
+      "encryption",
+      "audit"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
-      "compliance": ["HIPAA"]
+      "compliance": [
+        "HIPAA"
+      ]
     },
-    "expected_services": ["KMS", "CloudTrail", "VPC"],
-    "forbidden_services": ["Direct Connect"],
-    "expected_cost_range": [150, 700]
+    "expected_services": [
+      "KMS",
+      "CloudTrail",
+      "VPC"
+    ],
+    "forbidden_services": [
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      150,
+      700
+    ],
+    "required_capabilities": [
+      "key_management",
+      "monitoring"
+    ]
   },
   {
     "id": "compliance-002",
     "query": "Build a PCI-DSS compliant payment processing system for a fintech company. Must handle 500 transactions per second with 99.99% availability. Cardholder data must never be stored in plaintext.",
     "category": "compliance",
     "difficulty": "hard",
-    "tags": ["pci-dss", "fintech", "payment", "high-availability"],
+    "tags": [
+      "pci-dss",
+      "fintech",
+      "payment",
+      "high-availability"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
-      "compliance": ["PCI-DSS"]
+      "compliance": [
+        "PCI-DSS"
+      ]
     },
-    "expected_services": ["WAF", "KMS", "VPC"],
-    "forbidden_services": ["Direct Connect"],
-    "expected_cost_range": [400, 1500]
+    "expected_services": [
+      "WAF",
+      "KMS",
+      "VPC"
+    ],
+    "forbidden_services": [
+      "Direct Connect"
+    ],
+    "expected_cost_range": [
+      400,
+      1500
+    ],
+    "required_capabilities": [
+      "waf",
+      "key_management"
+    ]
   },
   {
     "id": "compliance-003",
     "query": "Design a SOC 2 compliant multi-tenant SaaS platform for enterprise customers. Requires audit logging, intrusion detection, and data isolation between tenants.",
     "category": "compliance",
     "difficulty": "hard",
-    "tags": ["soc2", "saas", "multi-tenant", "enterprise"],
+    "tags": [
+      "soc2",
+      "saas",
+      "multi-tenant",
+      "enterprise"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
-      "compliance": ["SOC2"]
+      "compliance": [
+        "SOC2"
+      ]
     },
-    "expected_services": ["CloudTrail", "GuardDuty", "VPC"],
+    "expected_services": [
+      "CloudTrail",
+      "GuardDuty",
+      "VPC"
+    ],
     "forbidden_services": [],
-    "expected_cost_range": [250, 1000]
+    "expected_cost_range": [
+      250,
+      1000
+    ],
+    "required_capabilities": [
+      "monitoring"
+    ]
   },
   {
     "id": "scale-001",
     "query": "Design a social media platform for 1 million concurrent users globally. Content must load in under 200ms worldwide. Needs real-time feeds and notifications.",
     "category": "scale",
     "difficulty": "hard",
-    "tags": ["high-scale", "global", "real-time", "cdn"],
+    "tags": [
+      "high-scale",
+      "global",
+      "real-time",
+      "cdn"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "latency_ms": 200,
       "compliance": []
     },
-    "expected_services": ["CloudFront", "ElastiCache"],
+    "expected_services": [
+      "CloudFront",
+      "ElastiCache"
+    ],
     "forbidden_services": [],
-    "expected_cost_range": [2000, 10000]
+    "expected_cost_range": [
+      2000,
+      10000
+    ],
+    "required_capabilities": [
+      "cdn",
+      "cache"
+    ]
   },
   {
     "id": "scale-002",
     "query": "Build a gaming leaderboard system for 100,000 concurrent players. Leaderboard writes must complete in under 10ms. Global rankings update in real time.",
     "category": "scale",
     "difficulty": "hard",
-    "tags": ["gaming", "low-latency", "real-time", "high-write"],
+    "tags": [
+      "gaming",
+      "low-latency",
+      "real-time",
+      "high-write"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
       "latency_ms": 10,
       "compliance": []
     },
-    "expected_services": ["ElastiCache"],
-    "forbidden_services": ["RDS"],
-    "expected_cost_range": [150, 700]
+    "expected_services": [
+      "ElastiCache"
+    ],
+    "forbidden_services": [
+      "RDS"
+    ],
+    "expected_cost_range": [
+      150,
+      700
+    ],
+    "required_capabilities": [
+      "cache"
+    ]
   },
   {
     "id": "scale-003",
     "query": "Design a high-frequency financial trading platform processing 50,000 transactions per second with sub-10ms end-to-end latency. No cold starts allowed.",
     "category": "scale",
     "difficulty": "hard",
-    "tags": ["fintech", "high-throughput", "ultra-low-latency"],
+    "tags": [
+      "fintech",
+      "high-throughput",
+      "ultra-low-latency"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "latency_ms": 10,
       "compliance": []
     },
-    "expected_services": ["VPC"],
-    "forbidden_services": ["Lambda"],
-    "expected_cost_range": [1000, 5000]
+    "expected_services": [
+      "VPC"
+    ],
+    "forbidden_services": [
+      "Lambda"
+    ],
+    "expected_cost_range": [
+      1000,
+      5000
+    ],
+    "required_capabilities": [
+      "load_balancer"
+    ]
   },
   {
     "id": "multiregion-001",
     "query": "Build a global SaaS platform for EU and US customers. EU customer data must stay within the EU (GDPR requirement). Both regions need independent deployments with shared identity management.",
     "category": "multiregion",
     "difficulty": "hard",
-    "tags": ["multi-region", "gdpr", "data-residency", "global"],
+    "tags": [
+      "multi-region",
+      "gdpr",
+      "data-residency",
+      "global"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.999,
-      "compliance": ["GDPR"]
+      "compliance": [
+        "GDPR"
+      ]
     },
-    "expected_services": ["CloudFront", "Route 53", "VPC"],
+    "expected_services": [
+      "CloudFront",
+      "Route 53",
+      "VPC"
+    ],
     "forbidden_services": [],
-    "expected_cost_range": [150, 2500]
+    "expected_cost_range": [
+      150,
+      2500
+    ],
+    "required_capabilities": [
+      "cdn",
+      "key_management"
+    ]
   },
   {
     "id": "multiregion-002",
     "query": "Design a multi-region active-active architecture for a financial services company. Any single region failure must not cause downtime. RTO must be under 1 minute. 99.99% availability required.",
     "category": "multiregion",
     "difficulty": "hard",
-    "tags": ["multi-region", "active-active", "disaster-recovery", "high-availability"],
+    "tags": [
+      "multi-region",
+      "active-active",
+      "disaster-recovery",
+      "high-availability"
+    ],
     "expected_constraints": {
       "budget_usd": null,
       "availability": 0.9999,
       "compliance": []
     },
-    "expected_services": ["Route 53"],
+    "expected_services": [
+      "Route 53"
+    ],
     "forbidden_services": [],
-    "expected_cost_range": [800, 6000]
+    "expected_cost_range": [
+      800,
+      6000
+    ],
+    "required_capabilities": [
+      "load_balancer"
+    ]
   }
 ]
