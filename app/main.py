@@ -74,7 +74,7 @@ cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic ca
 
 app = FastAPI(
     title="Cloud Architecture Assistant",
-    description="AI-powered AWS architecture recommendations with cost estimation",
+    description="AI-powered multi-cloud architecture recommendations with cost estimation (AWS, Azure, GCP)",
     version="1.0.0",
 )
 
@@ -253,18 +253,30 @@ class SnapshotSaveRequest(BaseModel):
 class DriftScheduleRequest(BaseModel):
     name: str
     snapshot_name: str
-    aws_access_key_id: str
-    aws_secret_access_key: str
+    cloud_provider: str = "aws"       # "aws" | "azure" | "gcp"
     region: str = "us-east-1"
     interval_minutes: int = 60
     alert_threshold: int = 60
     alert_webhook_url: str = ""
+    # AWS
+    aws_access_key_id: str = ""
+    aws_secret_access_key: str = ""
+    # Azure
+    subscription_id: str = ""
+    tenant_id: str = ""
+    client_id: str = ""
+    client_secret: str = ""
+    resource_group: str = ""
+    # GCP
+    project_id: str = ""
+    service_account_json: str = ""
 
     class Config:
         json_schema_extra = {
             "example": {
                 "name": "prod-ecommerce-hourly",
                 "snapshot_name": "prod-ecommerce",
+                "cloud_provider": "aws",
                 "aws_access_key_id": "AKIA...",
                 "aws_secret_access_key": "...",
                 "interval_minutes": 60,
@@ -560,12 +572,20 @@ def drift_schedule_create(request: DriftScheduleRequest):
     config = DriftScheduleConfig(
         name=request.name,
         snapshot_name=request.snapshot_name,
-        aws_access_key_id=request.aws_access_key_id,
-        aws_secret_access_key=request.aws_secret_access_key,
+        cloud_provider=request.cloud_provider,
         region=request.region,
         interval_minutes=request.interval_minutes,
         alert_threshold=request.alert_threshold,
         alert_webhook_url=request.alert_webhook_url,
+        aws_access_key_id=request.aws_access_key_id,
+        aws_secret_access_key=request.aws_secret_access_key,
+        subscription_id=request.subscription_id,
+        tenant_id=request.tenant_id,
+        client_id=request.client_id,
+        client_secret=request.client_secret,
+        resource_group=request.resource_group,
+        project_id=request.project_id,
+        service_account_json=request.service_account_json,
     )
     result = register_schedule(config)
     log.info(f"Drift schedule registered: '{request.name}'")

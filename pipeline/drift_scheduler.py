@@ -39,23 +39,42 @@ class DriftScheduleConfig:
     Fields:
         name:                Unique name for this schedule (matches a snapshot name).
         snapshot_name:       Which snapshot to compare the live account against.
-        aws_access_key_id:   AWS access key for the scan (read-only IAM recommended).
-        aws_secret_access_key: AWS secret key.
-        region:              AWS region to scan (default: us-east-1).
+        cloud_provider:      'aws' | 'azure' | 'gcp' (default: 'aws').
+        region:              Cloud region to scan (default: us-east-1).
         interval_minutes:    How often to scan (default: 60).
         alert_threshold:     Drift score below which an alert fires (default: 60).
         alert_webhook_url:   Slack-compatible webhook URL for alerts (optional).
         enabled:             Whether the schedule is active (default: True).
+        aws_access_key_id:   AWS access key (read-only IAM recommended).
+        aws_secret_access_key: AWS secret key.
+        subscription_id:     Azure subscription ID.
+        tenant_id:           Azure tenant ID.
+        client_id:           Azure app registration client ID.
+        client_secret:       Azure app registration client secret.
+        resource_group:      Azure resource group (optional — scans all if blank).
+        project_id:          GCP project ID.
+        service_account_json: GCP service account JSON key (full JSON as string).
     """
     name:                    str
     snapshot_name:           str
-    aws_access_key_id:       str
-    aws_secret_access_key:   str
+    cloud_provider:          str   = "aws"
     region:                  str   = "us-east-1"
     interval_minutes:        int   = 60
     alert_threshold:         int   = 60
     alert_webhook_url:       str   = ""
     enabled:                 bool  = True
+    # AWS
+    aws_access_key_id:       str   = ""
+    aws_secret_access_key:   str   = ""
+    # Azure
+    subscription_id:         str   = ""
+    tenant_id:               str   = ""
+    client_id:               str   = ""
+    client_secret:           str   = ""
+    resource_group:          str   = ""
+    # GCP
+    project_id:              str   = ""
+    service_account_json:    str   = ""
 
 
 # ─── History store ───────────────────────────────────────────────────────────
@@ -155,9 +174,17 @@ def _run_scan(config: DriftScheduleConfig) -> dict | None:
     try:
         result = scan_and_compare(
             recommended=architecture,
+            cloud_provider=config.cloud_provider,
+            region=config.region,
             aws_access_key_id=config.aws_access_key_id,
             aws_secret_access_key=config.aws_secret_access_key,
-            region=config.region,
+            subscription_id=config.subscription_id,
+            tenant_id=config.tenant_id,
+            client_id=config.client_id,
+            client_secret=config.client_secret,
+            resource_group=config.resource_group,
+            project_id=config.project_id,
+            service_account_json=config.service_account_json,
         )
     except Exception as e:
         log.error(f"Drift scan failed for schedule '{config.name}': {e}")
