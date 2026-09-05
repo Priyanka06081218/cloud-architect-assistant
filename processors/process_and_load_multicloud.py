@@ -26,7 +26,6 @@ from config import (
     RAW_GCP_DOCS,   RAW_GCP_STACKOVERFLOW,   RAW_GCP_BLOG,   RAW_GCP_GITHUB,
 )
 
-# ── Setup ─────────────────────────────────────────────────────────────────────
 
 CHROMA_DIR    = "data/chromadb"
 EMBED_MODEL   = "all-MiniLM-L6-v2"
@@ -46,7 +45,6 @@ COMPARISON_KEYWORDS = [
 ]
 
 
-# ── Cleaning ──────────────────────────────────────────────────────────────────
 
 def clean_text(text):
     text = text.encode("utf-8", "ignore").decode("utf-8")
@@ -70,7 +68,6 @@ def is_comparison_doc(text):
     return matches >= 2
 
 
-# ── Chunking ──────────────────────────────────────────────────────────────────
 
 def chunk_text(text, source_id=""):
     paragraphs = [p.strip() for p in text.split("\n\n") if len(p.strip()) > 50]
@@ -105,7 +102,6 @@ def chunk_text(text, source_id=""):
     return chunks
 
 
-# ── Loaders ───────────────────────────────────────────────────────────────────
 
 def _load_docs_dir(raw_dir: str, cloud: str) -> list[tuple[str, dict]]:
     """Load all JSON files from a raw docs directory."""
@@ -243,7 +239,6 @@ def _load_github_dir(raw_dir: str, cloud: str) -> tuple[list, list]:
     return readme_docs, terraform_docs
 
 
-# ── ChromaDB loader ───────────────────────────────────────────────────────────
 
 def load_cloud_into_chromadb(cloud: str, arch_docs, comparison_docs, terraform_docs, model, client):
     """Embed and insert docs into cloud-specific ChromaDB collections."""
@@ -300,7 +295,6 @@ def load_cloud_into_chromadb(cloud: str, arch_docs, comparison_docs, terraform_d
     print(f"    terraform_examples_{cloud}     : {terr_col.count()} chunks")
 
 
-# ── Main ──────────────────────────────────────────────────────────────────────
 
 def run(clouds: list[str] | None = None):
     """

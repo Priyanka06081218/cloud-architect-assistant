@@ -19,7 +19,6 @@ import chromadb
 from sentence_transformers import SentenceTransformer
 from config import RAW_AWS_DOCS, RAW_WHITEPAPERS, RAW_STACKOVERFLOW, RAW_GITHUB, RAW_BLOG
 
-#  Setup 
 
 # ChromaDB saves to disk — data persists across runs
 CHROMA_DIR = "data/chromadb"
@@ -42,7 +41,6 @@ COMPARISON_KEYWORDS = [
 ]
 
 
-#  Cleaning functions (one per source type) 
 
 def clean_text(text):
     """Shared cleaning applied to all sources.
@@ -76,7 +74,6 @@ def is_comparison_doc(text):
     return matches >= 2  # needs at least 2 comparison keywords to qualify
 
 
-#  Chunking 
 
 def chunk_text(text, source_id):
     """Split text into overlapping chunks of ~CHUNK_SIZE words.
@@ -121,7 +118,6 @@ def chunk_text(text, source_id):
     return chunks
 
 
-#  Document loaders (one per source type) 
 
 def load_aws_docs():
     """Load AWS documentation files. Returns list of (text, metadata) tuples."""
@@ -284,7 +280,6 @@ def load_blog():
     return docs
 
 
-#  ChromaDB loader 
 
 def load_into_chromadb(arch_docs, comparison_docs, terraform_docs):
     """Embed all chunks and insert into three ChromaDB collections."""
@@ -355,7 +350,6 @@ def load_into_chromadb(arch_docs, comparison_docs, terraform_docs):
     print(f"  terraform_examples    : {terr_col.count()} chunks")
 
 
-#  Main pipeline 
 
 def run():
     print("=" * 55)

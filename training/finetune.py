@@ -30,7 +30,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(message)s")
 
 
-#  Alpaca prompt template 
 # This wraps each (instruction, response) pair into the format the model learns.
 # At inference time, we format the query the same way and let the model complete it.
 
@@ -214,7 +213,6 @@ def train(
     logger.info("Next step: merge the adapter into the base model with merge_adapter.py")
 
 
-#  Merge adapter into base model (run after training) 
 
 def merge_adapter(
     base_model: str = "meta-llama/Llama-3.1-8B-Instruct",
@@ -259,7 +257,6 @@ def merge_adapter(
     logger.info("You can now load this as a standard HuggingFace model.")
 
 
-#  CLI 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Fine-tune or merge the cloud architect model.")

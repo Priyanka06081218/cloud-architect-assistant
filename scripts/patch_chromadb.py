@@ -13,7 +13,6 @@ import pickle
 import sqlite3
 import json
 
-#  Patch 1: config_json_str 
 from chromadb.api.configuration import CollectionConfigurationInternal
 
 DB_PATH = "data/chromadb/chroma.sqlite3"
@@ -34,7 +33,6 @@ for name, existing in cur.fetchall():
 conn.commit()
 conn.close()
 
-#  Patch 2: index_metadata.pickle 
 from chromadb.segment.impl.vector.local_persistent_hnsw import PersistentData
 
 CHROMA_DIR = "data/chromadb"

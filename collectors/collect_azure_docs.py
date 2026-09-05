@@ -23,7 +23,6 @@ HEADERS = {
 # Key Azure doc pages covering compute, storage, networking, databases,
 # messaging, AI/ML, security, and well-architected guidance.
 DOC_SECTIONS = {
-    # ── Well-Architected Framework ──────────────────────────────────────────
     "waf_overview":           "https://learn.microsoft.com/en-us/azure/well-architected/",
     "waf_reliability":        "https://learn.microsoft.com/en-us/azure/well-architected/reliability/overview",
     "waf_security":           "https://learn.microsoft.com/en-us/azure/well-architected/security/overview",
@@ -31,7 +30,6 @@ DOC_SECTIONS = {
     "waf_performance":        "https://learn.microsoft.com/en-us/azure/well-architected/performance-efficiency/overview",
     "waf_operational":        "https://learn.microsoft.com/en-us/azure/well-architected/operational-excellence/overview",
 
-    # ── Architecture Center ─────────────────────────────────────────────────
     "arch_microservices":     "https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/microservices",
     "arch_event_driven":      "https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/event-driven",
     "arch_serverless":        "https://learn.microsoft.com/en-us/azure/architecture/guide/architecture-styles/serverless",
@@ -40,7 +38,6 @@ DOC_SECTIONS = {
     "arch_high_avail":        "https://learn.microsoft.com/en-us/azure/architecture/framework/resiliency/app-design",
     "arch_multi_region":      "https://learn.microsoft.com/en-us/azure/architecture/reference-architectures/app-service-web-app/multi-region",
 
-    # ── Compute ─────────────────────────────────────────────────────────────
     "aks_overview":           "https://learn.microsoft.com/en-us/azure/aks/intro-kubernetes",
     "aks_best_practices":     "https://learn.microsoft.com/en-us/azure/aks/best-practices",
     "aks_cluster_config":     "https://learn.microsoft.com/en-us/azure/aks/cluster-configuration",
@@ -55,7 +52,6 @@ DOC_SECTIONS = {
     "vmss_overview":          "https://learn.microsoft.com/en-us/azure/virtual-machine-scale-sets/overview",
     "batch_overview":         "https://learn.microsoft.com/en-us/azure/batch/batch-technical-overview",
 
-    # ── Networking ──────────────────────────────────────────────────────────
     "vnet_overview":          "https://learn.microsoft.com/en-us/azure/virtual-network/virtual-networks-overview",
     "app_gateway":            "https://learn.microsoft.com/en-us/azure/application-gateway/overview",
     "front_door":             "https://learn.microsoft.com/en-us/azure/frontdoor/front-door-overview",
@@ -65,7 +61,6 @@ DOC_SECTIONS = {
     "api_management_best":    "https://learn.microsoft.com/en-us/azure/api-management/api-management-policies",
     "private_link":           "https://learn.microsoft.com/en-us/azure/private-link/private-link-overview",
 
-    # ── Databases ───────────────────────────────────────────────────────────
     "cosmos_overview":        "https://learn.microsoft.com/en-us/azure/cosmos-db/introduction",
     "cosmos_partitioning":    "https://learn.microsoft.com/en-us/azure/cosmos-db/partitioning-overview",
     "cosmos_consistency":     "https://learn.microsoft.com/en-us/azure/cosmos-db/consistency-levels",
@@ -77,7 +72,6 @@ DOC_SECTIONS = {
     "redis_cache":            "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-overview",
     "redis_best":             "https://learn.microsoft.com/en-us/azure/azure-cache-for-redis/cache-best-practices-development",
 
-    # ── Messaging & Streaming ───────────────────────────────────────────────
     "service_bus":            "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-messaging-overview",
     "service_bus_best":       "https://learn.microsoft.com/en-us/azure/service-bus-messaging/service-bus-performance-improvements",
     "event_hub":              "https://learn.microsoft.com/en-us/azure/event-hubs/event-hubs-about",
@@ -85,12 +79,10 @@ DOC_SECTIONS = {
     "event_grid":             "https://learn.microsoft.com/en-us/azure/event-grid/overview",
     "storage_queue":          "https://learn.microsoft.com/en-us/azure/storage/queues/storage-queues-introduction",
 
-    # ── Storage ─────────────────────────────────────────────────────────────
     "blob_storage":           "https://learn.microsoft.com/en-us/azure/storage/blobs/storage-blobs-introduction",
     "blob_tiers":             "https://learn.microsoft.com/en-us/azure/storage/blobs/access-tiers-overview",
     "adls_gen2":              "https://learn.microsoft.com/en-us/azure/storage/blobs/data-lake-storage-introduction",
 
-    # ── Security & Identity ─────────────────────────────────────────────────
     "entra_id":               "https://learn.microsoft.com/en-us/entra/identity/",
     "key_vault":              "https://learn.microsoft.com/en-us/azure/key-vault/general/overview",
     "defender_cloud":         "https://learn.microsoft.com/en-us/azure/defender-for-cloud/defender-for-cloud-introduction",
@@ -98,17 +90,14 @@ DOC_SECTIONS = {
     "ddos_protection":        "https://learn.microsoft.com/en-us/azure/ddos-protection/ddos-protection-overview",
     "managed_identity":       "https://learn.microsoft.com/en-us/entra/identity/managed-identities-azure-resources/overview",
 
-    # ── Monitoring ──────────────────────────────────────────────────────────
     "monitor_overview":       "https://learn.microsoft.com/en-us/azure/azure-monitor/overview",
     "app_insights":           "https://learn.microsoft.com/en-us/azure/azure-monitor/app/app-insights-overview",
     "log_analytics":          "https://learn.microsoft.com/en-us/azure/azure-monitor/logs/log-analytics-overview",
 
-    # ── AI / ML ─────────────────────────────────────────────────────────────
     "openai_service":         "https://learn.microsoft.com/en-us/azure/ai-services/openai/overview",
     "ml_overview":            "https://learn.microsoft.com/en-us/azure/machine-learning/overview-what-is-azure-machine-learning",
     "cognitive_search":       "https://learn.microsoft.com/en-us/azure/search/search-what-is-azure-search",
 
-    # ── Data & Analytics ────────────────────────────────────────────────────
     "synapse":                "https://learn.microsoft.com/en-us/azure/synapse-analytics/overview-what-is",
     "data_factory":           "https://learn.microsoft.com/en-us/azure/data-factory/introduction",
     "databricks":             "https://learn.microsoft.com/en-us/azure/databricks/introduction/",

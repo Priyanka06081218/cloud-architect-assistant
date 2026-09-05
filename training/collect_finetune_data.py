@@ -32,7 +32,6 @@ logging.basicConfig(
 )
 log = logging.getLogger(__name__)
 
-#  Output paths 
 
 OUTPUT_DIR   = "data/finetune"
 PAIRS_FILE   = f"{OUTPUT_DIR}/pairs.jsonl"
@@ -40,7 +39,6 @@ FAILED_FILE  = f"{OUTPUT_DIR}/failed.jsonl"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-#  Query bank 
 # 500 diverse queries covering all major AWS architecture patterns.
 # Grouped by theme for variety in the training set.
 
@@ -314,7 +312,6 @@ QUERIES = [
 ]
 
 
-#  Helpers 
 
 def load_done() -> set[str]:
     """Return set of queries already saved (for resume support)."""
@@ -363,7 +360,6 @@ def save_failed(query: str, error: str):
         f.write(json.dumps({"query": query, "error": error}) + "\n")
 
 
-#  Main 
 
 def collect(queries: list[str], delay_seconds: float = 2.0):
     """Run the pipeline on each query and save the pair.

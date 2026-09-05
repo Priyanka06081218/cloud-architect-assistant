@@ -19,7 +19,6 @@ import requests
 log = logging.getLogger(__name__)
 
 
-#  Minimal protobuf varint / wire encoding 
 
 def _varint(n: int) -> bytes:
     out = []
@@ -76,7 +75,6 @@ def _encode_write_request(ts_list: list[bytes]) -> bytes:
     return msg
 
 
-#  Public API 
 
 def push_metrics(metric_families, url: str, username: str, token: str) -> None:
     """Push Prometheus metric families to Grafana Cloud remote_write."""

@@ -16,14 +16,12 @@ import requests as _requests
 
 log = logging.getLogger(__name__)
 
-#  Severity levels
 
 CRITICAL = "critical"   # security gap — fix immediately
 HIGH     = "high"       # reliability gap — fix before production
 MEDIUM   = "medium"     # optimization gap — fix when possible
 LOW      = "low"        # nice-to-have improvement
 
-#  AWS Scanner 
 
 def _make_session(aws_access_key_id: str, aws_secret_access_key: str, region: str):
     import boto3
@@ -51,7 +49,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
     session = _make_session(aws_access_key_id, aws_secret_access_key, region)
     snapshot = {}
 
-    #  Compute 
     try:
         ec2 = _client(session,"ec2")
         reservations = ec2.describe_instances(
@@ -70,7 +67,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["ec2_count"] = 0
         snapshot["ec2_multi_az"] = False
 
-    #  ECS 
     try:
         ecs = _client(session,"ecs")
         clusters = ecs.list_clusters()["clusterArns"]
@@ -81,7 +77,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["ecs_clusters"] = 0
         snapshot["has_ecs"] = False
 
-    #  Lambda 
     try:
         lam = _client(session,"lambda")
         functions = lam.list_functions()["Functions"]
@@ -92,7 +87,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["lambda_count"] = 0
         snapshot["has_lambda"] = False
 
-    #  RDS 
     try:
         rds = _client(session,"rds")
         instances = rds.describe_db_instances()["DBInstances"]
@@ -109,7 +103,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["rds_encrypted"] = False
         snapshot["rds_engines"] = []
 
-    #  DynamoDB 
     try:
         ddb = _client(session,"dynamodb")
         tables = ddb.list_tables()["TableNames"]
@@ -120,7 +113,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["dynamodb_tables"] = 0
         snapshot["has_dynamodb"] = False
 
-    #  ElastiCache 
     try:
         ec = _client(session,"elasticache")
         clusters = ec.describe_cache_clusters()["CacheClusters"]
@@ -131,7 +123,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["elasticache_clusters"] = 0
         snapshot["has_elasticache"] = False
 
-    #  Load Balancers 
     try:
         elb = _client(session,"elbv2")
         lbs = elb.describe_load_balancers()["LoadBalancers"]
@@ -144,7 +135,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["nlb_count"] = 0
         snapshot["has_alb"] = False
 
-    #  CloudFront 
     try:
         cf = _client(session,"cloudfront")
         dists = cf.list_distributions().get("DistributionList", {}).get("Items", [])
@@ -155,7 +145,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["cloudfront_distributions"] = 0
         snapshot["has_cloudfront"] = False
 
-    #  SQS 
     try:
         sqs = _client(session,"sqs")
         queues = sqs.list_queues().get("QueueUrls", [])
@@ -166,7 +155,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["sqs_queues"] = 0
         snapshot["has_sqs"] = False
 
-    #  API Gateway 
     try:
         apigw = _client(session,"apigateway")
         apis = apigw.get_rest_apis()["items"]
@@ -177,7 +165,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["api_gateway_count"] = 0
         snapshot["has_api_gateway"] = False
 
-    #  CloudWatch Alarms 
     try:
         cw = _client(session,"cloudwatch")
         alarms = cw.describe_alarms()["MetricAlarms"]
@@ -188,7 +175,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["cloudwatch_alarms"] = 0
         snapshot["has_cloudwatch_alarms"] = False
 
-    #  CloudTrail 
     try:
         ct = _client(session,"cloudtrail")
         trails = ct.describe_trails()["trailList"]
@@ -199,7 +185,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         snapshot["has_cloudtrail"] = False
         snapshot["cloudtrail_multi_region"] = False
 
-    #  GuardDuty 
     try:
         gd = _client(session,"guardduty")
         detectors = gd.list_detectors()["DetectorIds"]
@@ -208,7 +193,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
         log.warning(f"GuardDuty scan failed: {e}")
         snapshot["has_guardduty"] = False
 
-    #  WAF 
     try:
         waf = _client(session,"wafv2")
         webs = waf.list_web_acls(Scope="REGIONAL")["WebACLs"]
@@ -232,7 +216,6 @@ def scan_aws_account(aws_access_key_id: str, aws_secret_access_key: str, region:
     return snapshot
 
 
-#  Service name normalizer 
 
 _SERVICE_KEYWORDS = {
     "cloudfront":   "has_cloudfront",
@@ -273,7 +256,6 @@ def _normalize(name: str) -> str:
     return re.sub(r"amazon |aws ", "", name.lower()).strip()
 
 
-#  Diff engine 
 
 def _compare(recommended_services: list[str], snapshot: dict) -> list[dict]:
     """Compare recommended services to what's actually deployed.
@@ -329,7 +311,6 @@ def _compare(recommended_services: list[str], snapshot: dict) -> list[dict]:
                 "fix":       fix,
             })
 
-    #  Configuration checks (regardless of recommendation) 
 
     # RDS not encrypted
     if snapshot.get("has_rds") and not snapshot.get("rds_encrypted"):
@@ -416,7 +397,6 @@ def _compare(recommended_services: list[str], snapshot: dict) -> list[dict]:
     return findings
 
 
-#  Drift score 
 
 def _drift_score(findings: list[dict]) -> dict:
     """Compute an overall drift health score (0–100, higher = less drift)."""
@@ -448,9 +428,6 @@ def _drift_score(findings: list[dict]) -> dict:
     }
 
 
-# =============================================================================
-#  Azure Scanner
-# =============================================================================
 
 def _azure_token(tenant_id: str, client_id: str, client_secret: str) -> str:
     """Get an Azure ARM access token using client credentials."""
@@ -646,9 +623,6 @@ def _compare_azure(recommended_services: list[str], snapshot: dict) -> list[dict
     return findings
 
 
-# =============================================================================
-#  GCP Scanner
-# =============================================================================
 
 def _gcp_token(service_account_json: str) -> str:
     """Get a GCP access token using a service account JSON key (RSA JWT flow)."""
@@ -848,9 +822,6 @@ def _compare_gcp(recommended_services: list[str], snapshot: dict) -> list[dict]:
     return findings
 
 
-# =============================================================================
-#  Main entrypoint
-# =============================================================================
 
 def scan_and_compare(
     recommended: dict,

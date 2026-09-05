@@ -15,7 +15,6 @@ import tempfile
 from unittest.mock import patch, MagicMock
 
 
-# ─── Snapshot tests ───────────────────────────────────────────────────────────
 
 class TestSnapshotStore:
 
@@ -85,7 +84,6 @@ class TestSnapshotStore:
         assert saved["saved_at_ts"] > 0
 
 
-# ─── Drift history tests ──────────────────────────────────────────────────────
 
 class TestDriftHistory:
 
@@ -144,7 +142,6 @@ class TestDriftHistory:
         assert len(history) <= 200
 
 
-# ─── Drift score logic ────────────────────────────────────────────────────────
 
 class TestDriftScore:
 
@@ -195,7 +192,6 @@ class TestDriftScore:
         assert result["counts"]["low"] == 0
 
 
-# ─── Drift compare (diff engine) ─────────────────────────────────────────────
 
 class TestDriftCompare:
 
@@ -290,7 +286,6 @@ class TestDriftCompare:
         assert ct_findings[0]["severity"] == "critical"
 
 
-# ─── Alert threshold logic ────────────────────────────────────────────────────
 
 class TestAlertThreshold:
     """Verify _send_alert is called (or not) based on score vs threshold."""

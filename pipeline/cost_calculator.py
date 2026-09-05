@@ -284,14 +284,11 @@ def estimate_cost(architecture: dict, requirements: dict | None = None, provider
     compute_mult = _compute_multiplier(req)
     region_mult  = _region_multiplier(req)
 
-    # ── Balanced (current recommendation) ────────────────────────────────────
     bd_breakdown, bd_total = _compute_breakdown(architecture, provider, compute_mult, region_mult)
 
-    # ── Cost-Optimized: half the compute, always single-region ───────────────
     co_mult = max(1, compute_mult // 2)
     co_breakdown, co_total = _compute_breakdown(architecture, provider, co_mult, 1)
 
-    # ── High Availability: same compute but forced multi-region (region_mult≥2)
     ha_region = max(2, region_mult)
     ha_breakdown, ha_total = _compute_breakdown(architecture, provider, compute_mult, ha_region)
 

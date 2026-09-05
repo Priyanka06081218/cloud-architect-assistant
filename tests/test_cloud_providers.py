@@ -12,7 +12,6 @@ from pipeline.cloud_providers.gcp   import GCPProvider
 from pipeline.cost_calculator import estimate_cost
 
 
-# ─── Provider registry ───────────────────────────────────────────────────────
 
 class TestProviderRegistry:
 
@@ -45,7 +44,6 @@ class TestProviderRegistry:
         assert get_provider("GCP").provider_id == "gcp"
 
 
-# ─── AWS service resolution ───────────────────────────────────────────────────
 
 class TestAWSProvider:
     p = AWSProvider()
@@ -75,7 +73,6 @@ class TestAWSProvider:
         assert len(self.p.optimization_tip) > 10
 
 
-# ─── Azure service resolution ─────────────────────────────────────────────────
 
 class TestAzureProvider:
     p = AzureProvider()
@@ -111,7 +108,6 @@ class TestAzureProvider:
         assert self.p.resolve_key("Azure Cache for Redis") == "azure_redis"
 
 
-# ─── GCP service resolution ───────────────────────────────────────────────────
 
 class TestGCPProvider:
     p = GCPProvider()
@@ -148,7 +144,6 @@ class TestGCPProvider:
         assert self.p.resolve_key("Vertex AI") == "vertex_ai"
 
 
-# ─── Cost estimation: provider routing ───────────────────────────────────────
 
 class TestMultiCloudCostEstimation:
 

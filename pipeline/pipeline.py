@@ -1,16 +1,18 @@
 # pipeline/pipeline.py
 #
-# Orchestrates all pipeline steps into a single function.
+# Full pipeline orchestration.
 #
 # Flow:
 #   user query
-#     → extract requirements
-#     → retrieve RAG context (3 collections in parallel)
-#     → generate architecture + trade-offs (LLM call 1)
-#     → estimate cost (pricing table, no LLM)
-#     → generate terraform (LLM call 2)
-#     → generate diagram (no LLM, pure logic)
-#     → return full structured JSON response
+#     → extract structured requirements           (extractor.py)
+#     → retrieve RAG context from ChromaDB        (retriever.py)
+#     → generate primary architecture + LLM call  (generator.py)
+#     → IR extraction → candidate variants        (ir.py, candidates.py)
+#     → evaluate each: cost + latency + avail     (evaluator.py)
+#     → Pareto frontier across candidates         (evaluator.find_pareto)
+#     → generate Terraform                        (generator.py, LLM call 2)
+#     → generate Mermaid diagram                  (diagram.py)
+#     → return primary + alternatives + scores
 
 import json
 from pipeline.extractor          import extract_requirements

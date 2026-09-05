@@ -13,7 +13,6 @@
 
 import modal
 
-#  Image 
 vllm_image = (
     modal.Image.debian_slim(python_version="3.11")
     .pip_install(
@@ -26,12 +25,10 @@ vllm_image = (
 
 app = modal.App("cloud-architect-vllm")
 
-#  Model config 
 MODEL_ID = "Priyanka1218/cloud-architect-llama"
 MODEL_DIR = "/model"
 GPU = "A10G"      # 24GB VRAM — fits LLaMA 3.1 8B comfortably (~$1.10/hr)
 
-#  Volume to cache model weights 
 volume = modal.Volume.from_name("cloud-architect-model-cache", create_if_missing=True)
 
 

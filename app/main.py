@@ -285,7 +285,6 @@ class HealthResponse(BaseModel):
     cache_backend: str
 
 
-#  Endpoints 
 
 @app.get("/")
 def root():
@@ -617,7 +616,6 @@ def drift_history(name: str):
     }
 
 
-#  Run
 
 if __name__ == "__main__":
     import uvicorn

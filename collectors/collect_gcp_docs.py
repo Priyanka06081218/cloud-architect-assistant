@@ -22,7 +22,6 @@ HEADERS = {
 # Key GCP doc pages covering compute, storage, networking, databases,
 # messaging, AI/ML, security, and architecture guidance.
 DOC_SECTIONS = {
-    # ── Architecture & Best Practices ───────────────────────────────────────
     "arch_center":                "https://cloud.google.com/architecture",
     "arch_best_practices":        "https://cloud.google.com/architecture/framework",
     "arch_reliability":           "https://cloud.google.com/architecture/framework/reliability",
@@ -34,7 +33,6 @@ DOC_SECTIONS = {
     "arch_event_driven":          "https://cloud.google.com/eventarc/docs/overview",
     "arch_multi_region":          "https://cloud.google.com/architecture/multi-region-services",
 
-    # ── Compute ─────────────────────────────────────────────────────────────
     "gke_overview":               "https://cloud.google.com/kubernetes-engine/docs/concepts/kubernetes-engine-overview",
     "gke_best_practices":         "https://cloud.google.com/kubernetes-engine/docs/best-practices/enterprise-multitenancy",
     "gke_autopilot":              "https://cloud.google.com/kubernetes-engine/docs/concepts/autopilot-overview",
@@ -50,7 +48,6 @@ DOC_SECTIONS = {
     "app_engine_overview":        "https://cloud.google.com/appengine/docs/an-overview-of-app-engine",
     "cloud_batch":                "https://cloud.google.com/batch/docs/get-started",
 
-    # ── Networking ──────────────────────────────────────────────────────────
     "vpc_overview":               "https://cloud.google.com/vpc/docs/overview",
     "cloud_load_balancing":       "https://cloud.google.com/load-balancing/docs/load-balancing-overview",
     "cloud_cdn":                  "https://cloud.google.com/cdn/docs/overview",
@@ -60,7 +57,6 @@ DOC_SECTIONS = {
     "cloud_endpoints":            "https://cloud.google.com/endpoints/docs/openapi/about-cloud-endpoints",
     "private_service_connect":    "https://cloud.google.com/vpc/docs/private-service-connect",
 
-    # ── Databases ───────────────────────────────────────────────────────────
     "cloud_spanner":              "https://cloud.google.com/spanner/docs/whatis",
     "cloud_spanner_schema":       "https://cloud.google.com/spanner/docs/schema-design",
     "cloud_spanner_perf":         "https://cloud.google.com/spanner/docs/performance",
@@ -72,19 +68,16 @@ DOC_SECTIONS = {
     "alloydb_overview":           "https://cloud.google.com/alloydb/docs/overview",
     "memorystore_redis":          "https://cloud.google.com/memorystore/docs/redis/redis-overview",
 
-    # ── Messaging & Streaming ───────────────────────────────────────────────
     "pubsub_overview":            "https://cloud.google.com/pubsub/docs/overview",
     "pubsub_ordering":            "https://cloud.google.com/pubsub/docs/ordering",
     "pubsub_replay":              "https://cloud.google.com/pubsub/docs/replay-overview",
     "dataflow_overview":          "https://cloud.google.com/dataflow/docs/overview",
     "cloud_tasks":                "https://cloud.google.com/tasks/docs/overview",
 
-    # ── Storage ─────────────────────────────────────────────────────────────
     "gcs_overview":               "https://cloud.google.com/storage/docs/introduction",
     "gcs_storage_classes":        "https://cloud.google.com/storage/docs/storage-classes",
     "filestore_overview":         "https://cloud.google.com/filestore/docs/overview",
 
-    # ── Security & Identity ─────────────────────────────────────────────────
     "iam_overview":               "https://cloud.google.com/iam/docs/overview",
     "iam_best_practices":         "https://cloud.google.com/iam/docs/using-iam-securely",
     "secret_manager":             "https://cloud.google.com/secret-manager/docs/overview",
@@ -92,19 +85,16 @@ DOC_SECTIONS = {
     "workload_identity":          "https://cloud.google.com/kubernetes-engine/docs/concepts/workload-identity",
     "chronicle_siem":             "https://cloud.google.com/chronicle/docs/overview",
 
-    # ── Monitoring & Observability ───────────────────────────────────────────
     "cloud_monitoring":           "https://cloud.google.com/monitoring/docs/overview",
     "cloud_logging":              "https://cloud.google.com/logging/docs/overview",
     "cloud_trace":                "https://cloud.google.com/trace/docs/overview",
     "cloud_profiler":             "https://cloud.google.com/profiler/docs/about-profiler",
     "error_reporting":            "https://cloud.google.com/error-reporting/docs/overview",
 
-    # ── AI / ML ─────────────────────────────────────────────────────────────
     "vertex_ai_overview":         "https://cloud.google.com/vertex-ai/docs/start/introduction-unified-platform",
     "vertex_prediction":          "https://cloud.google.com/vertex-ai/docs/predictions/overview",
     "gemini_overview":            "https://cloud.google.com/vertex-ai/docs/generative-ai/learn/overview",
 
-    # ── Data & Analytics ────────────────────────────────────────────────────
     "bigquery_overview":          "https://cloud.google.com/bigquery/docs/introduction",
     "bigquery_best_practices":    "https://cloud.google.com/bigquery/docs/best-practices-performance-overview",
     "bigquery_storage":           "https://cloud.google.com/bigquery/docs/storage_overview",

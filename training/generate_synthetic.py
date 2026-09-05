@@ -9,10 +9,6 @@
 #   Phase 2: Run THIS script for remaining N   → synthetic pairs (same format)
 #   Result:  Combine both into pairs.jsonl for fine-tuning
 #
-# Why this works:
-#   Fine-tuning only teaches output FORMAT, not domain knowledge.
-#   The model already knows AWS — it just needs to learn your JSON structure.
-#   Synthetic pairs teach format just as well as pipeline pairs.
 #
 # Cost estimate (GPT-4o-mini):
 #   ~$0.003 per pair → 10,000 pairs ≈ $30 total
@@ -52,7 +48,6 @@ PAIRS_FILE  = f"{OUTPUT_DIR}/pairs.jsonl"
 FAILED_FILE = f"{OUTPUT_DIR}/failed_synthetic.jsonl"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
-#  System prompt 
 # Teaches GPT the exact output format we want, with a concrete example.
 # This is what the fine-tuned model will learn to replicate.
 
@@ -100,7 +95,6 @@ Rules:
 - Diagram must be valid Mermaid flowchart syntax
 - Respond ONLY with the JSON object, no markdown fences or extra text"""
 
-#  Query bank 
 # Large pool of diverse queries for synthetic generation.
 # We'll randomly sample from these to generate 10k unique pairs.
 
@@ -254,7 +248,6 @@ def save_failed(query: str, error: str):
         f.write(json.dumps({"query": query, "error": error}) + "\n")
 
 
-#  Main 
 
 def run(target_count: int, workers: int):
     done       = load_done_queries()
