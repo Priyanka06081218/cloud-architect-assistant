@@ -31,11 +31,13 @@ except ImportError:
 
 
 @observe(name="cloud_architect_pipeline")
-def run_pipeline(user_query: str) -> dict:
+def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     """Run the full RAG pipeline for a given user query.
 
     Args:
-        user_query: natural language cloud architecture request
+        user_query:     natural language cloud architecture request
+        cloud_provider: optional explicit cloud override ('aws', 'azure', 'gcp').
+                        If omitted, the cloud is auto-detected from the query text.
 
     Returns:
         Full structured response with all 6 output sections.
@@ -46,6 +48,11 @@ def run_pipeline(user_query: str) -> dict:
     # Step 1: Extract structured requirements from the query
     print("[1/6] Extracting requirements...")
     requirements = extract_requirements(user_query)
+
+    # If the caller explicitly specified a cloud, honour it — don't let the
+    # extractor's auto-detection override an API-level cloud_provider param.
+    if cloud_provider:
+        requirements["cloud_provider"] = cloud_provider.lower()
 
     # Resolve cloud provider early — used by cost estimation and diagram labels
     provider = get_provider(requirements.get("cloud_provider", "aws"))

@@ -381,7 +381,7 @@ def analyze(request: AnalyzeRequest):
     start = time.time()
 
     try:
-        response = run_pipeline(query)
+        response = run_pipeline(query, cloud_provider=request.cloud_provider or None)
     except Exception as e:
         log.error(f"Pipeline failed: {e}")
         raise HTTPException(status_code=500, detail=f"Pipeline error: {str(e)}")

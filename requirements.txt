@@ -31,3 +31,4 @@ apscheduler==3.10.4
 # accelerate>=0.34.0
 # datasets>=3.0.0
 feedparser==6.0.11
+locust>=2.29.0

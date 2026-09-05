@@ -19,3 +19,7 @@ evaluation/results/eval_report_*.json
 data/chromadb/
 data/raw/aws/
 data/raw/whitepapers/
+
+# macOS
+.DS_Store
+**/.DS_Store
