@@ -30,7 +30,6 @@ _scheduler      = None   # APScheduler BackgroundScheduler (lazy init)
 _registered: dict[str, "DriftScheduleConfig"] = {}
 
 
-# ─── Config dataclass ────────────────────────────────────────────────────────
 
 @dataclass
 class DriftScheduleConfig:
@@ -77,7 +76,6 @@ class DriftScheduleConfig:
     service_account_json:    str   = ""
 
 
-# ─── History store ───────────────────────────────────────────────────────────
 
 def _history_path(name: str) -> Path:
     _SNAPSHOTS_DIR.mkdir(parents=True, exist_ok=True)
@@ -124,7 +122,6 @@ def get_drift_history(name: str) -> list[dict]:
         return []
 
 
-# ─── Alert sender ────────────────────────────────────────────────────────────
 
 def _send_alert(webhook_url: str, schedule_name: str, scan_result: dict) -> None:
     """POST a Slack-compatible alert when drift score drops below threshold."""
@@ -156,7 +153,6 @@ def _send_alert(webhook_url: str, schedule_name: str, scan_result: dict) -> None
         log.warning(f"Drift alert failed for '{schedule_name}': {e}")
 
 
-# ─── Scan job ────────────────────────────────────────────────────────────────
 
 def _run_scan(config: DriftScheduleConfig) -> dict | None:
     """Execute one drift scan, record history, and fire alert if needed."""
@@ -201,7 +197,6 @@ def _run_scan(config: DriftScheduleConfig) -> dict | None:
     return result
 
 
-# ─── Scheduler lifecycle ─────────────────────────────────────────────────────
 
 def start_scheduler() -> None:
     """Start the APScheduler background scheduler. Call once at app startup."""

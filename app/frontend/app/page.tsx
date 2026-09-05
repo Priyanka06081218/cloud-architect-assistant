@@ -54,6 +54,15 @@ export interface AnalyzeResponse {
       }>;
     }>;
   };
+  performance?: {
+    p50_ms: number;
+    p95_ms: number;
+    max_rps: number;
+    availability: number;
+    availability_pct: string;
+    nines: string;
+    notes: string[];
+  };
   constraint_violations?: Array<{
     constraint_type: string;
     severity: string;

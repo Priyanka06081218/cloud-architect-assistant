@@ -28,15 +28,12 @@ from pipeline.drift_scheduler import (
 from pipeline.cache import cache_get, cache_set, cache_flush
 from pipeline.observability import log_langfuse_status
 
-#  Logging 
-
 logging.basicConfig(
     level=logging.INFO,
     format="%(asctime)s  %(levelname)s  %(message)s",
 )
 log = logging.getLogger(__name__)
 
-#  App setup 
 
 from prometheus_client import (
     Counter, Histogram, CollectorRegistry,
@@ -44,7 +41,6 @@ from prometheus_client import (
 )
 from fastapi.responses import Response
 
-# ── Custom metrics registry ───────────────────────────────────────────────────
 # Use a dedicated registry to avoid interference from any installed middleware.
 METRICS_REGISTRY = CollectorRegistry(auto_describe=True)
 
@@ -70,7 +66,7 @@ cost_estimate_dollars = Histogram(
 )
 cache_hits_total   = Counter("cloud_architect_cache_hits_total",   "Semantic cache hits",  registry=METRICS_REGISTRY)
 cache_misses_total = Counter("cloud_architect_cache_misses_total",  "Semantic cache misses", registry=METRICS_REGISTRY)
-# ─────────────────────────────────────────────────────────────────────────────
+
 
 app = FastAPI(
     title="Cloud Architecture Assistant",
@@ -143,7 +139,6 @@ def set_cache(query: str, response: dict):
     _mem_cache[query] = (response, time.time())
 
 
-#  Grafana Cloud remote_write 
 
 GRAFANA_REMOTE_WRITE_URL   = os.getenv("GRAFANA_REMOTE_WRITE_URL", "")
 GRAFANA_REMOTE_WRITE_USER  = os.getenv("GRAFANA_REMOTE_WRITE_USER", "")
@@ -172,7 +167,6 @@ def _push_metrics_loop():
         _time.sleep(METRICS_PUSH_INTERVAL)
 
 
-# Initialize Redis on startup (no-op if REDIS_URL not set)
 @app.on_event("startup")
 async def startup():
     log_langfuse_status()
@@ -188,7 +182,6 @@ async def shutdown():
     stop_scheduler()
 
 
-#  Request / Response models 
 
 class AnalyzeRequest(BaseModel):
     query: str
@@ -512,7 +505,6 @@ def drift(request: DriftRequest):
     return {**report, "elapsed_seconds": elapsed}
 
 
-# ─── Drift governance endpoints ──────────────────────────────────────────────
 
 @app.post("/drift/snapshot")
 def drift_snapshot_save(request: SnapshotSaveRequest):

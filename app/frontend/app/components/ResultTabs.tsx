@@ -9,6 +9,7 @@ import TerraformTab from "./tabs/TerraformTab";
 import DiagramTab from "./tabs/DiagramTab";
 import DebateTab from "./tabs/DebateTab";
 import DriftTab from "./tabs/DriftTab";
+import PerformanceTab from "./tabs/PerformanceTab";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
@@ -16,6 +17,7 @@ const TABS = [
   { id: "architecture", label: "Architecture" },
   { id: "tradeoffs",    label: "Trade-offs" },
   { id: "cost",         label: "Cost" },
+  { id: "performance",  label: "Performance" },
   { id: "terraform",    label: "Terraform" },
   { id: "diagram",      label: "Diagram" },
   { id: "debate",       label: "Debate" },
@@ -38,7 +40,10 @@ export default function ResultTabs({ result }: { result: AnalyzeResponse }) {
       const res = await fetch(`${API_URL}/analyze/debate`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ query: result.scenario_summary }),
+        body: JSON.stringify({
+          query: result.scenario_summary,
+          cloud_provider: result.cloud_provider?.toLowerCase() ?? null,
+        }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));
@@ -81,6 +86,12 @@ export default function ResultTabs({ result }: { result: AnalyzeResponse }) {
         {active === "architecture" && <ArchitectureTab architecture={result.architecture} />}
         {active === "tradeoffs"    && <TradeOffsTab tradeOffs={result.trade_offs} />}
         {active === "cost"         && <CostTab cost={result.cost} />}
+        {active === "performance"  && result.performance && (
+          <PerformanceTab performance={result.performance} />
+        )}
+        {active === "performance"  && !result.performance && (
+          <p className="text-sm text-gray-500">Performance estimates not available for this result.</p>
+        )}
         {active === "terraform"    && <TerraformTab code={result.terraform} />}
         {active === "diagram"      && <DiagramTab diagram={result.diagram} />}
         {active === "drift" && (

@@ -20,6 +20,7 @@ from pipeline.cost_calculator    import estimate_cost
 from pipeline.diagram            import generate_mermaid
 from pipeline.constraint_engine  import validate_constraints
 from pipeline.cloud_providers    import get_provider
+from pipeline.performance_model  import estimate_performance
 from pipeline.observability      import log_langfuse_status
 
 try:
@@ -84,10 +85,12 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     print("[4/6] Estimating costs...")
     cost = estimate_cost(architecture, requirements, provider=provider)
 
-    # Step 4b: Validate constraints — check the recommendation against the
-    # user's stated constraints (budget, compliance, availability, latency,
-    # multi-region). This is deterministic — no LLM involved.
-    print("[4b] Validating constraints...")
+    # Step 4b: Estimate performance (latency, throughput, availability)
+    print("[4b] Estimating performance...")
+    performance = estimate_performance(architecture, requirements)
+
+    # Step 4c: Validate constraints
+    print("[4c] Validating constraints...")
     violations = validate_constraints(requirements, architecture, cost)
 
     # Step 5: Generate Terraform (LLM call 2, uses terraform_examples collection)
@@ -110,6 +113,7 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         "architecture":          architecture,
         "trade_offs":            arch_result.get("trade_offs", []),
         "cost":                  cost,
+        "performance":           performance,
         "constraint_violations": [v.to_dict() for v in violations],
         "terraform":             terraform,
         "diagram":               diagram,

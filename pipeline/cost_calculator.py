@@ -18,7 +18,6 @@ _DEFAULT_PROVIDER = _AWSProvider()
 PRICING          = _DEFAULT_PROVIDER.pricing
 SERVICE_NAME_MAP = _DEFAULT_PROVIDER.service_name_map
 
-# ─── Scale tier derivation ───────────────────────────────────────────────────
 # Maps extracted requirements → (compute_multiplier, storage_multiplier, region_multiplier)
 #
 # compute_multiplier: how many instances/tasks the workload needs
@@ -187,7 +186,6 @@ def _region_multiplier(requirements: dict) -> int:
     return 2 if any(t in combined for t in triggers) else 1
 
 
-# ─── Public API ─────────────────────────────────────────────────────────────
 
 def _normalize(name: str) -> str:
     s = name.lower().strip()
