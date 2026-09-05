@@ -154,3 +154,76 @@ class GCPProvider(CloudProvider):
         "google vertex ai":              "vertex_ai",
         "vertex ai training":            "vertex_ai_training",
     }
+
+    compliance_controls = {
+        "hipaa": [
+            {"keyword": "kms",              "label": "Cloud KMS",               "reason": "HIPAA requires encryption of PHI at rest using customer-managed keys."},
+            {"keyword": "audit log",        "label": "Cloud Audit Logs",        "reason": "HIPAA requires audit logging of all access to PHI."},
+            {"keyword": "security command", "label": "Security Command Center", "reason": "HIPAA expects continuous threat detection for environments storing health data."},
+            {"keyword": "vpc",              "label": "VPC Network",             "reason": "HIPAA requires PHI to be isolated in a private network."},
+        ],
+        "soc2": [
+            {"keyword": "audit log",        "label": "Cloud Audit Logs",          "reason": "SOC 2 CC7.2 requires logging of all privileged and user activity."},
+            {"keyword": "security command", "label": "Security Command Center",   "reason": "SOC 2 CC6.8 requires continuous monitoring for unauthorized access."},
+            {"keyword": "cloud armor",      "label": "Cloud Armor",               "reason": "SOC 2 CC6.6 requires protection against common web exploits."},
+        ],
+        "pci-dss": [
+            {"keyword": "cloud armor",      "label": "Cloud Armor",              "reason": "PCI-DSS Req 6.6 mandates a WAF in front of all web-facing applications."},
+            {"keyword": "kms",              "label": "Cloud KMS",                "reason": "PCI-DSS Req 3.4 requires strong encryption for cardholder data at rest."},
+            {"keyword": "audit log",        "label": "Cloud Audit Logs",         "reason": "PCI-DSS Req 10 mandates audit trails for all access to cardholder data."},
+            {"keyword": "security command", "label": "Security Command Center",  "reason": "PCI-DSS Req 11.4 requires intrusion detection systems."},
+            {"keyword": "vpc",              "label": "VPC Network",              "reason": "PCI-DSS Req 1 mandates network segmentation for cardholder data."},
+        ],
+        "gdpr": [
+            {"keyword": "kms",       "label": "Cloud KMS",       "reason": "GDPR Art. 32 requires encryption of personal data at rest and in transit."},
+            {"keyword": "audit log", "label": "Cloud Audit Logs","reason": "GDPR Art. 30 requires records of all processing activities."},
+        ],
+        "fedramp": [
+            {"keyword": "audit log",        "label": "Cloud Audit Logs",          "reason": "FedRAMP AU-2 requires comprehensive audit event logging."},
+            {"keyword": "security command", "label": "Security Command Center",   "reason": "FedRAMP SI-3/SI-4 requires malware and intrusion detection."},
+            {"keyword": "kms",              "label": "Cloud KMS",                 "reason": "FedRAMP SC-28 requires FIPS 140-2 validated encryption at rest."},
+            {"keyword": "asset inventory",  "label": "Cloud Asset Inventory",     "reason": "FedRAMP CM-6/CM-7 requires continuous configuration compliance."},
+        ],
+    }
+
+    ha_database_keywords = ["cloud spanner", "spanner", "cloud sql", "bigtable", "firestore", "memorystore"]
+    ha_compute_keywords  = ["gke", "cloud run", "cloud functions", "app engine"]
+    ha_lb_keywords       = ["cloud load balancing", "cloud lb", "load balancing"]
+    ha_missing_labels    = {
+        "db":      "a multi-zone database (Cloud Spanner, Cloud SQL HA, or Cloud Bigtable)",
+        "compute": "managed compute with zone spread (GKE regional cluster, or Cloud Run)",
+        "lb":      "Cloud Load Balancing (global) for cross-zone traffic distribution",
+    }
+    ha_suggestion = (
+        "To reach 99.99%+ availability: use Cloud Spanner (99.999% SLA for "
+        "multi-region) or Cloud SQL with HA replica, run GKE Autopilot across "
+        "zones with a regional cluster, and use Cloud Load Balancing (global) "
+        "to route traffic to the nearest healthy instance."
+    )
+
+    cache_keywords   = ["memorystore", "redis"]
+    cdn_keywords     = ["cloud cdn", "cdn"]
+    fast_db_keywords = ["bigtable", "firestore", "spanner"]
+    latency_suggestion = (
+        "Add: Memorystore for Redis for in-memory caching (sub-millisecond reads), "
+        "Cloud Bigtable for sub-10ms reads on time-series or wide-column data at scale, "
+        "Cloud CDN to cache static content at Google's global edge."
+    )
+
+    multi_region_keywords = [
+        "cloud load balancing", "cloud cdn", "cloud spanner",
+        "spanner", "bigtable", "firestore",
+    ]
+    multi_region_suggestion = (
+        "Add Cloud Load Balancing (global) to route users to the nearest region with "
+        "Cloud CDN for edge caching. For the database layer, use Cloud Spanner "
+        "(globally distributed, 99.999% multi-region SLA) or Firestore in multi-region "
+        "mode. Both Cloud Bigtable and BigQuery natively replicate across regions."
+    )
+
+    budget_suggestion = (
+        "Consider replacing GKE with Cloud Run (scale-to-zero, pay-per-request), "
+        "switching Cloud SQL to a smaller tier or Cloud Spanner only if truly needed "
+        "(Cloud SQL is significantly cheaper), or removing Memorystore if in-process "
+        "caching is sufficient. Verify Compute Engine instances use Spot/preemptible pricing."
+    )

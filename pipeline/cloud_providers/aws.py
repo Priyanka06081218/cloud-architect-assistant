@@ -184,3 +184,79 @@ class AWSProvider(CloudProvider):
         "sagemaker training jobs":       "sagemaker_training",
         "aws batch":                     "ecs_fargate",
     }
+
+    compliance_controls = {
+        "hipaa": [
+            {"keyword": "kms",        "label": "AWS KMS",                 "reason": "HIPAA requires encryption of PHI at rest using managed keys."},
+            {"keyword": "cloudtrail", "label": "AWS CloudTrail",          "reason": "HIPAA requires audit logging of all access to PHI."},
+            {"keyword": "guardduty",  "label": "Amazon GuardDuty",        "reason": "HIPAA expects continuous threat detection for environments storing health data."},
+            {"keyword": "vpc",        "label": "VPC with private subnets","reason": "HIPAA requires PHI to be isolated in a private network."},
+        ],
+        "soc2": [
+            {"keyword": "cloudtrail", "label": "AWS CloudTrail",   "reason": "SOC 2 CC7.2 requires logging of all privileged and user activity."},
+            {"keyword": "guardduty",  "label": "Amazon GuardDuty", "reason": "SOC 2 CC6.8 requires continuous monitoring for unauthorized access attempts."},
+            {"keyword": "waf",        "label": "AWS WAF",          "reason": "SOC 2 CC6.6 requires protection against common web exploits."},
+        ],
+        "pci-dss": [
+            {"keyword": "waf",        "label": "AWS WAF",                 "reason": "PCI-DSS Req 6.6 mandates a WAF in front of all web-facing applications."},
+            {"keyword": "kms",        "label": "AWS KMS",                 "reason": "PCI-DSS Req 3.4 requires strong encryption for cardholder data at rest."},
+            {"keyword": "cloudtrail", "label": "AWS CloudTrail",          "reason": "PCI-DSS Req 10 mandates audit trails for all access to cardholder data."},
+            {"keyword": "guardduty",  "label": "Amazon GuardDuty",        "reason": "PCI-DSS Req 11.4 requires intrusion detection systems."},
+            {"keyword": "vpc",        "label": "VPC with private subnets","reason": "PCI-DSS Req 1 mandates network segmentation for cardholder data."},
+        ],
+        "gdpr": [
+            {"keyword": "kms",        "label": "AWS KMS",        "reason": "GDPR Art. 32 requires encryption of personal data at rest and in transit."},
+            {"keyword": "cloudtrail", "label": "AWS CloudTrail", "reason": "GDPR Art. 30 requires records of all processing activities."},
+        ],
+        "fedramp": [
+            {"keyword": "cloudtrail", "label": "AWS CloudTrail",   "reason": "FedRAMP AU-2 requires comprehensive audit event logging."},
+            {"keyword": "guardduty",  "label": "Amazon GuardDuty", "reason": "FedRAMP SI-3/SI-4 requires malware and intrusion detection."},
+            {"keyword": "kms",        "label": "AWS KMS",          "reason": "FedRAMP SC-28 requires FIPS 140-2 validated encryption at rest."},
+            {"keyword": "config",     "label": "AWS Config",       "reason": "FedRAMP CM-6/CM-7 requires continuous configuration compliance monitoring."},
+        ],
+    }
+
+    ha_database_keywords = ["aurora", "rds multi", "dynamodb", "elasticache"]
+    ha_compute_keywords  = ["ecs", "eks", "fargate", "auto scaling", "lambda"]
+    ha_lb_keywords       = ["load balancer", "alb", "nlb"]
+    ha_missing_labels    = {
+        "db":      "a Multi-AZ database (Aurora, DynamoDB, or ElastiCache)",
+        "compute": "managed compute with auto-scaling (ECS Fargate, EKS, or Lambda)",
+        "lb":      "a load balancer (ALB or NLB) to distribute traffic across AZs",
+    }
+    ha_suggestion = (
+        "To reach 99.99%+ availability: use Aurora with Multi-AZ replicas or "
+        "DynamoDB (globally distributed by default), place ECS tasks across at "
+        "least 3 AZs behind an ALB with health checks, and enable auto-scaling "
+        "policies to replace unhealthy instances automatically."
+    )
+
+    cache_keywords   = ["elasticache", "redis", "memcached", "dax"]
+    cdn_keywords     = ["cloudfront", "cdn"]
+    fast_db_keywords = ["dynamodb", "dax"]
+    latency_suggestion = (
+        "Add: ElastiCache (Redis) for in-memory caching, "
+        "DynamoDB for single-digit millisecond reads at any scale, "
+        "CloudFront to serve static content from edge locations. "
+        "ElastiCache is the highest-impact single addition — it eliminates "
+        "database round-trips for hot data."
+    )
+
+    multi_region_keywords = [
+        "route 53", "global accelerator", "cloudfront",
+        "aurora global", "dynamodb global", "s3 replication",
+    ]
+    multi_region_suggestion = (
+        "Add Route 53 with latency-based or geolocation routing to direct users "
+        "to the nearest region. For the database layer, use Aurora Global Database "
+        "(sub-1s cross-region replication) or DynamoDB Global Tables (active-active "
+        "across multiple regions). AWS Global Accelerator reduces latency by routing "
+        "traffic over AWS's private backbone rather than the public internet."
+    )
+
+    budget_suggestion = (
+        "Consider replacing provisioned compute (ECS, EC2) with serverless "
+        "(Lambda, Fargate Spot), switching RDS to Aurora Serverless v2 "
+        "(scales to zero when idle), or removing ElastiCache if caching can "
+        "be handled in-process. Also verify that the stated scale is not higher than necessary."
+    )

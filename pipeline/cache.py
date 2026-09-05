@@ -52,9 +52,12 @@ def _quick_cloud(query: str) -> str:
     return "aws"
 
 
-def _cache_query(query: str) -> str:
-    """Prepend the cloud provider so embeddings are namespaced per cloud."""
-    cloud = _quick_cloud(query)
+def _cache_query(query: str, cloud_provider: str | None = None) -> str:
+    """Prepend the cloud provider so embeddings are namespaced per cloud.
+
+    Uses the explicit cloud_provider when given; falls back to keyword detection.
+    """
+    cloud = (cloud_provider or "").lower().strip() or _quick_cloud(query)
     return f"[{cloud}] {query}"
 
 _index = None
@@ -97,16 +100,16 @@ def _decompress(s: str) -> dict:
     return json.loads(gzip.decompress(raw).decode("utf-8"))
 
 
-def cache_get(query: str) -> Optional[dict]:
+def cache_get(query: str, cloud_provider: str | None = None) -> Optional[dict]:
     """Return cached pipeline result if a similar query was seen before, else None.
 
-    The query is namespaced by cloud provider before embedding so that
-    "HIPAA pipeline on GCP" and "HIPAA pipeline on AWS" never collide.
+    cloud_provider pins the namespace to the explicit requested provider.
+    Without it, keyword detection is used — but explicit always wins.
     """
     if not CACHE_ENABLED:
         return None
     try:
-        namespaced = _cache_query(query)
+        namespaced = _cache_query(query, cloud_provider)
         vector  = _embed(namespaced)
         results = _get_index().query(vector=vector, top_k=1, include_metadata=True)
         if results and results[0].score >= THRESHOLD:
@@ -121,20 +124,20 @@ def cache_get(query: str) -> Optional[dict]:
     return None
 
 
-def cache_set(query: str, result: dict) -> None:
+def cache_set(query: str, result: dict, cloud_provider: str | None = None) -> None:
     """Store a pipeline result in the cache, namespaced by cloud provider."""
     if not CACHE_ENABLED:
         return
     try:
-        namespaced = _cache_query(query)
-        cloud      = _quick_cloud(query)
+        cloud      = (cloud_provider or "").lower().strip() or _quick_cloud(query)
+        namespaced = _cache_query(query, cloud)
         vector     = _embed(namespaced)
         compressed = _compress(result)
         _get_index().upsert(vectors=[{
             "id": str(uuid.uuid4()),
             "vector": vector,
             "metadata": {
-                "query":      query[:500],      # for debugging in Upstash console
+                "query":      query[:500],
                 "cloud":      cloud,
                 "result":     compressed,
                 "cached_at":  int(time.time()),

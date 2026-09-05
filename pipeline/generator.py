@@ -258,21 +258,52 @@ def _build_compute_rules(requirements: dict) -> str:
     return "\n".join(f"  {r}" for r in rules)
 
 
-def _build_service_hints(requirements: dict) -> str:
-    """Positive inclusion hints: services that evaluation data shows are
-    systematically omitted for a given workload type and cloud.
+# Maps capability type → the architecture layer it belongs in.
+_CAP_TO_LAYER: dict[str, str] = {
+    "container_compute":  "compute",
+    "serverless_compute": "compute",
+    "kubernetes":         "compute",
+    "vm_compute":         "compute",
+    "ml_platform":        "compute",
+    "relational_db":      "database",
+    "nosql_db":           "database",
+    "cache":              "database",
+    "object_storage":     "database",
+    "message_queue":      "messaging",
+    "event_stream":       "messaging",
+    "cdn":                "edge",
+    "load_balancer":      "networking",
+    "api_gateway":        "networking",
+    "waf":                "security",
+    "key_management":     "security",
+    "secret_management":  "security",
+    "monitoring":         "monitoring",
+}
 
-    Driven by the extractor's structured output (workload_type, compliance_requirements,
-    scale, requires_realtime, budget_cap_usd) — not raw keyword matching on the query.
+# LLM-specific canonical service per cloud — overrides the generic ml_platform entry.
+_LLM_SERVICE: dict[str, str] = {
+    "aws":   "Amazon Bedrock",
+    "azure": "Azure OpenAI Service",
+    "gcp":   "Vertex AI (Gemini)",
+}
+
+
+def _requirements_to_capabilities(requirements: dict) -> tuple[set, dict]:
+    """Map structured requirements to a set of needed capability types.
+
+    Returns:
+        capabilities: set[str]  — abstract capability types needed
+        overrides:    dict[cap → service_name]  — cases where the generic
+                      canonical service should be replaced (e.g. LLM on Azure)
     """
-    cloud      = requirements.get("cloud_provider", "aws").lower()
     wtype      = str(requirements.get("workload_type", "")).lower()
     scale      = str(requirements.get("scale", "")).lower()
     compliance = [s.lower() for s in requirements.get("compliance_requirements", [])]
-    constraints = " ".join(requirements.get("constraints", [])).lower()
-    budget     = requirements.get("budget_cap_usd")
+    raw_constraints = requirements.get("constraints", [])
+    constraints = " ".join(raw_constraints).lower() if raw_constraints else ""
+    requires_realtime = requirements.get("requires_realtime", False)
+    cloud = requirements.get("cloud_provider", "aws").lower()
 
-    # Derived flags — trust the extractor's interpretation rather than re-parsing raw text
     is_high_scale  = any(x in scale for x in ["500k", "million", "high", "concurrent", "large"])
     is_ml          = any(x in wtype for x in ["ml", "machine learning", "ai", "llm", "inference", "training", "model"])
     is_data        = any(x in wtype for x in ["data pipeline", "etl", "analytics", "warehouse", "streaming", "iot", "telemetry", "ingestion"])
@@ -284,6 +315,85 @@ def _build_service_hints(requirements: dict) -> str:
     is_llm         = any(x in wtype for x in ["llm", "chatbot", "language model", "gpt", "generative ai", "openai"])
     has_compliance = bool(compliance) or any(x in constraints for x in ["security", "zero-trust", "enterprise", "regulated"])
 
+    caps: set[str] = {"monitoring"}
+    overrides: dict[str, str] = {}
+
+    # Static sites are minimal: just storage + CDN, no compute or databases.
+    if is_static:
+        caps.update({"object_storage", "cdn"})
+        return caps, overrides
+
+    # Compute — pick the appropriate tier.
+    if is_high_scale or is_gaming or (is_data and not is_serverless):
+        caps.add("kubernetes")
+    elif is_serverless and not is_web:
+        caps.add("serverless_compute")
+    else:
+        caps.add("container_compute")
+
+    # ML / LLM
+    if is_ml or is_llm:
+        caps.add("ml_platform")
+        caps.add("object_storage")
+    if is_llm:
+        overrides["ml_platform"] = _LLM_SERVICE.get(cloud, "Amazon Bedrock")
+
+    # Database
+    if is_data or is_ml:
+        caps.add("nosql_db")
+        caps.add("object_storage")
+    if is_gaming or (is_serverless and not is_web):
+        caps.add("nosql_db")
+    if not (is_serverless and not is_web) or is_web or has_compliance:
+        caps.add("relational_db")
+
+    # Cache
+    if requires_realtime or is_gaming or is_high_scale:
+        caps.add("cache")
+
+    # Messaging
+    if is_data or is_gaming:
+        caps.add("event_stream")
+    if is_api or is_web:
+        caps.add("message_queue")
+
+    # Object storage
+    if is_web or is_api or is_data:
+        caps.add("object_storage")
+
+    # CDN
+    if is_web:
+        caps.add("cdn")
+
+    # API gateway
+    if is_api or has_compliance or is_llm:
+        caps.add("api_gateway")
+
+    # Load balancer
+    caps.add("load_balancer")
+
+    # Security
+    if has_compliance:
+        caps.update({"key_management", "secret_management", "waf"})
+    if is_web:
+        caps.add("waf")
+
+    return caps, overrides
+
+
+def _build_service_hints(requirements: dict) -> str:
+    """Derive service hints via the capability IR.
+
+    requirements → capabilities → resolve(cap, cloud) → hint text
+    Adding a new workload type means adding capability mappings above;
+    no cloud-specific branches needed here.
+    """
+    from pipeline.ir import resolve
+
+    cloud  = requirements.get("cloud_provider", "aws").lower()
+    budget = requirements.get("budget_cap_usd")
+    caps, overrides = _requirements_to_capabilities(requirements)
+
     hints = []
 
     if budget and budget < 100:
@@ -292,80 +402,14 @@ def _build_service_hints(requirements: dict) -> str:
             "No Kubernetes, no container orchestration, no multiple load balancers unless required."
         )
 
-    if cloud == "azure":
-        if has_compliance:
-            hints.append("INCLUDE Microsoft Entra ID in 'security' (identity, SSO, MFA).")
-            hints.append("INCLUDE Azure Key Vault in 'security' (secrets, certificates, encryption keys).")
-            hints.append("INCLUDE Microsoft Defender for Cloud in 'security' (threat protection, compliance posture).")
-
-        if is_llm:
-            hints.append("INCLUDE Azure OpenAI Service in 'compute' for LLM inference (GPT-4, embeddings).")
-
-        if is_ml and not is_llm:
-            hints.append("INCLUDE Azure Machine Learning in 'compute' for model training and MLOps.")
-
-        if is_static:
-            hints.append(
-                "STATIC SITE: Use Azure Blob Storage (static hosting) + Azure CDN ONLY. "
-                "No App Service, AKS, VMs, or load balancers."
-            )
-        elif is_web:
-            hints.append("INCLUDE Azure CDN in 'edge'. Use Azure Front Door only for multi-region global routing.")
-            hints.append("INCLUDE Azure App Service in 'compute' for the web application.")
-
-        if is_serverless and not is_web:
-            hints.append("INCLUDE Azure Functions in 'compute' for serverless event-driven processing.")
-
-        if is_high_scale or is_gaming:
-            hints.append("INCLUDE AKS in 'compute' for container orchestration at high scale.")
-            hints.append("INCLUDE Azure Cache for Redis in 'database' for low-latency caching and sessions.")
-
-        if is_data:
-            hints.append("INCLUDE Azure Event Hubs in 'messaging' for high-throughput data ingestion.")
-            hints.append("INCLUDE Azure Data Lake Storage Gen2 in 'database' for scalable data lake storage.")
-            hints.append("INCLUDE Azure Data Factory in 'compute' for ETL/ELT orchestration.")
-
-        if is_data or is_ml or is_high_scale:
-            hints.append(
-                "INCLUDE Azure Blob Storage in 'database' or 'storage' for object storage "
-                "(model artifacts, raw data, backups). Use 'Azure Blob Storage' — "
-                "not ADLS Gen2 unless hierarchical namespace is explicitly required."
-            )
-
-        if is_api or has_compliance or is_llm:
-            hints.append("INCLUDE Azure API Management in 'networking' for API gateway and rate limiting.")
-
-    elif cloud == "gcp":
-        if has_compliance:
-            hints.append(
-                "REQUIRED: Cloud Secret Manager MUST appear in 'security' "
-                "(API keys, database passwords, TLS certificates)."
-            )
-            hints.append("INCLUDE Cloud Armor in 'security' for WAF rules and DDoS protection.")
-
-        if is_static:
-            hints.append(
-                "STATIC SITE: Use Cloud Storage (GCS static hosting) + Cloud CDN ONLY. "
-                "No Cloud Run, Cloud SQL, App Engine, or GKE."
-            )
-        elif is_web:
-            hints.append("INCLUDE Cloud Run in 'compute' as the primary managed container platform.")
-            hints.append("INCLUDE Cloud SQL (PostgreSQL or MySQL) in 'database'.")
-
-        if is_ml:
-            hints.append("INCLUDE Vertex AI in 'compute' for model training, deployment, and inference.")
-            hints.append("INCLUDE Cloud Storage in 'database' for training data and model artifacts.")
-
-        if is_serverless and not is_web:
-            hints.append("INCLUDE Firestore in 'database' for serverless NoSQL document storage.")
-
-        if is_high_scale or is_gaming:
-            hints.append("INCLUDE GKE in 'compute' for container orchestration at high scale.")
-            hints.append("INCLUDE Memorystore for Redis in 'database' for low-latency caching.")
-
-        if is_data:
-            hints.append("INCLUDE Cloud Storage in 'storage' for data lake and raw data ingestion.")
-            hints.append("INCLUDE Dataflow in 'compute' for managed Apache Beam streaming and batch pipelines.")
+    seen_services: set[str] = set()
+    for cap in sorted(caps):
+        service = overrides.get(cap) or resolve(cap, cloud)
+        if not service or service in seen_services:
+            continue
+        seen_services.add(service)
+        layer = _CAP_TO_LAYER.get(cap, "compute")
+        hints.append(f"INCLUDE {service} in '{layer}'.")
 
     return "\n".join(f"  {h}" for h in hints) if hints else ""
 

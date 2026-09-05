@@ -173,3 +173,77 @@ class AzureProvider(CloudProvider):
         "azure media services":          "azure_media_services",
         "media services":                "azure_media_services",
     }
+
+    compliance_controls = {
+        "hipaa": [
+            {"keyword": "key vault",       "label": "Azure Key Vault",              "reason": "HIPAA requires encryption of PHI at rest using managed keys."},
+            {"keyword": "monitor",         "label": "Azure Monitor (Activity Logs)","reason": "HIPAA requires audit logging of all access to PHI."},
+            {"keyword": "defender",        "label": "Microsoft Defender for Cloud", "reason": "HIPAA expects continuous threat detection for environments storing health data."},
+            {"keyword": "virtual network", "label": "Azure Virtual Network",        "reason": "HIPAA requires PHI to be isolated in a private network."},
+        ],
+        "soc2": [
+            {"keyword": "monitor",  "label": "Azure Monitor",                 "reason": "SOC 2 CC7.2 requires logging of all privileged and user activity."},
+            {"keyword": "defender", "label": "Microsoft Defender for Cloud",  "reason": "SOC 2 CC6.8 requires continuous monitoring for unauthorized access."},
+            {"keyword": "waf",      "label": "Azure WAF",                     "reason": "SOC 2 CC6.6 requires protection against common web exploits."},
+        ],
+        "pci-dss": [
+            {"keyword": "waf",            "label": "Azure WAF",                   "reason": "PCI-DSS Req 6.6 mandates a WAF in front of all web-facing applications."},
+            {"keyword": "key vault",      "label": "Azure Key Vault",             "reason": "PCI-DSS Req 3.4 requires strong encryption for cardholder data at rest."},
+            {"keyword": "monitor",        "label": "Azure Monitor",               "reason": "PCI-DSS Req 10 mandates audit trails for all access to cardholder data."},
+            {"keyword": "defender",       "label": "Microsoft Defender for Cloud","reason": "PCI-DSS Req 11.4 requires intrusion detection systems."},
+            {"keyword": "virtual network","label": "Azure Virtual Network",       "reason": "PCI-DSS Req 1 mandates network segmentation for cardholder data."},
+        ],
+        "gdpr": [
+            {"keyword": "key vault", "label": "Azure Key Vault", "reason": "GDPR Art. 32 requires encryption of personal data at rest and in transit."},
+            {"keyword": "monitor",   "label": "Azure Monitor",   "reason": "GDPR Art. 30 requires records of all processing activities."},
+        ],
+        "fedramp": [
+            {"keyword": "monitor",   "label": "Azure Monitor",                 "reason": "FedRAMP AU-2 requires comprehensive audit event logging."},
+            {"keyword": "defender",  "label": "Microsoft Defender for Cloud",  "reason": "FedRAMP SI-3/SI-4 requires malware and intrusion detection."},
+            {"keyword": "key vault", "label": "Azure Key Vault",               "reason": "FedRAMP SC-28 requires FIPS 140-2 validated encryption at rest."},
+            {"keyword": "policy",    "label": "Azure Policy",                  "reason": "FedRAMP CM-6/CM-7 requires continuous configuration compliance."},
+        ],
+    }
+
+    ha_database_keywords = ["cosmos db", "cosmosdb", "azure sql", "azure database", "azure cache for redis", "redis"]
+    ha_compute_keywords  = ["aks", "container apps", "app service", "azure functions", "vmss"]
+    ha_lb_keywords       = ["load balancer", "application gateway", "front door"]
+    ha_missing_labels    = {
+        "db":      "a zone-redundant database (Azure Cosmos DB or Azure Database for PostgreSQL HA)",
+        "compute": "managed container compute across zones (AKS, Container Apps, or App Service)",
+        "lb":      "an Azure Application Gateway or Load Balancer for zone-redundant traffic distribution",
+    }
+    ha_suggestion = (
+        "To reach 99.99%+ availability: use Azure Cosmos DB (99.999% SLA) or "
+        "Azure Database for PostgreSQL with zone-redundant HA, run AKS or "
+        "Container Apps across availability zones, and place an Azure Application "
+        "Gateway or Load Balancer in front to distribute traffic."
+    )
+
+    cache_keywords   = ["redis", "azure cache", "azure cache for redis"]
+    cdn_keywords     = ["azure cdn", "front door", "cdn"]
+    fast_db_keywords = ["cosmos db", "cosmosdb"]
+    latency_suggestion = (
+        "Add: Azure Cache for Redis for in-memory caching (sub-millisecond reads), "
+        "Azure Cosmos DB for single-digit millisecond NoSQL reads at global scale, "
+        "Azure CDN or Azure Front Door to serve static content from 100+ edge PoPs."
+    )
+
+    multi_region_keywords = [
+        "front door", "traffic manager", "cosmos db", "cosmosdb",
+        "geo-replication", "azure front door",
+    ]
+    multi_region_suggestion = (
+        "Add Azure Front Door for global HTTP load balancing with intelligent routing "
+        "and automatic failover. For the database layer, use Azure Cosmos DB with "
+        "multi-region writes (active-active, 99.999% SLA) or Azure Database for "
+        "PostgreSQL with read replicas in each target region. "
+        "Azure Traffic Manager can also provide DNS-level failover between regions."
+    )
+
+    budget_suggestion = (
+        "Consider replacing AKS or VMs with Azure Container Apps or Azure Functions "
+        "(consumption plan), switching Azure Database for PostgreSQL to the Flexible "
+        "Server Burstable tier for dev/staging, or removing Azure Cache for Redis "
+        "if in-process caching is sufficient. Verify the stated scale is not over-provisioned."
+    )

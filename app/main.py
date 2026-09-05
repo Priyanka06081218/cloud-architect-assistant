@@ -359,7 +359,7 @@ def analyze(request: AnalyzeRequest):
         raise HTTPException(status_code=400, detail="Query too short. Describe your architecture scenario.")
 
     # Semantic cache check (Upstash Vector, similarity >= 0.92)
-    cached = cache_get(query)
+    cached = cache_get(query, cloud_provider=request.cloud_provider or None)
     if cached:
         log.info(f"Semantic cache hit for: {query[:60]}...")
         cloud = cached.get("cloud_provider", "aws").lower()
@@ -390,7 +390,7 @@ def analyze(request: AnalyzeRequest):
         cost_estimate_dollars.labels(cloud_provider=cloud).observe(cost)
 
     # Store in semantic cache
-    cache_set(query, response)
+    cache_set(query, response, cloud_provider=request.cloud_provider or None)
 
     return {**response, "cached": False, "elapsed_seconds": elapsed}
 
