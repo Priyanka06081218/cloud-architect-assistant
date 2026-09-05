@@ -111,31 +111,6 @@ def _init_redis():
         _redis_client = None
 
 
-def get_cached(query: str):
-    if _redis_client:
-        try:
-            value = _redis_client.get(f"arch:{query}")
-            if value:
-                return json.loads(value)
-        except Exception as e:
-            log.warning(f"Redis get failed: {e}")
-    # In-memory fallback
-    if query in _mem_cache:
-        response, cached_at = _mem_cache[query]
-        if time.time() - cached_at < CACHE_TTL_SECONDS:
-            return response
-    return None
-
-
-def set_cache(query: str, response: dict):
-    if _redis_client:
-        try:
-            _redis_client.setex(f"arch:{query}", CACHE_TTL_SECONDS, json.dumps(response))
-            return
-        except Exception as e:
-            log.warning(f"Redis set failed: {e}")
-    _mem_cache[query] = (response, time.time())
-
 
 
 GRAFANA_REMOTE_WRITE_URL   = os.getenv("GRAFANA_REMOTE_WRITE_URL", "")
@@ -195,29 +170,40 @@ class AnalyzeRequest(BaseModel):
 
 
 class DriftRequest(BaseModel):
+    """Read-only experimental drift scan request.
+
+    EXPERIMENTAL — accepts long-lived static credentials for portfolio demonstration.
+    Production systems should use short-lived credentials:
+      AWS   → IAM role / STS AssumeRole
+      Azure → Managed Identity / Workload Identity Federation
+      GCP   → Workload Identity / Application Default Credentials
+
+    Credentials are used only for the scan (read-only API calls) and are never stored.
+    """
+
     architecture: dict           # the 'architecture' key from /analyze response
     cloud_provider: str = "aws"  # "aws" | "azure" | "gcp"
     region: str = "us-east-1"
-    # AWS credentials
+    # AWS — read-only IAM user key (production: use IAM role / STS instead)
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    # Azure credentials
+    # Azure — service principal (production: use Managed Identity instead)
     subscription_id: str = ""
     tenant_id: str = ""
     client_id: str = ""
     client_secret: str = ""
     resource_group: str = ""
-    # GCP credentials
+    # GCP — service account JSON (production: use Workload Identity instead)
     project_id: str = ""
-    service_account_json: str = ""  # full service account JSON as a string
+    service_account_json: str = ""
 
     class Config:
         json_schema_extra = {
             "example": {
                 "architecture": {"layers": {"compute": ["Amazon ECS"], "database": ["Amazon RDS"]}},
                 "cloud_provider": "aws",
-                "aws_access_key_id": "AKIA...",
-                "aws_secret_access_key": "...",
+                "aws_access_key_id": "<read-only IAM access key>",
+                "aws_secret_access_key": "<secret>",
                 "region": "us-east-1",
             }
         }
@@ -242,6 +228,13 @@ class SnapshotSaveRequest(BaseModel):
 
 
 class DriftScheduleRequest(BaseModel):
+    """Read-only experimental scheduled drift scan request.
+
+    EXPERIMENTAL — see DriftRequest for credential limitations and production alternatives.
+    Credentials are stored only in the in-process schedule store for the lifetime of this
+    server process and are never written to disk or logged.
+    """
+
     name: str
     snapshot_name: str
     cloud_provider: str = "aws"       # "aws" | "azure" | "gcp"
@@ -249,16 +242,16 @@ class DriftScheduleRequest(BaseModel):
     interval_minutes: int = 60
     alert_threshold: int = 60
     alert_webhook_url: str = ""
-    # AWS
+    # AWS — read-only IAM user key (production: use IAM role / STS instead)
     aws_access_key_id: str = ""
     aws_secret_access_key: str = ""
-    # Azure
+    # Azure — service principal (production: use Managed Identity instead)
     subscription_id: str = ""
     tenant_id: str = ""
     client_id: str = ""
     client_secret: str = ""
     resource_group: str = ""
-    # GCP
+    # GCP — service account JSON (production: use Workload Identity instead)
     project_id: str = ""
     service_account_json: str = ""
 
@@ -338,14 +331,17 @@ def flush_cache():
 def analyze(request: AnalyzeRequest):
     """Main endpoint — runs the full RAG pipeline for a cloud architecture query.
 
-    Takes a natural language scenario and returns:
-    - Architecture recommendation (which AWS services to use)
-    - Service trade-off reasoning (why these services, not alternatives)
-    - Monthly cost breakdown
-    - Terraform HCL code
-    - Mermaid architecture diagram
+    Supports AWS, Azure, and GCP. Cloud is auto-detected from the query or pinned
+    via the cloud_provider field.
 
-    Responses are cached for 24 hours — identical queries return instantly.
+    Returns:
+    - Architecture recommendation (services, layers, trade-off reasoning)
+    - Monthly cost breakdown with scale scenarios
+    - Terraform HCL
+    - Mermaid architecture diagram
+    - Constraint violations
+
+    Responses are semantically cached for 24 hours, namespaced by cloud provider.
     """
 
     query = request.query.strip()
@@ -378,6 +374,9 @@ def analyze(request: AnalyzeRequest):
     elapsed = round(time.time() - start, 2)
     log.info(f"Pipeline completed in {elapsed}s")
 
+    # Use the cloud the pipeline actually selected, not what the caller requested.
+    # When cloud_provider=None (auto-detect), the pipeline resolves it; storing
+    # under the resolved cloud ensures cache hits use the correct namespace.
     cloud = response.get("cloud_provider", "aws").lower()
     pipeline_requests_total.labels(cloud_provider=cloud, cached="false").inc()
     pipeline_duration_seconds.labels(cloud_provider=cloud).observe(elapsed)
@@ -385,7 +384,7 @@ def analyze(request: AnalyzeRequest):
     if cost > 0:
         cost_estimate_dollars.labels(cloud_provider=cloud).observe(cost)
 
-    cache_set(query, response, cloud_provider=request.cloud_provider or None)
+    cache_set(query, response, cloud_provider=cloud)
 
     return {**response, "cached": False, "elapsed_seconds": elapsed}
 
@@ -447,15 +446,23 @@ def analyze_debate(request: AnalyzeRequest):
 
 @app.post("/drift")
 def drift(request: DriftRequest):
-    """Architecture drift detection — scans a real cloud account (AWS, Azure, or GCP)
-    and compares what's deployed against the recommended architecture from /analyze.
+    """[EXPERIMENTAL] Read-only architecture drift scan.
+
+    Scans a real cloud account (AWS, Azure, or GCP) using the supplied credentials
+    and compares what is deployed against the recommended architecture from /analyze.
+
+    All API calls are read-only (Describe/List/Get). Credentials are used only for
+    this request and are never stored or logged.
+
+    NOTE: This endpoint accepts long-lived static credentials for portfolio
+    demonstration purposes. A production system should obtain short-lived credentials
+    server-side via IAM roles, Managed Identity, or Workload Identity rather than
+    accepting them in the request body.
 
     Returns:
-    - snapshot: what was found in the account (per service)
-    - findings: list of drift items (missing services, misconfigurations)
-    - score: overall health score 0–100 with grade (A–F) and severity counts
-
-    Credentials are used only for the scan (read-only) and never stored.
+    - snapshot: services found in the account
+    - findings: drift items with severity and fix suggestions
+    - score: health score 0-100 with grade (A-F) and severity counts
     """
     cloud = (request.cloud_provider or "aws").lower()
 

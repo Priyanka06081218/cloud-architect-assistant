@@ -1,10 +1,20 @@
 # pipeline/drift_detector.py
 #
-# Architecture Drift Detector
+# Read-only experimental drift detector.
 #
 # Scans a real cloud account (AWS, Azure, or GCP) and compares what's deployed
 # against what the pipeline recommended. Produces a drift report with
 # severity-scored gaps and fix suggestions.
+#
+# EXPERIMENTAL — intended for portfolio demonstration, not production use.
+# This module accepts long-lived static credentials (IAM access keys,
+# service principal secrets, service account JSON). A production system
+# should use short-lived credentials obtained via:
+#   AWS   → IAM role / STS AssumeRole / EC2 instance profile
+#   Azure → Managed Identity / Workload Identity Federation
+#   GCP   → Workload Identity / Application Default Credentials
+#
+# All API calls are read-only (Describe/List/Get); no mutating calls are made.
 
 import json
 import logging
