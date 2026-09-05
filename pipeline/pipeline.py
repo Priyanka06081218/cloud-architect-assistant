@@ -15,6 +15,10 @@
 #     → return primary + alternatives + scores
 
 import json
+import logging
+
+log = logging.getLogger(__name__)
+
 from pipeline.extractor          import extract_requirements
 from pipeline.retriever          import retrieve_for_architecture, retrieve_for_tradeoffs, retrieve_for_terraform
 from pipeline.generator          import generate_architecture, generate_terraform
@@ -48,9 +52,9 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         Full structured response with all 6 output sections.
     """
 
-    print(f"\n[Pipeline] Query: {user_query[:80]}...")
+    log.info(f"[Pipeline] Query: {user_query[:80]}...")
 
-    print("[1/6] Extracting requirements...")
+    log.info("[1/6] Extracting requirements...")
     requirements = extract_requirements(user_query)
 
     # If the caller explicitly specified a cloud, honour it — don't let the
@@ -60,24 +64,24 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
 
     # Resolve cloud provider early — used by cost estimation and diagram labels
     provider = get_provider(requirements.get("cloud_provider", "aws"))
-    print(f"      Cloud: {provider.name}")
+    log.info(f"      Cloud: {provider.name}")
 
     # If a cloud-specific collection is empty, the retriever returns "" and the LLM
     # falls back to its training knowledge — no hard failure.
-    print("[2/6] Retrieving context from vector DB...")
+    log.info("[2/6] Retrieving context from vector DB...")
     arch_context     = retrieve_for_architecture(requirements)
     tradeoff_context = retrieve_for_tradeoffs(requirements)
     if arch_context:
-        print(f"      RAG context retrieved for {provider.name}")
+        log.info(f"      RAG context retrieved for {provider.name}")
     else:
-        print(f"      No RAG context for {provider.name} — LLM will use training knowledge")
+        log.info(f"      No RAG context for {provider.name} — LLM will use training knowledge")
 
-    print("[3/6] Generating architecture recommendation...")
+    log.info("[3/6] Generating architecture recommendation...")
     arch_result = generate_architecture(requirements, arch_context, tradeoff_context)
 
     architecture = arch_result.get("architecture", {})
 
-    print("[4/6] Evaluating candidate architectures...")
+    log.info("[4/6] Evaluating candidate architectures...")
     raw_candidates = generate_candidates(architecture, requirements)
 
     evaluated = []
@@ -108,7 +112,7 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         for i, e in enumerate(evaluated)
     ]
 
-    print("[5/6] Generating Terraform...")
+    log.info("[5/6] Generating Terraform...")
     all_services     = []
     for layer_svcs in architecture.get("layers", {}).values():
         all_services.extend(layer_svcs)
@@ -116,7 +120,7 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     terraform_context = retrieve_for_terraform(all_services, cloud_provider=requirements.get("cloud_provider", "aws"))
     terraform         = generate_terraform(architecture, terraform_context, provider=provider)
 
-    print("[6/6] Generating architecture diagram...")
+    log.info("[6/6] Generating architecture diagram...")
     diagram = generate_mermaid(architecture)
 
     response = {
@@ -133,7 +137,7 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         "diagram":               diagram,
     }
 
-    print("[Pipeline] Done.")
+    log.info("[Pipeline] Done.")
     return response
 
 

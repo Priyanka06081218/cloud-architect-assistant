@@ -80,13 +80,20 @@ def metrics():
     """Prometheus metrics endpoint."""
     return Response(generate_latest(METRICS_REGISTRY), media_type=CONTENT_TYPE_LATEST)
 
-# Allow the React frontend to call this API
-# In production, replace "*" with your actual frontend domain
+# ALLOWED_ORIGINS: comma-separated list of permitted frontend origins.
+# Set this env var on Railway to your Vercel URL (and any preview URLs).
+# Falls back to localhost only — never "*" in a real deployment.
+_raw_origins = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:3000,http://localhost:3001,https://cloud-architect-assistant.vercel.app",
+)
+_allowed_origins = [o.strip() for o in _raw_origins.split(",") if o.strip()]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_origins=_allowed_origins,
+    allow_methods=["GET", "POST", "OPTIONS"],
+    allow_headers=["Content-Type", "Authorization"],
 )
 
 # When REDIS_URL is set, uses Redis for distributed cache; falls back to in-memory for local dev.

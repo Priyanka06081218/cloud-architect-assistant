@@ -29,13 +29,13 @@ This project fixes that. Describe your system in a sentence or two, pick a cloud
 
 When you send a query like *"Design an Azure architecture for a HIPAA-compliant patient data platform with 50,000 daily users"*, the system returns six things:
 
-**Architecture recommendation.** A layered breakdown of which cloud services to use -- edge, networking, compute, database, messaging, security, and monitoring. Works across AWS, Azure, and GCP. Every architecture is guaranteed to include a VPC or Virtual Network -- enforced programmatically after the LLM call.
+**Architecture recommendation.** A layered breakdown of which cloud services to use -- edge, networking, compute, database, messaging, security, and monitoring. Works across AWS, Azure, and GCP. Every architecture always includes a VPC or Virtual Network -- enforced programmatically after the LLM call.
 
 **Trade-off analysis.** For each major decision, the system explains what it chose and why -- for example, why it picked Azure Container Apps over AKS for a given workload, or Cloud Run over GKE on GCP.
 
 **Cost estimate.** A monthly breakdown per service, with scale-aware pricing. The cost model knows that a system handling 5,000 users per day needs one instance, while a system handling 5,000,000 users per day needs 25x as many. It accounts for multi-region deployments, workload type (gaming, HFT, batch), and provider-specific pricing.
 
-**Terraform HCL.** Production-ready infrastructure-as-code, retrieved from real GitHub repositories and adapted to the recommended services.
+**Terraform HCL.** Infrastructure-as-code generated with retrieved examples from real GitHub repositories as context, adapted to the recommended services. Intended as a starting point, not a production-verified template.
 
 **Architecture diagram.** A Mermaid flowchart showing the data flow between services.
 

@@ -11,8 +11,11 @@
 # recommendation that explicitly resolves the conflicts between them.
 
 import json
+import logging
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
+
+log = logging.getLogger(__name__)
 from config import VLLM_BASE_URL, FINETUNE_MODEL
 
 try:
@@ -324,8 +327,8 @@ def run_debate(user_query: str, cloud_provider: str | None = None) -> dict:
         cloud_provider = _detect_cloud(user_query)
 
     hints = _CLOUD_HINTS.get(cloud_provider, _CLOUD_HINTS["aws"])
-    print(f"\n[Debate] Query: {user_query[:80]}... | Cloud: {hints['name']}")
-    print("[Debate] Running 3 agents in parallel...")
+    log.info(f"[Debate] Query: {user_query[:80]}... | Cloud: {hints['name']}")
+    log.info("[Debate] Running 3 agents in parallel...")
 
     agent_configs = [
         ("cost",        _build_cost_prompt(hints)),
@@ -342,9 +345,9 @@ def run_debate(user_query: str, cloud_provider: str | None = None) -> dict:
         for future in as_completed(futures):
             name = futures[future]
             proposals[name] = future.result()
-            print(f"  {name.capitalize()} agent done")
+            log.info(f"  {name.capitalize()} agent done")
 
-    print("[Debate] Moderator synthesizing...")
+    log.info("[Debate] Moderator synthesizing...")
     synthesis = run_moderator(
         user_query,
         proposals["cost"],
@@ -352,7 +355,7 @@ def run_debate(user_query: str, cloud_provider: str | None = None) -> dict:
         proposals["security"],
         cloud_provider=cloud_provider,
     )
-    print("[Debate] Done.")
+    log.info("[Debate] Done.")
 
     return {
         "query":         user_query,

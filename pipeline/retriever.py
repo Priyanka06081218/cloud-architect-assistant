@@ -11,8 +11,12 @@
 # data hasn't been collected yet), the function falls back gracefully with an
 # empty string so the LLM still generates a response from its training.
 
+import logging
+
 import chromadb
 from sentence_transformers import SentenceTransformer
+
+log = logging.getLogger(__name__)
 
 CHROMA_DIR  = "data/chromadb"
 EMBED_MODEL = "all-MiniLM-L6-v2"
@@ -112,7 +116,7 @@ def retrieve_for_architecture(requirements: dict) -> str:
     chunks = retrieve(col_name, query, n_results=5)
 
     if not chunks:
-        print(f"      [retriever] {col_name} empty or missing — skipping RAG for architecture")
+        log.warning(f"[retriever] {col_name} empty or missing — skipping RAG for architecture")
         return ""
 
     return "\n\n---\n\n".join(chunks)
@@ -133,7 +137,7 @@ def retrieve_for_tradeoffs(requirements: dict) -> str:
     chunks = retrieve(col_name, query, n_results=4)
 
     if not chunks:
-        print(f"      [retriever] {col_name} empty or missing — skipping RAG for tradeoffs")
+        log.warning(f"[retriever] {col_name} empty or missing — skipping RAG for tradeoffs")
         return ""
 
     return "\n\n---\n\n".join(chunks)
@@ -152,7 +156,7 @@ def retrieve_for_terraform(services: list[str], cloud_provider: str = "aws") -> 
     chunks = retrieve(col_name, query, n_results=4)
 
     if not chunks:
-        print(f"      [retriever] {col_name} empty or missing — skipping RAG for Terraform")
+        log.warning(f"[retriever] {col_name} empty or missing — skipping RAG for Terraform")
         return ""
 
     return "\n\n---\n\n".join(chunks)

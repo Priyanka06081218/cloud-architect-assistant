@@ -528,7 +528,7 @@ All services in every layer MUST be {cloud} services — no cross-cloud contamin
 
     result = json.loads(_llm_call(prompt, temperature=0.3, json_mode=True))
 
-    # Guarantee the networking anchor appears — the LLM sometimes omits it.
+    # Ensure the networking anchor appears — the LLM sometimes omits it.
     layers     = result.get("architecture", {}).get("layers", {})
     networking = layers.get("networking", [])
     anchor     = _networking_anchor(requirements)

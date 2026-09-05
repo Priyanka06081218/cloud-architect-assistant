@@ -23,4 +23,9 @@ data/raw/whitepapers/
 # macOS
 .DS_Store
 **/.DS_Store
-.DS_Store
+
+# Locust load test output
+baseline_metrics_*.csv
+
+# One-off prototype artifacts
+arch.json

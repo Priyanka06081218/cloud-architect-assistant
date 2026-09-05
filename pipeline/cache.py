@@ -9,7 +9,7 @@
 #   4. Otherwise: cache MISS → caller runs the pipeline, then we store the result
 #
 # Why 0.92?  Queries that differ by <8% cosine distance almost always produce
-# identical architecture recommendations. Empirically: "serverless API 10k users"
+# identical architecture recommendations. In testing: "serverless API 10k users"
 # and "serverless REST API 10k daily users" are ~0.95 similar — same answer.
 
 import json
