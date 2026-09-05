@@ -50,7 +50,6 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
 
     print(f"\n[Pipeline] Query: {user_query[:80]}...")
 
-    # Step 1: Extract structured requirements from the query
     print("[1/6] Extracting requirements...")
     requirements = extract_requirements(user_query)
 
@@ -63,13 +62,8 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     provider = get_provider(requirements.get("cloud_provider", "aws"))
     print(f"      Cloud: {provider.name}")
 
-    # Step 2: Retrieve relevant context from ChromaDB.
-    # The retriever queries cloud-specific collections:
-    #   architecture_patterns       → AWS
-    #   architecture_patterns_azure → Azure
-    #   architecture_patterns_gcp   → GCP
-    # If a cloud-specific collection is empty (data not yet collected),
-    # the retriever returns "" and the LLM falls back to its training knowledge.
+    # If a cloud-specific collection is empty, the retriever returns "" and the LLM
+    # falls back to its training knowledge — no hard failure.
     print("[2/6] Retrieving context from vector DB...")
     arch_context     = retrieve_for_architecture(requirements)
     tradeoff_context = retrieve_for_tradeoffs(requirements)
@@ -78,16 +72,11 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     else:
         print(f"      No RAG context for {provider.name} — LLM will use training knowledge")
 
-    # Step 3: Generate architecture recommendation + trade-offs (LLM call 1)
     print("[3/6] Generating architecture recommendation...")
     arch_result = generate_architecture(requirements, arch_context, tradeoff_context)
 
     architecture = arch_result.get("architecture", {})
 
-    # Step 4: Generate and evaluate candidate architectures.
-    # The LLM produced one architecture. We generate 2-4 variants by swapping
-    # compute/database choices, evaluate all on cost + latency + availability +
-    # constraints, and find the Pareto-optimal set.
     print("[4/6] Evaluating candidate architectures...")
     raw_candidates = generate_candidates(architecture, requirements)
 
@@ -119,7 +108,6 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         for i, e in enumerate(evaluated)
     ]
 
-    # Step 5: Generate Terraform (LLM call 2, uses terraform_examples collection)
     print("[5/6] Generating Terraform...")
     all_services     = []
     for layer_svcs in architecture.get("layers", {}).values():
@@ -128,7 +116,6 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     terraform_context = retrieve_for_terraform(all_services, cloud_provider=requirements.get("cloud_provider", "aws"))
     terraform         = generate_terraform(architecture, terraform_context, provider=provider)
 
-    # Step 6: Generate Mermaid diagram (no LLM)
     print("[6/6] Generating architecture diagram...")
     diagram = generate_mermaid(architecture)
 
@@ -151,19 +138,21 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
 
 
 if __name__ == "__main__":
-    # End-to-end test — run this to verify the full pipeline works
-    test_queries = [
-        "Design an AWS architecture for an e-commerce app expecting 100k concurrent users during Black Friday.",
-        "I need a serverless API for a mobile app with 50,000 daily active users. Keep costs minimal.",
-        "Design a HIPAA-compliant data pipeline on AWS for processing patient health records in real time.",
+    # End-to-end smoke test — one query per cloud to catch regressions in any provider.
+    test_cases = [
+        ("AWS",   "Design an e-commerce platform on AWS for 100k concurrent users with 99.99% availability.", "aws"),
+        ("Azure", "Build a HIPAA-compliant patient records system on Azure with encryption and audit logging.", "azure"),
+        ("GCP",   "Design a real-time IoT data pipeline on GCP for 10,000 sensors with sub-5s query latency.", "gcp"),
     ]
 
-    for query in test_queries:
+    for label, query, cloud in test_cases:
         print("\n" + "=" * 70)
-        result = run_pipeline(query)
-        print(f"\nScenario: {result['scenario_summary']}")
-        print(f"Services: {result['architecture'].get('layers', {})}")
-        print(f"Total cost: ${result['cost']['total_monthly_usd']}/month")
-        print(f"Trade-offs: {len(result['trade_offs'])} decisions")
-        print(f"Terraform lines: {len(result['terraform'].splitlines())}")
-        print(f"Diagram nodes: {result['diagram'].count('-->')}")
+        print(f"[{label}] {query[:70]}...")
+        result = run_pipeline(query, cloud_provider=cloud)
+        print(f"  Cloud:      {result['cloud_provider']}")
+        print(f"  Scenario:   {result['scenario_summary'][:80]}")
+        print(f"  Cost:       ${result['cost']['total_monthly_usd']}/month")
+        print(f"  Services:   {sum(len(v) for v in result['architecture'].get('layers', {}).values())} across {len(result['architecture'].get('layers', {}))} layers")
+        print(f"  Trade-offs: {len(result['trade_offs'])}")
+        print(f"  Violations: {len(result['constraint_violations'])}")
+        print(f"  Terraform:  {len(result['terraform'].splitlines())} lines")

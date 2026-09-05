@@ -22,9 +22,7 @@ from pipeline.cloud_providers import get_provider
 from pipeline.constraint_engine import validate_constraints
 
 
-# ---------------------------------------------------------------------------
 # Service extraction
-# ---------------------------------------------------------------------------
 
 def extract_services(architecture: dict) -> list[str]:
     """Flatten all services from architecture layers into a single list."""
@@ -42,12 +40,10 @@ def _service_match(expected: str, actual_services: list[str]) -> bool:
     return any(expected_lower in svc.lower() for svc in actual_services)
 
 
-# ---------------------------------------------------------------------------
 # Score 1: Capability completeness
 # Uses ir.classify() to map actual services → capability classes, then checks
 # whether required_capabilities are covered. Falls back to substring match if
 # the scenario has no required_capabilities (backward compatibility).
-# ---------------------------------------------------------------------------
 
 def score_capability_completeness(
     required_capabilities: list[str],
@@ -87,10 +83,8 @@ def score_capability_completeness(
     }
 
 
-# ---------------------------------------------------------------------------
 # Score 2: Provider correctness
 # Flags any service that matches a competing cloud's known service keywords.
-# ---------------------------------------------------------------------------
 
 _CLOUD_KEYWORDS: dict[str, list[str]] = {
     "aws": [
@@ -181,9 +175,7 @@ def score_provider_correctness(
     }
 
 
-# ---------------------------------------------------------------------------
 # Score 3: Forbidden service violations (unchanged)
-# ---------------------------------------------------------------------------
 
 def score_forbidden_violations(
     forbidden_services: list[str],
@@ -197,9 +189,7 @@ def score_forbidden_violations(
     }
 
 
-# ---------------------------------------------------------------------------
 # Score 4: Cost range check (unchanged)
-# ---------------------------------------------------------------------------
 
 def score_cost_range(
     expected_range: Optional[list],
@@ -222,10 +212,8 @@ def score_cost_range(
     }
 
 
-# ---------------------------------------------------------------------------
 # Score 5: Compliance coverage — actual service presence, not string mention
 # Uses provider.compliance_controls (same data the constraint engine uses).
-# ---------------------------------------------------------------------------
 
 def score_compliance_coverage(
     required_compliance: list[str],
@@ -288,9 +276,7 @@ def score_compliance_coverage(
     }
 
 
-# ---------------------------------------------------------------------------
 # Score 6: Constraint satisfaction via the deterministic constraint engine
-# ---------------------------------------------------------------------------
 
 def _scenario_to_requirements(scenario: dict, cloud_provider: str) -> dict:
     """Convert a golden-set scenario's constraints into the pipeline requirements format."""
@@ -352,9 +338,7 @@ def score_constraint_satisfaction(
     }
 
 
-# ---------------------------------------------------------------------------
 # Aggregate: score one scenario
-# ---------------------------------------------------------------------------
 
 def score_scenario(scenario: dict, pipeline_output: dict, cloud_provider: str = "aws") -> dict:
     """

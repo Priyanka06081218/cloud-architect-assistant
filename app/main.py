@@ -89,9 +89,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-#  Cache — Redis if available, in-memory fallback 
-# When REDIS_URL env var is set (Docker / EKS), uses Redis for distributed cache.
-# Falls back to a simple in-memory dict for local development.
+# When REDIS_URL is set, uses Redis for distributed cache; falls back to in-memory for local dev.
 
 CACHE_TTL_SECONDS = 60 * 60 * 24  # 24 hours
 _redis_client = None
@@ -367,7 +365,6 @@ def analyze(request: AnalyzeRequest):
         pipeline_requests_total.labels(cloud_provider=cloud, cached="true").inc()
         return {**cached, "cached": True, "elapsed_seconds": 0}
 
-    # Run the full pipeline
     log.info(f"Running pipeline for: {query[:60]}...")
     cache_misses_total.inc()
     start = time.time()
@@ -381,7 +378,6 @@ def analyze(request: AnalyzeRequest):
     elapsed = round(time.time() - start, 2)
     log.info(f"Pipeline completed in {elapsed}s")
 
-    # Record business metrics
     cloud = response.get("cloud_provider", "aws").lower()
     pipeline_requests_total.labels(cloud_provider=cloud, cached="false").inc()
     pipeline_duration_seconds.labels(cloud_provider=cloud).observe(elapsed)
@@ -389,7 +385,6 @@ def analyze(request: AnalyzeRequest):
     if cost > 0:
         cost_estimate_dollars.labels(cloud_provider=cloud).observe(cost)
 
-    # Store in semantic cache
     cache_set(query, response, cloud_provider=request.cloud_provider or None)
 
     return {**response, "cached": False, "elapsed_seconds": elapsed}
@@ -415,7 +410,6 @@ def analyze_debate(request: AnalyzeRequest):
     cloud_provider = (request.cloud_provider or "").lower().strip() or None
     cache_key = f"debate:{cloud_provider or 'auto'}:{query}"
 
-    # Check cache
     if _redis_client:
         try:
             value = _redis_client.get(cache_key)
@@ -440,7 +434,6 @@ def analyze_debate(request: AnalyzeRequest):
     elapsed = round(time.time() - start, 2)
     log.info(f"Debate completed in {elapsed}s")
 
-    # Cache it
     if _redis_client:
         try:
             _redis_client.setex(cache_key, CACHE_TTL_SECONDS, json.dumps(result))
