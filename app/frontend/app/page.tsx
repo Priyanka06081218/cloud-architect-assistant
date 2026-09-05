@@ -69,6 +69,23 @@ export interface AnalyzeResponse {
     description: string;
     suggestion: string;
   }>;
+  alternatives?: Array<{
+    label: string;
+    change: string;
+    is_primary: boolean;
+    is_pareto: boolean;
+    scores: {
+      cost_score: number;
+      latency_score: number;
+      availability_score: number;
+      constraint_score: number;
+      composite: number;
+    };
+    cost: { total_monthly_usd: number };
+    performance: { p95_ms: number; availability_pct: string };
+    architecture: { layers: Record<string, string[]> };
+  }>;
+  pareto_indices?: number[];
   terraform: string;
   diagram: string;
   cached: boolean;

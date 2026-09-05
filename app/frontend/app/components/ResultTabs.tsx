@@ -10,18 +10,20 @@ import DiagramTab from "./tabs/DiagramTab";
 import DebateTab from "./tabs/DebateTab";
 import DriftTab from "./tabs/DriftTab";
 import PerformanceTab from "./tabs/PerformanceTab";
+import AlternativesTab from "./tabs/AlternativesTab";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000";
 
 const TABS = [
-  { id: "architecture", label: "Architecture" },
-  { id: "tradeoffs",    label: "Trade-offs" },
-  { id: "cost",         label: "Cost" },
-  { id: "performance",  label: "Performance" },
-  { id: "terraform",    label: "Terraform" },
-  { id: "diagram",      label: "Diagram" },
-  { id: "debate",       label: "Debate" },
-  { id: "drift",        label: "Drift" },
+  { id: "architecture",  label: "Architecture" },
+  { id: "tradeoffs",     label: "Trade-offs" },
+  { id: "alternatives",  label: "Alternatives" },
+  { id: "cost",          label: "Cost" },
+  { id: "performance",   label: "Performance" },
+  { id: "terraform",     label: "Terraform" },
+  { id: "diagram",       label: "Diagram" },
+  { id: "debate",        label: "Debate" },
+  { id: "drift",         label: "Drift" },
 ] as const;
 
 type TabId = (typeof TABS)[number]["id"];
@@ -83,8 +85,14 @@ export default function ResultTabs({ result }: { result: AnalyzeResponse }) {
 
       {/* Tab content */}
       <div className="p-6">
-        {active === "architecture" && <ArchitectureTab architecture={result.architecture} />}
+        {active === "architecture"  && <ArchitectureTab architecture={result.architecture} />}
         {active === "tradeoffs"    && <TradeOffsTab tradeOffs={result.trade_offs} />}
+        {active === "alternatives" && (
+          <AlternativesTab
+            alternatives={result.alternatives ?? []}
+            paretoIndices={result.pareto_indices ?? []}
+          />
+        )}
         {active === "cost"         && <CostTab cost={result.cost} />}
         {active === "performance"  && result.performance && (
           <PerformanceTab performance={result.performance} />

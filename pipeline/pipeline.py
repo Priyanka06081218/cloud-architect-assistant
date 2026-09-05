@@ -21,6 +21,8 @@ from pipeline.diagram            import generate_mermaid
 from pipeline.constraint_engine  import validate_constraints
 from pipeline.cloud_providers    import get_provider
 from pipeline.performance_model  import estimate_performance
+from pipeline.candidates         import generate_candidates
+from pipeline.evaluator          import evaluate, score_relative, find_pareto
 from pipeline.observability      import log_langfuse_status
 
 try:
@@ -80,18 +82,40 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
 
     architecture = arch_result.get("architecture", {})
 
-    # Step 4: Estimate costs — pass requirements so the calculator can apply
-    # scale-aware multipliers (number of instances scales with user load).
-    print("[4/6] Estimating costs...")
-    cost = estimate_cost(architecture, requirements, provider=provider)
+    # Step 4: Generate and evaluate candidate architectures.
+    # The LLM produced one architecture. We generate 2-4 variants by swapping
+    # compute/database choices, evaluate all on cost + latency + availability +
+    # constraints, and find the Pareto-optimal set.
+    print("[4/6] Evaluating candidate architectures...")
+    raw_candidates = generate_candidates(architecture, requirements)
 
-    # Step 4b: Estimate performance (latency, throughput, availability)
-    print("[4b] Estimating performance...")
-    performance = estimate_performance(architecture, requirements)
+    evaluated = []
+    for cand in raw_candidates:
+        ev = evaluate(cand["architecture"], requirements)
+        evaluated.append({**cand, "evaluation": ev})
 
-    # Step 4c: Validate constraints
-    print("[4c] Validating constraints...")
-    violations = validate_constraints(requirements, architecture, cost)
+    score_relative(evaluated)  # adds "scores" key to each, normalized across the set
+
+    pareto_indices = find_pareto(evaluated)
+    primary_eval   = evaluated[0]["evaluation"]  # LLM-recommended candidate
+
+    cost        = primary_eval["cost"]
+    performance = primary_eval["performance"]
+    violations  = primary_eval["violations"]     # already dicts
+
+    alternatives = [
+        {
+            "label":       e["label"],
+            "change":      e["change"],
+            "is_primary":  e["is_primary"],
+            "is_pareto":   i in pareto_indices,
+            "cost":        e["evaluation"]["cost"],
+            "performance": e["evaluation"]["performance"],
+            "scores":      e["scores"],
+            "architecture": e["architecture"],
+        }
+        for i, e in enumerate(evaluated)
+    ]
 
     # Step 5: Generate Terraform (LLM call 2, uses terraform_examples collection)
     print("[5/6] Generating Terraform...")
@@ -106,7 +130,6 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
     print("[6/6] Generating architecture diagram...")
     diagram = generate_mermaid(architecture)
 
-    # Assemble final response
     response = {
         "scenario_summary":      arch_result.get("scenario_summary", ""),
         "cloud_provider":        provider.name,
@@ -114,7 +137,9 @@ def run_pipeline(user_query: str, cloud_provider: str | None = None) -> dict:
         "trade_offs":            arch_result.get("trade_offs", []),
         "cost":                  cost,
         "performance":           performance,
-        "constraint_violations": [v.to_dict() for v in violations],
+        "constraint_violations": violations,
+        "alternatives":          alternatives,
+        "pareto_indices":        pareto_indices,
         "terraform":             terraform,
         "diagram":               diagram,
     }
