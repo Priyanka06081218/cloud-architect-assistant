@@ -9,6 +9,7 @@ from pipeline.cloud_providers.base import CloudProvider
 class GCPProvider(CloudProvider):
     name              = "GCP"
     provider_id       = "gcp"
+    alias_prefixes    = ["google cloud ", "google ", "gcp "]
     networking_anchor = "VPC Network"
     optimization_tip  = (
         "Use Committed Use Discounts (1-year) for Compute Engine to save 37%. "

@@ -49,31 +49,29 @@ class TestParseScale:
 class TestComputeMultiplier:
 
     def test_below_5k_returns_1x(self):
-        # Default (no match) is 5000 users → tier < 50k = 2x
-        # Need explicit small value — use raw_query with 1000 daily users
+        # 1000 daily users → tier < 5k → 1x
         reqs = {"raw_query": "build for 1000 daily users", "scale": "1000 daily users"}
         assert _compute_multiplier(reqs) == 1
 
-    def test_small_tier_returns_2x(self):
-        # 10k daily users → tier 5k-50k → 2x
-        assert _compute_multiplier({"scale": "10k daily users"}) == 2
+    def test_small_tier_returns_3x(self):
+        # 10k daily users → tier 5k-50k → 3x
+        assert _compute_multiplier({"scale": "10k daily users"}) == 3
 
-    def test_medium_tier_returns_4x(self):
-        # 100k daily users → tier 50k-500k → 4x
-        assert _compute_multiplier({"scale": "100k daily users"}) == 4
+    def test_medium_tier_returns_8x(self):
+        # 100k daily users → tier 50k-500k → 8x
+        assert _compute_multiplier({"scale": "100k daily users"}) == 8
 
-    def test_large_tier_returns_10x(self):
-        # 1M concurrent users → 10M daily equiv → tier 5M+ → 18x
-        # 100k concurrent → 1M daily equiv → tier 500k-5M → 10x
-        assert _compute_multiplier({"scale": "100k concurrent users"}) == 10
+    def test_large_tier_returns_25x(self):
+        # 100k concurrent → 1M daily equiv → tier 500k-5M → 25x
+        assert _compute_multiplier({"scale": "100k concurrent users"}) == 25
 
-    def test_xlarge_tier_returns_18x(self):
-        # 500k concurrent → 5M daily equiv → tier 5M+ → 18x (capped)
-        assert _compute_multiplier({"scale": "500k concurrent users"}) == 18
+    def test_xlarge_tier_returns_60x(self):
+        # 500k concurrent → 5M daily equiv → tier 5M+ → 60x
+        assert _compute_multiplier({"scale": "500k concurrent users"}) == 60
 
-    def test_default_scale_returns_2x(self):
-        # Default 5000 users is in the 5k-50k tier → 2x
-        assert _compute_multiplier({}) == 2
+    def test_default_scale_returns_3x(self):
+        # Default 5000 users is in the 5k-50k tier → 3x
+        assert _compute_multiplier({}) == 3
 
 
 # ---------------------------------------------------------------------------

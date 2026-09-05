@@ -9,6 +9,7 @@ from pipeline.cloud_providers.base import CloudProvider
 class AzureProvider(CloudProvider):
     name              = "Azure"
     provider_id       = "azure"
+    alias_prefixes    = ["microsoft azure ", "azure ", "microsoft "]
     networking_anchor = "Azure Virtual Network"
     optimization_tip  = (
         "Use Azure Reserved VM Instances (1-year) to save 30-40% on compute. "

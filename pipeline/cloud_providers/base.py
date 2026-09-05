@@ -16,6 +16,10 @@ class CloudProvider:
     optimization_tip:  str = ""
     terraform_provider: str = ""
 
+    # Marketing prefixes to strip when resolving service names.
+    # e.g. "Amazon ECS" → strip "amazon " → "ecs" → look up in service_name_map.
+    alias_prefixes: list = []
+
     # Compliance: dict[standard → list[{keyword, label, reason}]]
     compliance_controls: dict = {}
 
@@ -46,7 +50,8 @@ class CloudProvider:
         if raw in self.service_name_map:
             return self.service_name_map[raw]
         normalized = re.sub(r"\s*\(.*?\)", "", raw).strip()
-        for prefix in (self.provider_id + " ", self.name.lower() + " "):
+        for prefix in self.alias_prefixes:
             if normalized.startswith(prefix):
                 normalized = normalized[len(prefix):]
+                break
         return self.service_name_map.get(normalized)

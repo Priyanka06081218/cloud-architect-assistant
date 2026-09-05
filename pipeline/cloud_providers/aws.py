@@ -9,6 +9,7 @@ from pipeline.cloud_providers.base import CloudProvider
 class AWSProvider(CloudProvider):
     name              = "AWS"
     provider_id       = "aws"
+    alias_prefixes    = ["amazon ", "aws "]
     networking_anchor = "VPC"
     optimization_tip  = (
         "Switch to 1-year Reserved Instances for EC2/RDS/ElastiCache "

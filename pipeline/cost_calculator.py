@@ -13,22 +13,11 @@
 import re
 from pipeline.cloud_providers.aws import AWSProvider as _AWSProvider
 
-# Keep module-level aliases for backward compatibility (unit tests import these directly)
+# AWS fallback used when no provider context is available (e.g. legacy call sites).
 _DEFAULT_PROVIDER = _AWSProvider()
-PRICING          = _DEFAULT_PROVIDER.pricing
-SERVICE_NAME_MAP = _DEFAULT_PROVIDER.service_name_map
 
-# Maps extracted requirements → (compute_multiplier, storage_multiplier, region_multiplier)
-#
 # compute_multiplier: how many instances/tasks the workload needs
 # region_multiplier:  applied on top for multi-region deployments
-#
-# Heuristic tiers (concurrent users or equivalent daily load):
-#   micro:      < 5k users/day        → 1x
-#   small:      5k – 50k/day          → 2x
-#   medium:     50k – 500k/day        → 4x
-#   large:      500k – 5M/day         → 10x
-#   enterprise: 5M+/day or 100k+ TPS  → 20x
 
 _SCALE_PATTERNS = [
     # concurrent users (high weight — concurrent is much more load than daily)
@@ -198,13 +187,7 @@ def _normalize(name: str) -> str:
 
 
 def _resolve_key(service_name: str, provider=None) -> str | None:
-    if provider is not None:
-        return provider.resolve_key(service_name)
-    raw = service_name.lower().strip()
-    if raw in SERVICE_NAME_MAP:
-        return SERVICE_NAME_MAP[raw]
-    normalized = _normalize(service_name)
-    return SERVICE_NAME_MAP.get(normalized)
+    return (provider or _DEFAULT_PROVIDER).resolve_key(service_name)
 
 
 def _compute_breakdown(
